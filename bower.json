@@ -21,7 +21,7 @@
         "build.py",
         "cleanup.sh",
         "CONTRIBUTING.md",
-        "packages.json",
+        "package.json",
         "webpack.config.js"
     ]
 }
