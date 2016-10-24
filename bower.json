@@ -8,9 +8,20 @@
         "blocks_compressed_vertical.js"
     ],
     "ignore": [
-        "**/.*",
-        "node_modules",
-        "bower_components",
-        "tests"
+        "blocks_common",
+        "blocks_horizontal",
+        "blocks_vertical",
+        "core",
+        "i18n",
+        "media",
+        "msg/js",
+        "msg/json",
+        "shim",
+        "tests",
+        "build.py",
+        "cleanup.sh",
+        "CONTRIBUTING.md",
+        "packages.json",
+        "webpack.config.js",
     ]
 }
