@@ -1,0 +1,16 @@
+{
+    "name": "scratch-blocks",
+    "version": "0.0.0",
+    "main": [
+        "blockly_compressed_vertical.js",
+        "msg/messages.js",
+        "blocks_compressed.js",
+        "blocks_compressed_vertical.js"
+    ],
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "tests"
+    ]
+}
