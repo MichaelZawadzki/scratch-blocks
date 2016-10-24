@@ -13,7 +13,6 @@
         "blocks_vertical",
         "core",
         "i18n",
-        "media",
         "msg/js",
         "msg/json",
         "shim",
