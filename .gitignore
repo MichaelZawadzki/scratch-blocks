@@ -14,7 +14,6 @@ common.pyc
 /nbproject/private/
 
 # Unused by scratch-blocks
-javascript_compressed.js
 lua_compressed.js
 php_compressed.js
 python_compressed.js
