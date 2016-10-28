@@ -108,6 +108,11 @@ Blockly.JavaScript['logic_boolean'] = function(block) {
   return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };
 
+Blockly.JavaScript['operator_and'] = function(block) {
+  // Null data type.
+  return ['hello?', Blockly.JavaScript.ORDER_ATOMIC];
+};
+
 Blockly.JavaScript['logic_null'] = function(block) {
   // Null data type.
   return ['null', Blockly.JavaScript.ORDER_ATOMIC];
