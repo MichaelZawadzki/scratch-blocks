@@ -253,7 +253,7 @@ class Gen_compressed(threading.Thread):
     target_filename = language + "_compressed.js"
     # Define the parameters for the POST request.
     params = [
-        ("compilation_level", "SIMPLE_OPTIMIZATIONS"),
+        ("compilation_level", "WHITESPACE_ONLY"),
         ("output_format", "json"),
         ("output_info", "compiled_code"),
         ("output_info", "warnings"),
