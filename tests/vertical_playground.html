@@ -23,6 +23,16 @@
     <script src="../blocks_vertical/data.js"></script>
     <script src="../blocks_vertical/default_toolbox.js"></script>
 
+    <script src="../generators/javascript.js"></script>
+    <script src="../generators/javascript/logic.js"></script>
+    <script src="../generators/javascript/loops.js"></script>
+    <script src="../generators/javascript/math.js"></script>
+    <script src="../generators/javascript/text.js"></script>
+    <script src="../generators/javascript/lists.js"></script>
+    <script src="../generators/javascript/colour.js"></script>
+    <script src="../generators/javascript/variables.js"></script>
+    <script src="../generators/javascript/procedures.js"></script>
+
     <script>
       'use strict';
 
@@ -88,6 +98,21 @@
           }
         });
 
+        // List out all block definitions that exist
+        var blocks = Blockly.Blocks;
+        var output = '';
+
+        for(var propt in blocks)
+        {
+            var block = blocks[propt];
+
+            if (block.init !== undefined)
+            {
+              output += propt + '\n';
+            }
+        }
+        //console.log(output);
+
         // Restore previously displayed text.
         var text = sessionStorage.getItem('textarea');
         if (text) {
@@ -127,8 +152,7 @@
 
       function toCode(lang) {
         var output = document.getElementById('importExport');
-        output.value = Blockly[lang].workspaceToCode(workspace);
-        taChange();
+        output.value = Blockly.JavaScript.workspaceToCode(workspace);
       }
 
       // Disable the "Import from XML" button if the XML is invalid.
