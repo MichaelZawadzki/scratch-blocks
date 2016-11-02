@@ -23,6 +23,8 @@
         "cleanup.sh",
         "CONTRIBUTING.md",
         "package.json",
-        "webpack.config.js"
+        "webpack.config.js",
+        "jsconfig.json",
+        ".vscode"
     ]
 }
