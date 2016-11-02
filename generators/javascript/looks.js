@@ -35,7 +35,7 @@ Blockly.JavaScript['looks_say'] = function(block)
 
   var code = '';
   var loopVar = Blockly.JavaScript.variableDB_.getDistinctName('message', Blockly.Variables.NAME_TYPE);
-  code += 'console.log(' + message + ');\n';
+  code += 'alert(' + message + ');\n';
   
   return code;
 };
