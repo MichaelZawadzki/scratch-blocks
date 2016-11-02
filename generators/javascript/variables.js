@@ -28,19 +28,29 @@ goog.provide('Blockly.JavaScript.variables');
 
 goog.require('Blockly.JavaScript');
 
+Blockly.JavaScript['data_variablemenu'] = function(block) {
+  
+  var varName = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VARIABLE'), Blockly.Variables.NAME_TYPE);
+  return [varName, Blockly.JavaScript.ORDER_ATOMIC];
+};
 
-Blockly.JavaScript['variables_get'] = function(block) {
-  // Variable getter.
-  var code = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VAR'),
-      Blockly.Variables.NAME_TYPE);
+Blockly.JavaScript['data_variable'] = function(block) {
+  
+  var code = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
   return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };
 
-Blockly.JavaScript['variables_set'] = function(block) {
-  // Variable setter.
-  var argument0 = Blockly.JavaScript.valueToCode(block, 'VALUE',
-      Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
-  var varName = Blockly.JavaScript.variableDB_.getName(
-      block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
-  return varName + ' = ' + argument0 + ';\n';
+Blockly.JavaScript['data_setvariableto'] = function(block) {
+  var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
+  
+  // Attempt to convert value to a number
+  var num = value.substring(1, value.length-1)
+  
+  if (isNaN(num))
+  {
+    num = value;
+  }
+  
+  return varName + ' = ' + num + ';\n';
 };

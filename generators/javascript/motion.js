@@ -27,8 +27,3 @@
 goog.provide('Blockly.JavaScript.motion');
 
 goog.require('Blockly.JavaScript');
-
-Blockly.JavaScript['motion_moveright'] = function(block) {
-  var code = 'moveRight();\n';
-  return code;
-};
