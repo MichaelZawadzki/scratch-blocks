@@ -28,19 +28,21 @@ goog.provide('Blockly.JavaScript.variables');
 
 goog.require('Blockly.JavaScript');
 
-Blockly.JavaScript['data_variablemenu'] = function(block) {
-  
+
+Blockly.JavaScript['data_variablemenu'] = function(block)
+{
   var varName = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VARIABLE'), Blockly.Variables.NAME_TYPE);
   return [varName, Blockly.JavaScript.ORDER_ATOMIC];
 };
 
-Blockly.JavaScript['data_variable'] = function(block) {
-  
+Blockly.JavaScript['data_variable'] = function(block)
+{
   var code = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
   return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };
 
-Blockly.JavaScript['data_setvariableto'] = function(block) {
+Blockly.JavaScript['data_setvariableto'] = function(block)
+{
   var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
   var value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
   
@@ -53,4 +55,32 @@ Blockly.JavaScript['data_setvariableto'] = function(block) {
   }
   
   return varName + ' = ' + num + ';\n';
+};
+
+Blockly.JavaScript['data_changevariableby'] = function(block)
+{
+  var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
+  
+  // Attempt to convert value to a number
+  var num = value.substring(1, value.length-1)
+  
+  if (isNaN(num))
+  {
+    num = value;
+  }
+  
+  return varName + ' += ' + num + ';\n';
+};
+
+Blockly.JavaScript['data_showvariable'] = function(block)
+{
+  var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  return '// TODO: Show variable: ' + varName + '\n';
+};
+
+Blockly.JavaScript['data_hidevariable'] = function(block)
+{
+  var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  return '// TODO: Hide variable: ' + varName + '\n';
 };
