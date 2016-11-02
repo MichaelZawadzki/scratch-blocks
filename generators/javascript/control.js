@@ -29,7 +29,8 @@ goog.provide('Blockly.JavaScript.control');
 goog.require('Blockly.JavaScript');
 
 
-Blockly.JavaScript['control_forever'] = function(block) {
+Blockly.JavaScript['control_forever'] = function(block)
+{
   // Get substack
   var branch = Blockly.JavaScript.statementToCode(block, 'SUBSTACK');
   branch = Blockly.JavaScript.addLoopTrap(branch, block.id);
@@ -43,7 +44,8 @@ Blockly.JavaScript['control_forever'] = function(block) {
   return code;
 };
 
-Blockly.JavaScript['control_repeat'] = function(block) {
+Blockly.JavaScript['control_repeat'] = function(block)
+{
   // Repeat n times.
   var repeats = Blockly.JavaScript.valueToCode(block, 'TIMES', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
 
@@ -63,7 +65,8 @@ Blockly.JavaScript['control_repeat'] = function(block) {
   return code;
 };
 
-Blockly.JavaScript['control_if'] = function(block) {
+Blockly.JavaScript['control_if'] = function(block)
+{
   // If condition.
   var argument = Blockly.JavaScript.valueToCode(block, 'CONDITION', Blockly.JavaScript.ORDER_NONE) || 'false';
   var branch = Blockly.JavaScript.statementToCode(block, 'SUBSTACK');

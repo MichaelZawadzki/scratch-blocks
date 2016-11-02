@@ -28,14 +28,14 @@ goog.provide('Blockly.JavaScript.looks');
 
 goog.require('Blockly.JavaScript');
 
-Blockly.JavaScript['looks_say'] = function(block) {
+Blockly.JavaScript['looks_say'] = function(block)
+{
   // Say something.
-  var message = Blockly.JavaScript.valueToCode(block, 'MESSAGE',
-        Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
+  var message = Blockly.JavaScript.valueToCode(block, 'MESSAGE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
 
   var code = '';
-  var loopVar = Blockly.JavaScript.variableDB_.getDistinctName(
-      'message', Blockly.Variables.NAME_TYPE);
+  var loopVar = Blockly.JavaScript.variableDB_.getDistinctName('message', Blockly.Variables.NAME_TYPE);
   code += 'console.log(' + message + ');\n';
+  
   return code;
 };
