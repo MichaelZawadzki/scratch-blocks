@@ -23,6 +23,7 @@
 goog.provide('Blockly.Colours');
 
 Blockly.Colours = {
+  "execute_color": '#000000',
   // SVG colours: these must be specificed in #RRGGBB style
   // To add an opacity, this must be specified as a separate property (for SVG fill-opacity)
   "motion": {

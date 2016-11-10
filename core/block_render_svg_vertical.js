@@ -27,6 +27,7 @@
 goog.provide('Blockly.BlockSvg.render');
 
 goog.require('Blockly.BlockSvg');
+goog.require('Blockly.Colours');
 
 
 // UI constants for rendering blocks.
@@ -477,7 +478,7 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   this.svgPath_.setAttribute('stroke', strokeColour);
 
   // Render block fill
-  var fillColour = (this.isGlowingBlock_) ? this.getColourSecondary() : this.getColour();
+  var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour();
   this.svgPath_.setAttribute('fill', fillColour);
 
   // Render opacity
