@@ -74,7 +74,7 @@ Blockly.Blocks['control_repeat'] = {
   init: function() {
     this.jsonInit({
       "id": "control_repeat",
-      "message0": "repeat %1",
+      "message0": "repeat %1 times",
       "message1": "%1", // Statement
       "message2": "%1", // Icon
       "lastDummyAlign2": "RIGHT",
