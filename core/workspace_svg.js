@@ -1412,11 +1412,14 @@ Blockly.WorkspaceSvg.prototype.scrollTopCenter = function() {
   Blockly.DropDownDiv.hideWithoutAnimation();
   Blockly.hideChaff(false);
   var metrics = this.getMetrics();
+  var blocksBox = this.getBlocksBoundingBox();
+
   var x = (metrics.contentWidth - metrics.viewWidth) / 2;
   if (this.flyout_) {
     x -= this.flyout_.width_ / 2;
   }
-  var y = 0;
+  var y = -metrics.contentTop + blocksBox.y;
+
   this.scrollbar.set(x, y);
 };
 
