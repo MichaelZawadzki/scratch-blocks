@@ -1400,6 +1400,30 @@ Blockly.WorkspaceSvg.prototype.scrollCenter = function() {
 };
 
 /**
+ * Top Center the workspace.
+ */
+Blockly.WorkspaceSvg.prototype.scrollTopCenter = function() {
+  if (!this.scrollbar) {
+    // Can't center a non-scrolling workspace.
+    return;
+  }
+  // Hide the WidgetDiv without animation (zoom makes field out of place with div)
+  Blockly.WidgetDiv.hide(true);
+  Blockly.DropDownDiv.hideWithoutAnimation();
+  Blockly.hideChaff(false);
+  var metrics = this.getMetrics();
+  var blocksBox = this.getBlocksBoundingBox();
+
+  var x = (metrics.contentWidth - metrics.viewWidth) / 2;
+  if (this.flyout_) {
+    x -= this.flyout_.width_ / 2;
+  }
+  var y = -metrics.contentTop + blocksBox.y;
+
+  this.scrollbar.set(x, y);
+};
+
+/**
  * Set the workspace's zoom factor.
  * @param {number} newScale Zoom factor.
  */
