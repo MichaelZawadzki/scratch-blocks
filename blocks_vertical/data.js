@@ -71,8 +71,7 @@ Blockly.Blocks['data_variable'] = {
       "colourSecondary": Blockly.Colours.data.secondary,
       "colourTertiary": Blockly.Colours.data.tertiary,
       "output": "String",
-      "outputShape": Blockly.OUTPUT_SHAPE_ROUND,
-      "checkboxInFlyout": true
+      "outputShape": Blockly.OUTPUT_SHAPE_ROUND
     });
   }
 };

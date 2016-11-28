@@ -55,8 +55,10 @@ Blockly.FieldDropdown = function(menuGenerator, opt_validator) {
   this.trimOptions_();
   var firstTuple = this.getOptions_()[0];
 
+  var name = (firstTuple === undefined) ? 'undefined' : firstTuple[1];
+
   // Call parent's constructor.
-  Blockly.FieldDropdown.superClass_.constructor.call(this, firstTuple[1],
+  Blockly.FieldDropdown.superClass_.constructor.call(this, name,
       opt_validator);
   this.addArgType('dropdown');
 };
