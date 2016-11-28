@@ -85,7 +85,7 @@ Blockly.Workspace = function(opt_options) {
    * A list of all of the named variables in the workspace, including variables
    * that are not currently in use.
    */
-  this.variableList = [];
+  this.variableList = Blockly.Variables.getPredefiendVars();
 };
 
 /**

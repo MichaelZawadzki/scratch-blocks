@@ -435,6 +435,10 @@ Blockly.Flyout.prototype.show = function(xmlList) {
     // Special category for procedures.
     xmlList =
         Blockly.Procedures.flyoutCategory(this.workspace_.targetWorkspace);
+  } else if (xmlList == Blockly.Variables.PREDEFINED_NAME_TYPE) {
+    // Special category for predefined variables.
+    xmlList =
+        Blockly.Variables.flyoutCategoryPredefined();
   }
 
   this.svgGroup_.style.display = 'block';

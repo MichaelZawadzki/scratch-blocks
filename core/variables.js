@@ -36,6 +36,31 @@ goog.require('goog.string');
  */
 Blockly.Variables.NAME_TYPE = 'VARIABLE';
 
+
+/**
+ * Category for predefined varaibles
+ */
+Blockly.Variables.PREDEFINED_NAME_TYPE = 'PREDEFINED-VARIABLE';
+
+/**
+ * List of manually added variables
+ */
+Blockly.Variables.predefinedVars = [];
+
+Blockly.Variables.addPredefiendVar = function(name)
+{
+  Blockly.Variables.predefinedVars.push(name);
+};
+
+Blockly.Variables.getPredefiendVars = function()
+{
+  var vars = [];
+  for (var i=0; i<Blockly.Variables.predefinedVars.length; i++) {
+    vars.push(Blockly.Variables.predefinedVars[i]);
+  }
+  return vars;
+};
+
 /**
  * Find all user-created variables that are in use in the workspace.
  * For use by generators.
@@ -68,6 +93,15 @@ Blockly.Variables.allUsedVariables = function(root) {
       }
     }
   }
+
+  Blockly.Variables.predefinedVars.forEach(function(x) {
+    var lowercaseName = x.toLowerCase();
+    
+    if (variableHash[lowercaseName] === undefined) {
+      variableHash[lowercaseName] = x;
+    }
+  });
+
   // Flatten the hash into a list.
   var variableList = [];
   for (var name in variableHash) {
@@ -90,6 +124,57 @@ Blockly.Variables.allVariables = function(root) {
                  'Blockly.Variables.allUsedVariables');
   }
   return root.variableList;
+};
+
+
+/**
+ * Construct the blocks required by the flyout for the variable category.
+ * @return {!Array.<!Element>} Array of XML block elements.
+ */
+Blockly.Variables.flyoutCategoryPredefined = function() {
+  var variableList = Blockly.Variables.predefinedVars;
+  variableList.sort(goog.string.caseInsensitiveCompare);
+
+  var xmlList = [];
+
+  for (var i = 0; i < variableList.length; i++) {
+    if (Blockly.Blocks['data_variable']) {
+      // <block type="data_variable">
+      //   <value name="VARIABLE">
+      //     <shadow type="data_variablemenu"></shadow>
+      //   </value>
+      // </block>
+      var block = goog.dom.createDom('block');
+      block.setAttribute('type', 'data_variable');
+      block.setAttribute('gap', 8);
+      block.appendChild(Blockly.Variables.createVariableDom_(variableList[i]));
+      xmlList.push(block);
+    }
+  }
+
+  if (xmlList.length > 1) { // The button is always there.
+    xmlList[xmlList.length - 1].setAttribute('gap', 24);
+
+    if (Blockly.Blocks['data_setvariableto']) {
+      // <block type="data_setvariableto" gap="20">
+      //   <value name="VARIABLE">
+      //    <shadow type="data_variablemenu"></shadow>
+      //   </value>
+      //   <value name="VALUE">
+      //     <shadow type="text">
+      //       <field name="TEXT">0</field>
+      //     </shadow>
+      //   </value>
+      // </block>
+      var block = goog.dom.createDom('block');
+      block.setAttribute('type', 'data_setvariableto');
+      block.setAttribute('gap', 8);
+      block.appendChild(Blockly.Variables.createVariableDom_(variableList[0]));
+      block.appendChild(Blockly.Variables.createTextDom_());
+      xmlList.push(block);
+    }
+  }
+  return xmlList;
 };
 
 /**
