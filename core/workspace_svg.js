@@ -1402,11 +1402,14 @@ Blockly.WorkspaceSvg.prototype.scrollCenter = function() {
 /**
  * Top Center the workspace.
  */
-Blockly.WorkspaceSvg.prototype.scrollTopCenter = function() {
+Blockly.WorkspaceSvg.prototype.scrollTopCenter = function(_offsetTop) {
   if (!this.scrollbar) {
     // Can't center a non-scrolling workspace.
     return;
   }
+
+  _offsetTop = _offsetTop === undefined ? 0 : _offsetTop;
+
   // Hide the WidgetDiv without animation (zoom makes field out of place with div)
   Blockly.WidgetDiv.hide(true);
   Blockly.DropDownDiv.hideWithoutAnimation();
@@ -1418,7 +1421,7 @@ Blockly.WorkspaceSvg.prototype.scrollTopCenter = function() {
   if (this.flyout_) {
     x -= this.flyout_.width_ / 2;
   }
-  var y = -metrics.contentTop + blocksBox.y;
+  var y = -metrics.contentTop + blocksBox.y - _offsetTop;
 
   this.scrollbar.set(x, y);
 };
