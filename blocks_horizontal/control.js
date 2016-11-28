@@ -56,7 +56,7 @@ Blockly.Blocks['control_repeat'] = {
         {
           "type": "input_value",
           "name": "TIMES",
-          "check": "Number"
+          "check": ["Number", "String"]
         }
       ],
       "inputsInline": true,

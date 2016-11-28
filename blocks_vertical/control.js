@@ -81,7 +81,8 @@ Blockly.Blocks['control_repeat'] = {
       "args0": [
         {
           "type": "input_value",
-          "name": "TIMES"
+          "name": "TIMES",
+          "check": ["Number", "String"]
         }
       ],
       "args1": [
