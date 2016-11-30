@@ -99,6 +99,7 @@ Blockly.Options = function(options) {
   if (hasScrollbars === undefined) {
     hasScrollbars = hasCategories;
   }
+
   var hasCss = options['css'];
   if (hasCss === undefined) {
     hasCss = true;
@@ -141,6 +142,7 @@ Blockly.Options = function(options) {
   this.pathToMedia = pathToMedia;
   this.hasCategories = hasCategories;
   this.hasScrollbars = hasScrollbars;
+  this.hideHorizontalScrollbar = options['hideHorizontalScrollbar'];
   this.hasTrashcan = hasTrashcan;
   this.hasSounds = hasSounds;
   this.hasCss = hasCss;
