@@ -299,7 +299,7 @@ Blockly.init_ = function(mainWorkspace) {
   }
 
   if (options.hasScrollbars) {
-    mainWorkspace.scrollbar = new Blockly.ScrollbarPair(mainWorkspace);
+    mainWorkspace.scrollbar = new Blockly.ScrollbarPair(mainWorkspace, options.hideHorizontalScrollbar);
     mainWorkspace.scrollbar.resize();
   }
 

@@ -36,7 +36,7 @@ goog.require('goog.events');
  * @param {!Blockly.Workspace} workspace Workspace to bind the scrollbars to.
  * @constructor
  */
-Blockly.ScrollbarPair = function(workspace) {
+Blockly.ScrollbarPair = function(workspace, _skipHorizontal) {
   this.workspace_ = workspace;
   this.hScroll = new Blockly.Scrollbar(workspace, true, true);
   this.vScroll = new Blockly.Scrollbar(workspace, false, true);
@@ -45,6 +45,10 @@ Blockly.ScrollbarPair = function(workspace) {
       'width': Blockly.Scrollbar.scrollbarThickness,
       'class': 'blocklyScrollbarBackground'}, null);
   Blockly.Scrollbar.insertAfter_(this.corner_, workspace.getBubbleCanvas());
+
+  if (_skipHorizontal === true) {
+    this.hScroll.setOpacity(0);
+  }
 };
 
 /**
@@ -768,4 +772,13 @@ Blockly.Scrollbar.insertAfter_ = function(newNode, refNode) {
   } else {
     parentNode.appendChild(newNode);
   }
+};
+
+/**
+ * Set opacity of the entire scrollbar: used to hide the scrollbar
+ * but maintain the functionality it supports
+ * @param {number} _opacity The opacity of the entire scrollbar
+ */
+Blockly.Scrollbar.prototype.setOpacity = function(_opacity) {
+  this.svgGroup_.style.opacity = _opacity;
 };
