@@ -148,17 +148,21 @@ Blockly.ScrollbarPair.prototype.set = function(x, y) {
   // Combining them speeds up rendering.
   var xyRatio = {};
 
-  var hHandlePosition = x * this.hScroll.ratio_;
+  if (isNaN(x) === false) {
+    var hHandlePosition = x * this.hScroll.ratio_;
+    var hBarLength = this.hScroll.scrollViewSize_;
+    xyRatio.x = this.getRatio_(hHandlePosition, hBarLength);
+  }
+
   var vHandlePosition = y * this.vScroll.ratio_;
-
-  var hBarLength = this.hScroll.scrollViewSize_;
   var vBarLength = this.vScroll.scrollViewSize_;
-
-  xyRatio.x = this.getRatio_(hHandlePosition, hBarLength);
   xyRatio.y = this.getRatio_(vHandlePosition, vBarLength);
+
   this.workspace_.setMetrics(xyRatio);
 
-  this.hScroll.setHandlePosition(hHandlePosition);
+  if (xyRatio.x !== undefined) {
+    this.hScroll.setHandlePosition(hHandlePosition);
+  }
   this.vScroll.setHandlePosition(vHandlePosition);
 };
 
