@@ -957,6 +957,11 @@ Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
     var x = this.scrollX - e.deltaX;
     var y = this.scrollY - e.deltaY;
     this.startDragMetrics = this.getMetrics();
+
+    if (this.options.hideHorizontalScrollbar === true) {
+      x = undefined;
+    }
+
     this.scroll(x, y);
   }
   e.preventDefault();
