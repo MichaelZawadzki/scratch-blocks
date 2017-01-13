@@ -26,3 +26,7 @@ python_compressed.js
 /blockly_uncompressed_horizontal.js
 /blockly_uncompressed_vertical.js
 /blocks_compressed_horizontal.js
+/gh-pages/playgrounds
+/gh-pages/Gemfile.lock
+/gh-pages/closure-library
+/gh-pages/_site

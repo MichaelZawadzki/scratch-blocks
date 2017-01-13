@@ -114,7 +114,7 @@ Blockly.createDom_ = function(container, options) {
   // Set all gaussian blur pixels to 1 opacity before applying flood
   var componentTransfer = Blockly.createSvgElement('feComponentTransfer', {'result': 'outBlur'}, stackGlowFilter);
   Blockly.createSvgElement('feFuncA',
-      {'type': 'table', 'tableValues': '0' + ' 1'.repeat(16)}, componentTransfer);
+      {'type': 'table', 'tableValues': '0' + goog.string.repeat(' 1', 16)}, componentTransfer);
   // Color the highlight
   Blockly.createSvgElement('feFlood',
       {'flood-color': Blockly.Colours.stackGlow,
@@ -135,7 +135,7 @@ Blockly.createDom_ = function(container, options) {
   // Set all gaussian blur pixels to 1 opacity before applying flood
   var componentTransfer = Blockly.createSvgElement('feComponentTransfer', {'result': 'outBlur'}, replacementGlowFilter);
   Blockly.createSvgElement('feFuncA',
-      {'type': 'table', 'tableValues': '0' + ' 1'.repeat(16)}, componentTransfer);
+      {'type': 'table', 'tableValues': '0' + goog.string.repeat(' 1', 16)}, componentTransfer);
   // Color the highlight
   Blockly.createSvgElement('feFlood',
       {'flood-color': Blockly.Colours.replacementGlow,
@@ -323,8 +323,8 @@ Blockly.init_ = function(mainWorkspace) {
 Blockly.inject.bindDocumentEvents_ = function() {
   if (!Blockly.documentEventsBound_) {
     Blockly.bindEventWithChecks_(document, 'keydown', null, Blockly.onKeyDown_);
-    Blockly.bindEventWithChecks_(document, 'touchend', null, Blockly.longStop_);
-    Blockly.bindEventWithChecks_(document, 'touchcancel', null,
+    Blockly.bindEvent_(document, 'touchend', null, Blockly.longStop_);
+    Blockly.bindEvent_(document, 'touchcancel', null,
         Blockly.longStop_);
     // Don't use bindEvent_ for document's mouseup since that would create a
     // corresponding touch handler that would squeltch the ability to interact
