@@ -25,6 +25,7 @@
         "package.json",
         "webpack.config.js",
         "jsconfig.json",
+        "gh-pages",
         ".vscode"
     ]
 }
