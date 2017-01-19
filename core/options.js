@@ -132,7 +132,7 @@ Blockly.Options = function(options) {
       }
     }
   }
-
+  
   this.RTL = rtl;
   this.oneBasedIndex = oneBasedIndex;
   this.collapse = hasCollapse;
@@ -153,6 +153,7 @@ Blockly.Options = function(options) {
   this.enableRealtime = enableRealtime;
   this.realtimeOptions = realtimeOptions;
   this.toolboxPosition = toolboxPosition;
+  this.contextMenuOptions = options['contextMenu'];
 };
 
 /**

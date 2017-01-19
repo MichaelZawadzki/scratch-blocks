@@ -1040,16 +1040,23 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
   var eventGroup = Blockly.genUid();
 
   // Options to undo/redo previous action.
-  var undoOption = {};
-  undoOption.text = Blockly.Msg.UNDO;
-  undoOption.enabled = this.undoStack_.length > 0;
-  undoOption.callback = this.undo.bind(this, false);
-  menuOptions.push(undoOption);
-  var redoOption = {};
-  redoOption.text = Blockly.Msg.REDO;
-  redoOption.enabled = this.redoStack_.length > 0;
-  redoOption.callback = this.undo.bind(this, true);
-  menuOptions.push(redoOption);
+  if(this.options.contextMenuOptions === undefined || (this.options.contextMenuOptions && this.options.contextMenuOptions.showUndo === true))
+  {
+    var undoOption = {};
+    undoOption.text = Blockly.Msg.UNDO;
+    undoOption.enabled = this.undoStack_.length > 0;
+    undoOption.callback = this.undo.bind(this, false);
+    menuOptions.push(undoOption);
+  }
+
+  if(this.options.contextMenuOptions === undefined || (this.options.contextMenuOptions && this.options.contextMenuOptions.showRedo === true))
+  {
+    var redoOption = {};
+    redoOption.text = Blockly.Msg.REDO;
+    redoOption.enabled = this.redoStack_.length > 0;
+    redoOption.callback = this.undo.bind(this, true);
+    menuOptions.push(redoOption);
+  }
 
   // Option to clean up blocks.
   if (this.scrollbar) {
