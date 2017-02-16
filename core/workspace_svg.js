@@ -1589,13 +1589,19 @@ Blockly.WorkspaceSvg.prototype.scrollTopCenter = function(_offsetTop) {
   Blockly.DropDownDiv.hideWithoutAnimation();
   Blockly.hideChaff(false);
   var metrics = this.getMetrics();
-  var blocksBox = this.getBlocksBoundingBox();
 
+  // Same as centering logic above for X
   var x = (metrics.contentWidth - metrics.viewWidth) / 2;
   if (this.flyout_) {
     x -= this.flyout_.width_ / 2;
   }
-  var y = -metrics.contentTop + blocksBox.y - _offsetTop;
+
+  // For Y, align with top of view
+  var blocksBox = this.getBlocksBoundingBox();
+  // Fix scale.
+  var blockHeight = blocksBox.height * this.scale;
+  var y = (metrics.contentHeight - blockHeight) / 2;
+  y += (_offsetTop * this.scale);
 
   this.scrollbar.set(x, y);
 };

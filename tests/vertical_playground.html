@@ -140,6 +140,10 @@
         taChange();
       }
 
+      function alignWorkspace() {
+        workspace.scrollTopCenter(-20);
+      }
+
       // Disable the "Import from XML" button if the XML is invalid.
       // Preserve text between page reloads.
       function taChange() {
@@ -552,6 +556,9 @@
       <br>
       <input type="button" value="To JavaScript" onclick="toCode('JavaScript')">
       <br>
+      <input type="button" value="Align Workspace" onclick="alignWorkspace()">
+      <br>
+
       <textarea id="importExport" style="width: 26%; height: 12em"
         onchange="taChange();" onkeyup="taChange()"></textarea>
     </p>
