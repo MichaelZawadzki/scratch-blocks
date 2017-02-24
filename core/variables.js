@@ -24,9 +24,14 @@
  */
 'use strict';
 
+/**
+ * @name Blockly.Variables
+ * @namespace
+ **/
 goog.provide('Blockly.Variables');
 
 goog.require('Blockly.Blocks');
+goog.require('Blockly.constants');
 goog.require('Blockly.Workspace');
 goog.require('goog.string');
 
@@ -414,9 +419,9 @@ Blockly.Variables.generateUniqueName = function(workspace) {
  * Create a new variable on the given workspace.
  * @param {!Blockly.Workspace} workspace The workspace on which to create the
  *     variable.
- * @param {function(?string)=} opt_callback A callback. It
- *     will be passed a new variable name, or null if the change is to be
- *     aborted (cancel button).
+ * @param {function(?string=)=} opt_callback A callback. It will
+ *     be passed an acceptable new variable name, or null if change is to be
+ *     aborted (cancel button), or undefined if an existing variable was chosen.
  */
 Blockly.Variables.createVariable = function(workspace, opt_callback) {
   var promptAndCheckWithAlert = function(defaultName) {
