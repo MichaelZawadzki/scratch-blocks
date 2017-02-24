@@ -1480,7 +1480,10 @@ Blockly.WorkspaceSvg.prototype.updateToolbox = function(tree) {
     this.options.languageTree = tree;
     this.flyout_.show(tree.childNodes);
   }
-  this.toolbox_.position();
+
+  if (this.toolbox_) {
+    this.toolbox_.position();
+  }
 };
 
 /**
