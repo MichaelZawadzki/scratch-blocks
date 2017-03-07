@@ -52,6 +52,11 @@ Blockly.Variables.PREDEFINED_NAME_TYPE = 'PREDEFINED-VARIABLE';
  */
 Blockly.Variables.predefinedVars = [];
 
+Blockly.Variables.clearPredefinedVars = function()
+{
+  Blockly.Variables.predefinedVars = [];
+};
+
 Blockly.Variables.addPredefiendVar = function(name)
 {
   Blockly.Variables.predefinedVars.push(name);
