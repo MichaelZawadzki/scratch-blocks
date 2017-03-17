@@ -134,9 +134,7 @@ Blockly.Blocks['event_whengreaterthan'] = {
           "type": "field_dropdown",
           "name": "WHENGREATERTHANMENU",
           "options": [
-              ['loudness', 'LOUDNESS'],
-              ['timer', 'TIMER'],
-              ['video motion', 'VIDEOMOTION']
+              ['timer', 'TIMER']
           ]
         },
         {
