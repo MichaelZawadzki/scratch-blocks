@@ -58,8 +58,8 @@ Blockly.utils.addClass = function(element, className) {
   // console.log("Element:")
   // console.log(element);
   // console.log("className: " + className);
-  console.trace();
-  
+  // console.trace();
+
   var classes = element.getAttribute('class') || '';
   if ((' ' + classes + ' ').indexOf(' ' + className + ' ') != -1) {
     return false;
