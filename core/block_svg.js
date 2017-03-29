@@ -1760,23 +1760,29 @@ Blockly.BlockSvg.prototype.setMutator = function(mutator) {
  * Select this block.  Highlight it visually.
  */
 Blockly.BlockSvg.prototype.addSelect = function() {
-  Blockly.utils.addClass(/** @type {!Element} */ (this.svgGroup_),
-                    'blocklySelected');
-  // Move the selected block to the top of the stack.
-  var block = this;
-  do {
-    var root = block.getSvgRoot();
-    root.parentNode.appendChild(root);
-    block = block.getParent();
-  } while (block);
+  if(this.svgGroup_)
+  {
+    Blockly.utils.addClass(/** @type {!Element} */ (this.svgGroup_),
+                      'blocklySelected');
+    // Move the selected block to the top of the stack.
+    var block = this;
+    do {
+      var root = block.getSvgRoot();
+      root.parentNode.appendChild(root);
+      block = block.getParent();
+    } while (block);
+  }
 };
 
 /**
  * Unselect this block.  Remove its highlighting.
  */
 Blockly.BlockSvg.prototype.removeSelect = function() {
-  Blockly.utils.removeClass(/** @type {!Element} */ (this.svgGroup_),
-                       'blocklySelected');
+  if(this.svgGroup_)
+  {
+    Blockly.utils.removeClass(/** @type {!Element} */ (this.svgGroup_),
+                         'blocklySelected');
+  }
 };
 
 // Overrides of functions on Blockly.Block that take into account whether the
