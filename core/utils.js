@@ -54,7 +54,12 @@ Blockly.cache3dSupported_ = null;
  * @return {boolean} True if class was added, false if already present.
  */
 Blockly.utils.addClass = function(element, className) {
+  console.log("------ addClass -----");
+  console.log("Element:")
+  console.log(element);
+  console.log("className: " + className);
   console.trace();
+  
   var classes = element.getAttribute('class') || '';
   if ((' ' + classes + ' ').indexOf(' ' + className + ' ') != -1) {
     return false;
