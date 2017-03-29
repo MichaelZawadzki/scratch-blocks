@@ -1771,6 +1771,21 @@ Blockly.BlockSvg.prototype.addSelect = function() {
   } while (block);
 };
 
+Blockly.BlockSvg.prototype.myAddSelect = function() {
+  if(this.svgGroup_)
+  {
+    Blockly.utils.addClass(/** @type {!Element} */ (this.svgGroup_),
+                      'blocklySelected');
+    // Move the selected block to the top of the stack.
+    var block = this;
+    do {
+      var root = block.getSvgRoot();
+      root.parentNode.appendChild(root);
+      block = block.getParent();
+    } while (block);
+  }
+};
+
 /**
  * Unselect this block.  Remove its highlighting.
  */

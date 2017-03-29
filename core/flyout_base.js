@@ -617,12 +617,21 @@ Blockly.Flyout.prototype.addBlockListeners_ = function(root, block, rect) {
     this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
         this.blockMouseDown_(block)));
   }
+  // this.listeners_.push(Blockly.bindEvent_(root, 'mouseover', block,
+  //     block.addSelect));
+  // this.listeners_.push(Blockly.bindEvent_(root, 'mouseout', block,
+  //     block.removeSelect));
+  // this.listeners_.push(Blockly.bindEvent_(rect, 'mouseover', block,
+  //     block.addSelect));
+  // this.listeners_.push(Blockly.bindEvent_(rect, 'mouseout', block,
+  //     block.removeSelect));
+
   this.listeners_.push(Blockly.bindEvent_(root, 'mouseover', block,
-      block.addSelect));
+      block.myAddSelect));
   this.listeners_.push(Blockly.bindEvent_(root, 'mouseout', block,
       block.removeSelect));
   this.listeners_.push(Blockly.bindEvent_(rect, 'mouseover', block,
-      block.addSelect));
+      block.myAddSelect));
   this.listeners_.push(Blockly.bindEvent_(rect, 'mouseout', block,
       block.removeSelect));
 };
