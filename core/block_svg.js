@@ -1786,7 +1786,7 @@ Blockly.BlockSvg.prototype.myAddSelect = function() {
   }
   else
   {
-    console.warning("---> svg group wall invalid!");
+    console.warn("---> svg group wall invalid!");
   }
 };
 
