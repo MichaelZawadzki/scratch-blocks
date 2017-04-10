@@ -99,14 +99,14 @@ Blockly.Generator.prototype.workspaceToCode = function(workspace, requireTrigger
   var blocks = workspace.getTopBlocks(true);
   for (var x = 0, block; block = blocks[x]; x++) {
     //Only evaluate block lists starting with a trigger block
-    if(requireTriggerBlock === false || requireTriggerBlock === undefined ||
-      block.type === "event_whenflagclicked"){
+    if (requireTriggerBlock !== true || block.type === "event_whenflagclicked") {
       var line = this.blockToCode(block);
       if (goog.isArray(line)) {
         // Value blocks return tuples of code and operator order.
         // Top-level blocks don't care about operator order.
         line = line[0];
       }
+
       if (line) {
         if (block.outputConnection && this.scrubNakedValue) {
           // This block is a naked value.  Ask the language's code generator if
