@@ -100,7 +100,7 @@ Blockly.Generator.prototype.workspaceToCode = function(workspace, requireTrigger
   for (var x = 0, block; block = blocks[x]; x++) {
     //Only evaluate block lists starting with a trigger block
     if(requireTriggerBlock === false || requireTriggerBlock === undefined ||
-      block[i].type === "event_whenflagclicked"){
+      block[x].type === "event_whenflagclicked"){
       var line = this.blockToCode(block);
       if (goog.isArray(line)) {
         // Value blocks return tuples of code and operator order.
