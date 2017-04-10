@@ -88,7 +88,7 @@ Blockly.Generator.prototype.ORDER_OVERRIDES = [];
  * @param {Blockly.Workspace} workspace Workspace to generate code from.
  * @return {string} Generated code.
  */
-Blockly.Generator.prototype.workspaceToCode = function(workspace) {
+Blockly.Generator.prototype.workspaceToCode = function(workspace, requireTriggerBlock) {
   if (!workspace) {
     // Backwards compatibility from before there could be multiple workspaces.
     console.warn('No workspace specified in workspaceToCode call.  Guessing.');
@@ -98,19 +98,23 @@ Blockly.Generator.prototype.workspaceToCode = function(workspace) {
   this.init(workspace);
   var blocks = workspace.getTopBlocks(true);
   for (var x = 0, block; block = blocks[x]; x++) {
-    var line = this.blockToCode(block);
-    if (goog.isArray(line)) {
-      // Value blocks return tuples of code and operator order.
-      // Top-level blocks don't care about operator order.
-      line = line[0];
-    }
-    if (line) {
-      if (block.outputConnection && this.scrubNakedValue) {
-        // This block is a naked value.  Ask the language's code generator if
-        // it wants to append a semicolon, or something.
-        line = this.scrubNakedValue(line);
+    //Only evaluate block lists starting with a trigger block
+    if (requireTriggerBlock !== true || block.type === "event_whenflagclicked") {
+      var line = this.blockToCode(block);
+      if (goog.isArray(line)) {
+        // Value blocks return tuples of code and operator order.
+        // Top-level blocks don't care about operator order.
+        line = line[0];
       }
-      code.push(line);
+
+      if (line) {
+        if (block.outputConnection && this.scrubNakedValue) {
+          // This block is a naked value.  Ask the language's code generator if
+          // it wants to append a semicolon, or something.
+          line = this.scrubNakedValue(line);
+        }
+        code.push(line);
+      }
     }
   }
   code = code.join('\n');  // Blank line between each section.
