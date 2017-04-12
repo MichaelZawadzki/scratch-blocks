@@ -46,7 +46,7 @@ Blockly.JavaScript['control_forever'] = function(block)
 
 Blockly.JavaScript['control_repeat'] = function(block)
 {
-  // Repeat n times.
+  //// Repeat n times.
   var repeats = Blockly.JavaScript.valueToCode(block, 'TIMES', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
 
   // Get substack
@@ -61,6 +61,22 @@ Blockly.JavaScript['control_repeat'] = function(block)
       loopVar + ' < ' + repeats + '; ' +
       loopVar + '++) {\n' +
       branch + '}\n';
+  
+  return code;
+};
+
+Blockly.JavaScript['control_repeat_until'] = function(block)
+{
+  // Repeat n times.
+  //var repeats = Blockly.JavaScript.valueToCode(block, 'TIMES', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
+  var argument = Blockly.JavaScript.valueToCode(block, 'CONDITION', Blockly.JavaScript.ORDER_NONE) || 'false';
+
+  // Get substack
+  var branch = Blockly.JavaScript.statementToCode(block, 'SUBSTACK');
+  branch = Blockly.JavaScript.addLoopTrap(branch, block.id);
+
+  // Make the code
+  var code = code = 'while (' + argument + ' == false) {\n' + branch + '}\n';
   
   return code;
 };
