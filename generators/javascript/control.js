@@ -76,7 +76,7 @@ Blockly.JavaScript['control_repeat_until'] = function(block)
   branch = Blockly.JavaScript.addLoopTrap(branch, block.id);
 
   // Make the code
-  var code = code = 'while (' + argument + ' == false) {\n' + branch + '}\n';
+  var code = code = 'while ( (' + argument + ') == false) {\n' + branch + '}\n';
   
   return code;
 };
