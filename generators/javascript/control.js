@@ -74,3 +74,14 @@ Blockly.JavaScript['control_if'] = function(block)
   var code = 'if (' + argument + ') {\n' + branch + '}';
   return code + '\n';
 };
+
+Blockly.JavaScript['control_if_else'] = function(block)
+{
+  // If condition.
+  var argument = Blockly.JavaScript.valueToCode(block, 'CONDITION', Blockly.JavaScript.ORDER_NONE) || 'false';
+  var branchIf = Blockly.JavaScript.statementToCode(block, 'SUBSTACK');
+  var branchElse = Blockly.JavaScript.statementToCode(block, 'SUBSTACK2');
+  
+  var code = 'if (' + argument + ') {\n' + branchIf + '} else {\n' + branchElse + '}';
+  return code + '\n';
+};
