@@ -610,7 +610,7 @@ Blockly.Block.prototype.isAlwaysAvailable = function() {
 
 /**
  * Set whether this block is movable or not.
- * @param {boolean} movable True if movable.
+ * @param {boolean} movable True if is always available.
  */
 Blockly.Block.prototype.setAlwaysAvailable = function(alwaysAvailable) {
   this.alwaysAvailable_ = alwaysAvailable;
