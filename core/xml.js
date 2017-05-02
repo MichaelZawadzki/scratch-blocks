@@ -560,6 +560,14 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   if (editable) {
     block.setEditable(editable == 'true');
   }
+
+
+  var alwaysAvailable = xmlBlock.getAttribute('alwaysAvailable')
+  if (alwaysAvailable) {
+    block.setAlwaysAvailable(alwaysAvailable == 'true');
+  }
+
+
   var collapsed = xmlBlock.getAttribute('collapsed');
   if (collapsed) {
     block.setCollapsed(collapsed == 'true');

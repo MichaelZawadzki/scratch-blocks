@@ -882,6 +882,14 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
     }
     Blockly.selected.dispose(false, true);
   }
+
+
+  else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false)
+  {
+    console.log("###### -----> POPMINOU");
+  }
+
+
   if (Blockly.highlightedConnection_) {
     Blockly.highlightedConnection_ = null;
   }
