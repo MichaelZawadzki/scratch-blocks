@@ -886,31 +886,15 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
 
   else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false /*&& Blockly.selected.isAlwaysAvailable() == true*/ )
   {
-    console.log("###### -----> POPMINOU");
-    console.log("Mouse to SVG");
-
-
+    console.log("Always available? " + Blockly.selected.isAlwaysAvailable());
 
     var xy = Blockly.selected.getRelativeToSurfaceXY();
     var dxy = goog.math.Coordinate.difference(xy, Blockly.selected.dragStartXY_);
-    //var event = new Blockly.Events.Move(selected);
-    //event.oldCoordinate = Blockly.selected.dragStartXY_;
-    //event.recordNew();
-    //Blockly.Events.fire(event);
-    //Blockly.selected.moveConnections_(dxy.x, dxy.y);\
 
-    console.log("old pos:");
-    console.log(Blockly.selected.dragStartXY_);
-    console.log("new pos:");
-    console.log(xy);
-
-    //Blockly.selected.translate(dxy.x, dxy.y, false); 
-    //Blockly.selected.translate(Blockly.selected.dragStartXY_.x, Blockly.selected.dragStartXY_.y, false); 
-    //Blockly.selected.this.moveConnections_(dxy.x, dxy.y);
     Blockly.Events.disable();
 
-    Blockly.Events.clearPendingUndo();
     Blockly.selected.moveBy(-dxy.x, -dxy.y);
+    Blockly.Events.clearPendingUndo();
 
     Blockly.Events.enable();
 
