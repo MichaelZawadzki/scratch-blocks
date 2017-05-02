@@ -904,7 +904,8 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
     console.log("new pos:");
     console.log(xy);
 
-    Blockly.selected.translate(dxy.x, dxy.y, false); 
+    //Blockly.selected.translate(dxy.x, dxy.y, false); 
+    Blockly.selected.translate(Blockly.selected.dragStartXY_.x, Blockly.selected.dragStartXY_.y, false); 
 
   }
 
