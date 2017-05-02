@@ -882,24 +882,19 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
     }
     Blockly.selected.dispose(false, true);
   }
-
-
+  // OB: When block is not deletable, also check for attribute 'alwaysavailable' to see if it needs to snap back to old position
   else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false && Blockly.selected.isAlwaysAvailable() == true )
   {
-    console.log("Always available? " + Blockly.selected.isAlwaysAvailable());
-
     var xy = Blockly.selected.getRelativeToSurfaceXY();
     var dxy = goog.math.Coordinate.difference(xy, Blockly.selected.dragStartXY_);
 
+    // Disable events so that this move undo doesn't create a new event; could probably just call the actual undo instead?
     Blockly.Events.disable();
 
     Blockly.selected.moveBy(-dxy.x, -dxy.y);
     Blockly.Events.clearPendingUndo();
 
     Blockly.Events.enable();
-
-    
-
   }
 
 
