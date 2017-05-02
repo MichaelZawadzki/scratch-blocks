@@ -897,9 +897,14 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
     //event.oldCoordinate = Blockly.selected.dragStartXY_;
     //event.recordNew();
     //Blockly.Events.fire(event);
-    //Blockly.selected.moveConnections_(dxy.x, dxy.y);
+    //Blockly.selected.moveConnections_(dxy.x, dxy.y);\
 
-    block.selected.translate(dxy.x, dxy.y, false); 
+    console.log("old pos:");
+    console.log(Blockly.selected.dragStartXY_);
+    console.log("new pos:");
+    console.log(xy);
+
+    Blockly.selected.translate(dxy.x, dxy.y, false); 
 
   }
 
