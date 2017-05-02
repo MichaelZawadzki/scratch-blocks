@@ -159,6 +159,9 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
   if (!block.isMovable() && !block.isShadow()) {
     element.setAttribute('movable', false);
   }
+  if (block.isAlwaysAvailable() && !block.isShadow()) {
+    element.setAttribute('alwaysavailable', true);
+  }
   if (!block.isEditable()) {
     element.setAttribute('editable', false);
   }
@@ -560,6 +563,14 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   if (editable) {
     block.setEditable(editable == 'true');
   }
+
+
+  var alwaysAvailable = xmlBlock.getAttribute('alwaysavailable')
+  if (alwaysAvailable) {
+    block.setAlwaysAvailable(alwaysAvailable == 'true');
+  } 
+
+
   var collapsed = xmlBlock.getAttribute('collapsed');
   if (collapsed) {
     block.setCollapsed(collapsed == 'true');

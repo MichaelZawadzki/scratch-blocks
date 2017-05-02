@@ -112,6 +112,12 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
    * @type {boolean}
    * @private
    */
+  this.alwaysAvailable_ = false;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
   this.isShadow_ = false;
 
   /**
@@ -590,6 +596,27 @@ Blockly.Block.prototype.isMovable = function() {
 Blockly.Block.prototype.setMovable = function(movable) {
   this.movable_ = movable;
 };
+
+
+
+/**
+ * Get whether this block is always available on the workspace
+ * @return {boolean} True if always available.
+ */
+Blockly.Block.prototype.isAlwaysAvailable = function() {
+  return this.alwaysAvailable_ && !this.isShadow_ &&
+      !(this.workspace && this.workspace.options.readOnly);
+};
+
+/**
+ * Set whether this block is movable or not.
+ * @param {boolean} movable True if is always available.
+ */
+Blockly.Block.prototype.setAlwaysAvailable = function(alwaysAvailable) {
+  this.alwaysAvailable_ = alwaysAvailable;
+};
+
+
 
 /**
  * Get whether this block is a shadow block or not.
