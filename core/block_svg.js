@@ -884,7 +884,7 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
   }
 
 
-  else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false && Blockly.selected.isAlwaysAvailable() == true )
+  else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false /*&& Blockly.selected.isAlwaysAvailable() == true*/ )
   {
     console.log("###### -----> POPMINOU");
     console.log("Mouse to SVG");
