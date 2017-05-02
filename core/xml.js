@@ -568,7 +568,7 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   var alwaysAvailable = xmlBlock.getAttribute('alwaysavailable')
   if (alwaysAvailable) {
     block.setAlwaysAvailable(alwaysAvailable == 'true');
-  }
+  } 
 
 
   var collapsed = xmlBlock.getAttribute('collapsed');
