@@ -889,8 +889,17 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
     console.log("###### -----> POPMINOU");
     console.log("Mouse to SVG");
 
-    var svgXY = Blockly.utils.mouseToSvg(e, Blockly.selected.workspace.getParentSvg(), Blockly.selected.workspace.getInverseScreenCTM());
-    console.log(svgXY);
+
+
+    var xy = Blockly.selected.getRelativeToSurfaceXY();
+    var dxy = goog.math.Coordinate.difference(xy, Blockly.selected.dragStartXY_);
+    //var event = new Blockly.Events.Move(selected);
+    //event.oldCoordinate = Blockly.selected.dragStartXY_;
+    //event.recordNew();
+    //Blockly.Events.fire(event);
+    //Blockly.selected.moveConnections_(dxy.x, dxy.y);
+
+    block.selected.translate(dxy.x, dxy.y, false); 
 
   }
 
