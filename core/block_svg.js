@@ -884,9 +884,14 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
   }
 
 
-  else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false)
+  else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false && Blockly.selected.isAlwaysAvailable() == true )
   {
     console.log("###### -----> POPMINOU");
+    console.log("Mouse to SVG");
+
+    var svgXY = Blockly.utils.mouseToSvg(e, Blockly.selected.workspace.getParentSvg(), Blockly.selected.workspace.getInverseScreenCTM());
+    console.log(svgXY);
+
   }
 
 
