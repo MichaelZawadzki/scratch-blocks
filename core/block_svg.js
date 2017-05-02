@@ -909,6 +909,7 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
     //Blockly.selected.this.moveConnections_(dxy.x, dxy.y);
     Blockly.Events.disable();
 
+    Blockly.Events.clearPendingUndo();
     Blockly.selected.moveBy(-dxy.x, -dxy.y);
 
     Blockly.Events.enable();
