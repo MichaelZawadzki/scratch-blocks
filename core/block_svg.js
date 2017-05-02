@@ -853,10 +853,6 @@ Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
 
   var deleteArea = this.workspace.isDeleteArea(e);
 
-  console.log("### Blockly MOUSE UP event");
-  console.log("\tevent");
-  console.log(e);
-
   // Connect to a nearby block, but not if it's over the toolbox.
   if (Blockly.selected && Blockly.highlightedConnection_ &&
       deleteArea != Blockly.DELETE_AREA_TOOLBOX) {
