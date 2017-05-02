@@ -159,6 +159,9 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
   if (!block.isMovable() && !block.isShadow()) {
     element.setAttribute('movable', false);
   }
+  if (!block.isAlwaysAvailable() && !block.isShadow()) {
+    element.setAttribute('alwaysAvailable', true);
+  }
   if (!block.isEditable()) {
     element.setAttribute('editable', false);
   }
