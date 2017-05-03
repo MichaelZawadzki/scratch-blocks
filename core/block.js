@@ -1417,6 +1417,9 @@ Blockly.Block.prototype.interpolate_ = function(message, args, lastDummyAlign) {
         if (element['check']) {
           input.setCheck(element['check']);
         }
+        if (element['shape']) {
+          input.setShape(element['shape']);
+        }
         if (element['align']) {
           input.setAlign(alignmentLookup[element['align']]);
         }
