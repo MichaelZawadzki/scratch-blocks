@@ -209,6 +209,19 @@ Blockly.Input.prototype.setCheck = function(check) {
 };
 
 /**
+ * Change a connection's shape.
+ * @param {string|null} shape Shape of the connection.  Null if it should instead rely on the 'check'.
+ * @return {!Blockly.Input} The input being modified (to allow chaining).
+ */
+Blockly.Input.prototype.setShape = function(shape) {
+  if (!this.connection) {
+    throw 'This input does not have a connection.';
+  }
+  this.connection.setShape(shape);
+  return this;
+};
+
+/**
  * Change the alignment of the connection's field(s).
  * @param {number} align One of Blockly.ALIGN_LEFT, ALIGN_CENTRE, ALIGN_RIGHT.
  *   In RTL mode directions are reversed, and ALIGN_RIGHT aligns to the left.

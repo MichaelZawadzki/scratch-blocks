@@ -627,6 +627,13 @@ Blockly.Connection.prototype.onCheckChanged_ = function() {
 };
 
 /**
+ * Function to be called when this connection's shape has changed.
+ * @private
+ */
+Blockly.Connection.prototype.onShapeChanged_ = function() {
+};
+
+/**
  * Change a connection's compatibility.
  * @param {*} check Compatible value type or list of value types.
  *     Null if all types are compatible.
@@ -648,20 +655,46 @@ Blockly.Connection.prototype.setCheck = function(check) {
 };
 
 /**
+ * Explicitely set a connection's shape
+ * @param {*} shape Compatible value type or list of value types.
+ *     Null if should instead rely on 'check'.
+ * @return {!Blockly.Connection} The connection being modified
+ *     (to allow chaining).
+ */
+Blockly.Connection.prototype.setShape = function(shape) {
+  if (shape) {
+    // // Ensure that shape is in an array.
+    // if (!goog.isArray(shape)) {
+    //   shape = [shape];
+    // }
+    this.shape_ = shape;
+    this.onShapeChanged_();
+  } else {
+    this.shape_ = null;
+  }
+  return this;
+};
+
+/**
  * Returns a shape enum for this connection.
  * Used in scratch-blocks to draw unoccupied inputs.
  * @return {number} Enum representing shape.
  */
 Blockly.Connection.prototype.getOutputShape = function() {
-  if (!this.check_) return Blockly.OUTPUT_SHAPE_ROUND;
-  if (this.check_.indexOf('Boolean') !== -1) {
-    return Blockly.OUTPUT_SHAPE_HEXAGONAL;
-  }
-  if (this.check_.indexOf('Number') !== -1) {
-    return Blockly.OUTPUT_SHAPE_ROUND;
-  }
-  if (this.check_.indexOf('String') !== -1) {
-    return Blockly.OUTPUT_SHAPE_SQUARE;
+  // 'shape' takes precendence; if its not defined, used 'check'
+  if (this.shape_) {
+    return this.shape_;
+  } else {
+    if (!this.check_) return Blockly.OUTPUT_SHAPE_ROUND;
+    if (this.check_.indexOf('Boolean') !== -1) {
+      return Blockly.OUTPUT_SHAPE_HEXAGONAL;
+    }
+    if (this.check_.indexOf('Number') !== -1) {
+      return Blockly.OUTPUT_SHAPE_ROUND;
+    }
+    if (this.check_.indexOf('String') !== -1) {
+      return Blockly.OUTPUT_SHAPE_SQUARE;
+    }
   }
   return Blockly.OUTPUT_SHAPE_ROUND;
 };
