@@ -627,18 +627,10 @@ Blockly.Connection.prototype.onCheckChanged_ = function() {
 };
 
 /**
- * Function to be called when this connection's compatible types have changed.
+ * Function to be called when this connection's shape has changed.
  * @private
  */
 Blockly.Connection.prototype.onShapeChanged_ = function() {
-  /*
-  // The new value type may not be compatible with the existing connection.
-  if (this.isConnected() && !this.checkType_(this.targetConnection)) {
-    var child = this.isSuperior() ? this.targetBlock() : this.sourceBlock_;
-    child.unplug();
-  }
-  */
-  console.log("Dont forget to implement 'onShapeChanged_'...");
 };
 
 /**
@@ -670,9 +662,6 @@ Blockly.Connection.prototype.setCheck = function(check) {
  *     (to allow chaining).
  */
 Blockly.Connection.prototype.setShape = function(shape) {
-
-  console.log("Setting shape to " + shape);
-
   if (shape) {
     // // Ensure that shape is in an array.
     // if (!goog.isArray(shape)) {
@@ -692,12 +681,10 @@ Blockly.Connection.prototype.setShape = function(shape) {
  * @return {number} Enum representing shape.
  */
 Blockly.Connection.prototype.getOutputShape = function() {
-  if (this.shape_)
-  {
+  // 'shape' takes precendence; if its not defined, used 'check'
+  if (this.shape_) {
     return this.shape_;
-  }
-  else
-  {
+  } else {
     if (!this.check_) return Blockly.OUTPUT_SHAPE_ROUND;
     if (this.check_.indexOf('Boolean') !== -1) {
       return Blockly.OUTPUT_SHAPE_HEXAGONAL;
