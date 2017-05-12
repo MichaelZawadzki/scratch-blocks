@@ -19,6 +19,7 @@
         "msg/json",
         "shim",
         "tests",
+        "scripts",
         "build.py",
         "cleanup.sh",
         "CONTRIBUTING.md",
