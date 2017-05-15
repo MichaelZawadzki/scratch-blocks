@@ -1258,6 +1258,11 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
   var topBlocks = this.getTopBlocks(true);
   var eventGroup = Blockly.utils.genUid();
 
+  // don't show menu if its explicitly disabled
+  if(this.options.contextMenuOptions !== undefined && (this.options.contextMenuOptions && this.options.contextMenuOptions.disabled === true)) {
+    return;
+  }
+
   // Options to undo/redo previous action.
   if(this.options.contextMenuOptions === undefined || (this.options.contextMenuOptions && this.options.contextMenuOptions.showUndo === true))
   {
