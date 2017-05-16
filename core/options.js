@@ -154,6 +154,7 @@ Blockly.Options = function(options) {
   this.realtimeOptions = realtimeOptions;
   this.toolboxPosition = toolboxPosition;
   this.contextMenuOptions = options['contextMenu'];
+  this.disableBlocksContextMenu = options['disableBlocksContextMenu'];
 };
 
 /**
