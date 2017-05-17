@@ -199,9 +199,9 @@ Blockly.BlockSvg.prototype.select = function() {
     this.getParent().select();
     return;
   }
-  // if (Blockly.selected == this) {
-  //   return;
-  // }
+  if (Blockly.selected == this) {
+    return;
+  }
   var oldId = null;
   if (Blockly.selected) {
     oldId = Blockly.selected.id;
@@ -361,6 +361,7 @@ Blockly.BlockSvg.terminateDrag = function() {
         Blockly.Events.setGroup(group);
         selected.bumpNeighbours_();
         Blockly.Events.setGroup(false);
+        selected.unselect();
       }, Blockly.BUMP_DELAY);
     }
   }
