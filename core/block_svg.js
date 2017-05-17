@@ -199,9 +199,9 @@ Blockly.BlockSvg.prototype.select = function() {
     this.getParent().select();
     return;
   }
-  if (Blockly.selected == this) {
-    return;
-  }
+  // if (Blockly.selected == this) {
+  //   return;
+  // }
   var oldId = null;
   if (Blockly.selected) {
     oldId = Blockly.selected.id;
