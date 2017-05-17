@@ -361,6 +361,7 @@ Blockly.BlockSvg.terminateDrag = function() {
         Blockly.Events.setGroup(group);
         selected.bumpNeighbours_();
         Blockly.Events.setGroup(false);
+        selected.unselect();
       }, Blockly.BUMP_DELAY);
     }
   }
