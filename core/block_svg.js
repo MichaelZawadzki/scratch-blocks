@@ -365,6 +365,16 @@ Blockly.BlockSvg.terminateDrag = function() {
       }, Blockly.BUMP_DELAY);
     }
   }
+  else
+  {
+    if(selected)
+    {
+      selected.unselect();
+      // setTimeout(function() {
+      //   selected.unselect();
+      // }, 0);
+    }
+  }
   Blockly.dragMode_ = Blockly.DRAG_NONE;
 };
 
