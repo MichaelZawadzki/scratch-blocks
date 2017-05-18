@@ -367,12 +367,8 @@ Blockly.BlockSvg.terminateDrag = function() {
   }
   else
   {
-    if(selected)
-    {
+    if(selected) {
       selected.unselect();
-      // setTimeout(function() {
-      //   selected.unselect();
-      // }, 0);
     }
   }
   Blockly.dragMode_ = Blockly.DRAG_NONE;
