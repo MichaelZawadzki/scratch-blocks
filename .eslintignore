@@ -3,6 +3,8 @@
 /msg/*
 /core/css.js
 /tests/jsunit/*
+/tests/workspace_svg/*
+/tests/blocks/*
 /tests/generators/*
 /generators/*
 /demos/*
@@ -10,4 +12,5 @@
 /appengine/*
 /shim/*
 /dist/*
+/gh-pages/*
 /webpack.config.js

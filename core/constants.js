@@ -33,6 +33,13 @@ goog.provide('Blockly.constants');
 Blockly.DRAG_RADIUS = 3;
 
 /**
+ * Number of pixels the mouse must move before a drag/scroll starts from the
+ * flyout.  Because the drag-intention is determined when this is reached, it is
+ * larger than Blockly.DRAG_RADIUS so that the drag-direction is clearer.
+ */
+Blockly.FLYOUT_DRAG_RADIUS = 10;
+
+/**
  * Maximum misalignment between connections for them to snap together.
  */
 Blockly.SNAP_RADIUS = 48;
@@ -67,9 +74,15 @@ Blockly.LONGPRESS = 750;
 
 /**
  * Prevent a sound from playing if another sound preceded it within this many
- * miliseconds.
+ * milliseconds.
  */
 Blockly.SOUND_LIMIT = 100;
+
+/**
+ * When dragging a block out of a stack, split the stack in two (true), or drag
+ * out the block healing the stack (false).
+ */
+Blockly.DRAG_STACK = true;
 
 /**
  * The richness of block colours, regardless of the hue.
@@ -261,3 +274,39 @@ Blockly.Categories = {
   "operators": "operators",
   "more": "more"
 };
+
+/**
+ * ENUM representing that an event is not in any delete areas.
+ * Null for backwards compatibility reasons.
+ * @const
+ */
+Blockly.DELETE_AREA_NONE = null;
+
+/**
+ * ENUM representing that an event is in the delete area of the trash can.
+ * @const
+ */
+Blockly.DELETE_AREA_TRASH = 1;
+
+/**
+ * ENUM representing that an event is in the delete area of the toolbox or
+ * flyout.
+ * @const
+ */
+Blockly.DELETE_AREA_TOOLBOX = 2;
+
+/**
+ * String for use in the "custom" attribute of a category in toolbox xml.
+ * This string indicates that the category should be dynamically populated with
+ * variable blocks.
+ * @const {string}
+ */
+Blockly.VARIABLE_CATEGORY_NAME = 'VARIABLE';
+
+/**
+ * String for use in the "custom" attribute of a category in toolbox xml.
+ * This string indicates that the category should be dynamically populated with
+ * procedure blocks.
+ * @const {string}
+ */
+Blockly.PROCEDURE_CATEGORY_NAME = 'PROCEDURE';
