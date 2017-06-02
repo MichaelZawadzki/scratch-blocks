@@ -129,12 +129,10 @@ Blockly.WorkspaceDragger.prototype.drag = function(currentDragDeltaXY) {
  */
 Blockly.WorkspaceDragger.prototype.updateScroll_ = function(x, y) {
   
-  /*
-  // MMZ-TODO: Add support for this back in which requires making scrollbar be able to handle undefined
-  if (workspace.options.hideHorizontalScrollbar === true) {
+  // [Amplify MMZ] - Option to disable hozizontal scrolling
+  if (this.workspace_.options.hideHorizontalScrollbar === true) {
     x = undefined;
   }
-  */
 
   this.workspace_.scrollbar.set(x, y);
 };
