@@ -258,6 +258,7 @@ Blockly.Scrollbar.prototype.originHasChanged_ = true;
 
 /**
  * The size of the area within which the scrollbar handle can move.
+ * Coordinate system: pixel coordinates.
  * @type {number}
  * @private
  */
@@ -265,6 +266,7 @@ Blockly.Scrollbar.prototype.scrollViewSize_ = 0;
 
 /**
  * The length of the scrollbar handle.
+ * Coordinate system: pixel coordinates.
  * @type {number}
  * @private
  */
@@ -272,6 +274,7 @@ Blockly.Scrollbar.prototype.handleLength_ = 0;
 
 /**
  * The offset of the start of the handle from the start of the scrollbar range.
+ * Coordinate system: pixel coordinates.
  * @type {number}
  * @private
  */
@@ -294,7 +297,6 @@ Blockly.Scrollbar.prototype.containerVisible_ = true;
 /**
  * Width of vertical scrollbar or height of horizontal scrollbar.
  * Increase the size of scrollbars on touch devices.
- * Don't define if there is no document object (e.g. node.js).
  */
 Blockly.Scrollbar.scrollbarThickness = 11;
 if (goog.events.BrowserFeature.TOUCH_ENABLED) {
