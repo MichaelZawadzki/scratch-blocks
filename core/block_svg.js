@@ -660,7 +660,7 @@ Blockly.BlockSvg.prototype.showHelp_ = function() {
  * @private
  */
 Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
-  if (this.workspace.options.readOnly || !this.contextMenu) {
+  if (this.workspace.options.readOnly || !this.contextMenu || this.workspace.options.disableBlocksContextMenu === true) {
     return;
   }
   // Save the current block in a variable for use in closures.
