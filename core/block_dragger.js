@@ -286,7 +286,6 @@ Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
     if (trashcan) {
       goog.Timer.callOnce(trashcan.close, 100, trashcan);
     }
-
     // Fire a move event, so we know where to go back to for an undo.
     this.fireMoveEvent_();
     this.draggingBlock_.dispose(false, true);
@@ -294,7 +293,6 @@ Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
     // Make sure the trash can is closed.
     trashcan.close();
   }
-  
   return this.wouldDeleteBlock_;
 };
 
@@ -357,85 +355,3 @@ Blockly.BlockDragger.prototype.dragIcons_ = function(dxy) {
     data.icon.setIconLocation(goog.math.Coordinate.sum(data.location, dxy));
   }
 };
-
-
-
-
-
-/**
-Blockly.BlockSvg.prototype.onMouseUp_ = function(e) {
-  // A field is being edited if either the WidgetDiv or DropDownDiv is currently open.
-  // If a field is being edited, don't fire any click events.
-  var fieldEditing = Blockly.WidgetDiv.isVisible() || Blockly.DropDownDiv.isVisible();
-  Blockly.Touch.clearTouchIdentifier();
-  if (Blockly.dragMode_ != Blockly.DRAG_FREE && !fieldEditing) {
-    // Move the block in front of the others. Do this at the end of a click
-    // instead of rearranging the dom on mousedown. This helps with
-    // performance and makes it easier to use psuedo element :active
-    // to set the cursor.
-    this.bringToFront_();
-    Blockly.Events.fire(
-        new Blockly.Events.Ui(this, 'click', undefined, undefined));
-    // Scratch-specific: also fire a "stack click" event for this stack.
-    // This is used to toggle the stack when any block in the stack is clicked.
-    var rootBlock = this.workspace.getBlockById(this.id).getRootBlock();
-    Blockly.Events.fire(
-      new Blockly.Events.Ui(rootBlock, 'stackclick', undefined, undefined));
-  }
-  Blockly.terminateDrag_();
-
-  var deleteArea = this.workspace.isDeleteArea(e);
-
-  // Connect to a nearby block, but not if it's over the toolbox.
-  if (Blockly.selected && Blockly.highlightedConnection_ &&
-      deleteArea != Blockly.DELETE_AREA_TOOLBOX) {
-    // Connect two blocks together.
-    Blockly.localConnection_.connect(Blockly.highlightedConnection_);
-    if (this.rendered) {
-      // Trigger a connection animation.
-      // Determine which connection is inferior (lower in the source stack).
-      var inferiorConnection = Blockly.localConnection_.isSuperior() ?
-          Blockly.highlightedConnection_ : Blockly.localConnection_;
-      inferiorConnection.getSourceBlock().connectionUiEffect();
-    }
-    if (this.workspace.trashcan) {
-      // Don't throw an object in the trash can if it just got connected.
-      this.workspace.trashcan.close();
-    }
-  } else if (deleteArea && !this.getParent() && Blockly.selected.isDeletable()) {
-    // We didn't connect the block, and it was over the trash can or the
-    // toolbox.  Delete it.
-    var trashcan = this.workspace.trashcan;
-    if (trashcan) {
-      goog.Timer.callOnce(trashcan.close, 100, trashcan);
-    }
-    if (this.workspace.toolbox_) {
-      this.workspace.toolbox_.removeDeleteStyle();
-    }
-
-    Blockly.selected.dispose(false, true);
-  }
-  // OB: When block is not deletable, also check for attribute 'alwaysavailable' to see if it needs to snap back to old position
-  else if (deleteArea == Blockly.DELETE_AREA_TOOLBOX && !this.getParent() && Blockly.selected.isDeletable() == false && Blockly.selected.isAlwaysAvailable() == true )
-  {
-    var xy = Blockly.selected.getRelativeToSurfaceXY();
-    var dxy = goog.math.Coordinate.difference(xy, Blockly.selected.dragStartXY_);
-
-    // Disable events so that this move undo doesn't create a new event; could probably just call the actual undo instead?
-    Blockly.Events.disable();
-
-    Blockly.selected.moveBy(-dxy.x, -dxy.y);
-    Blockly.Events.clearPendingUndo();
-
-    Blockly.Events.enable();
-  }
-
-
-  if (Blockly.highlightedConnection_) {
-    Blockly.highlightedConnection_ = null;
-  }
-  if (!Blockly.WidgetDiv.isVisible()) {
-    Blockly.Events.setGroup(false);
-  }
-};
-**/
