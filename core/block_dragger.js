@@ -279,7 +279,7 @@ Blockly.BlockDragger.prototype.fireMoveEvent_ = function() {
  * @return {boolean} whether the block was deleted.
  * @private
  */
-Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function(e) {
+Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
   var trashcan = this.workspace_.trashcan;
 
   if (this.wouldDeleteBlock_) {
