@@ -212,7 +212,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
 
   var snappedBack = this.maybeSnapBackBlock_(e);
   if(snappedBack) {
-    Blockly.Events.disable();
+    //Blockly.Events.disable();
     delta = new goog.math.Coordinate(0, 0);
     newLoc = this.startXY_;
     this.draggingBlock_.moveOffDragSurface_(newLoc);
@@ -235,10 +235,10 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   }
   this.workspace_.setResizesEnabled(true);
 
-  if(snappedBack) {
-    Blockly.Events.clearPendingUndo();
-    Blockly.Events.enable();
-  }
+  //if(snappedBack) {
+  //  Blockly.Events.clearPendingUndo();
+  //  Blockly.Events.enable();
+  //}
 
   if (this.workspace_.toolbox_) {
     this.workspace_.toolbox_.removeDeleteStyle();
