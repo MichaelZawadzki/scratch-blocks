@@ -207,9 +207,21 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
 
   Blockly.BlockSvg.disconnectUiStop_();
 
-  var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
-  var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
-  this.draggingBlock_.moveOffDragSurface_(newLoc);
+  var delta;
+  var newLoc;
+
+  var snappedBack = this.maybeSnapBackBlock_(e);
+  if(snappedBack) {
+    Blockly.Events.disable();
+    delta = new goog.math.Coordinate(0, 0);
+    newLoc = this.startXY_;
+    this.draggingBlock_.moveOffDragSurface_(newLoc);
+  }
+  else {
+    delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
+    newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
+    this.draggingBlock_.moveOffDragSurface_(newLoc);
+  }
 
   var deleted = this.maybeDeleteBlock_();
   if (!deleted) {
@@ -223,10 +235,31 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   }
   this.workspace_.setResizesEnabled(true);
 
+  if(snappedBack) {
+   Blockly.Events.clearPendingUndo();
+   Blockly.Events.enable();
+  }
+
   if (this.workspace_.toolbox_) {
     this.workspace_.toolbox_.removeDeleteStyle();
   }
   Blockly.Events.setGroup(false);
+};
+
+
+Blockly.BlockDragger.prototype.maybeSnapBackBlock_ = function(e) {
+
+  var snapBack = false;
+
+  if( this.draggingBlock_.isDeletable() === false && this.draggingBlock_.isAlwaysAvailable() === true ) {
+    var deleteArea = this.workspace_.isDeleteArea(e);
+    if( !this.draggingBlock_.getParent() && deleteArea === Blockly.DELETE_AREA_TOOLBOX ) {
+      snapBack = true;
+    }
+  }
+
+  return snapBack;
+
 };
 
 /**
