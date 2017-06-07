@@ -493,6 +493,11 @@ Blockly.Gesture.prototype.handleUp = function(e) {
   } else if (this.isWorkspaceClick_()) {
     this.doWorkspaceClick_();
   }
+  
+  // OB: [CSI-265]
+  if (Blockly.selected) {
+    Blockly.selected.unselect();
+  }
 
   e.preventDefault();
   e.stopPropagation();

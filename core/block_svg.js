@@ -192,11 +192,17 @@ Blockly.BlockSvg.prototype.initInputShape = function(input) {
  * Select this block.  Highlight it visually.
  */
 Blockly.BlockSvg.prototype.select = function() {
+  
+  // OB
+  console.log("Select block");
+  console.trace();
+
   if (this.isShadow() && this.getParent()) {
     // Shadow blocks should not be selected.
     this.getParent().select();
     return;
   }
+
   if (Blockly.selected == this) {
     return;
   }
@@ -222,6 +228,11 @@ Blockly.BlockSvg.prototype.select = function() {
  * Unselect this block.  Remove its highlighting.
  */
 Blockly.BlockSvg.prototype.unselect = function() {
+
+  // OB
+  console.log("Unselect block");
+  console.trace();
+
   if (Blockly.selected != this) {
     return;
   }

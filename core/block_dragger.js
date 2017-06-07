@@ -246,10 +246,10 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   }
   Blockly.Events.setGroup(false);
 
-  // OB: [CSI-265]
-  if (Blockly.selected) {
-    Blockly.selected.unselect();
-  }
+  // // OB: [CSI-265]
+  // if (Blockly.selected) {
+  //   Blockly.selected.unselect();
+  // }
 };
 
 
