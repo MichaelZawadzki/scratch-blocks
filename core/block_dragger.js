@@ -245,6 +245,11 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.workspace_.toolbox_.removeDeleteStyle();
   }
   Blockly.Events.setGroup(false);
+
+  // OB: [CSI-265]
+  if (Blockly.selected) {
+    Blockly.selected.unselect();
+  }
 };
 
 
