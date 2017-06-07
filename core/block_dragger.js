@@ -210,6 +210,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   var delta;
   var newLoc;
 
+  // OB: [CSI-211] : snap a block back to the workspace marked as "non-deletable" and "always available"
   var snappedBack = this.maybeSnapBackBlock_(e);
   if(snappedBack) {
     Blockly.Events.disable();
