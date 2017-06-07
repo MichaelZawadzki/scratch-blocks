@@ -493,8 +493,8 @@ Blockly.Gesture.prototype.handleUp = function(e) {
   } else if (this.isWorkspaceClick_()) {
     this.doWorkspaceClick_();
   }
-  
-  // OB: [CSI-265]
+
+  // OB: [CSI-265]: Unselect the current block every time mouse is up
   if (Blockly.selected) {
     Blockly.selected.unselect();
   }
