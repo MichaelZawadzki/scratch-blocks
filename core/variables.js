@@ -476,7 +476,14 @@ Blockly.Variables.createVariable = function(workspace, opt_callback) {
                 });
           }
           else {
-            workspace.createVariable(text);
+            var variable = workspace.createVariable(text);
+
+            var flyout = workspace.getFlyout();
+            var variableBlockId = 'VAR_' + variable.name;
+            if (flyout.setCheckboxState) {
+              flyout.setCheckboxState(variableBlockId, true);
+            }
+
             if (opt_callback) {
               opt_callback(text);
             }
