@@ -43,7 +43,8 @@ Blockly.JavaScript['data_variable'] = function(block)
 
 Blockly.JavaScript['data_setvariableto'] = function(block)
 {
-  var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  //var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  var varName = block.getFieldValue('VARIABLE');
   var value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
   
   // Attempt to convert value to a number
@@ -59,7 +60,8 @@ Blockly.JavaScript['data_setvariableto'] = function(block)
 
 Blockly.JavaScript['data_changevariableby'] = function(block)
 {
-  var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  //var varName = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  var varName = block.getFieldValue('VARIABLE');
   var value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
   
   // Attempt to convert value to a number
