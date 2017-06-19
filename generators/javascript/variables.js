@@ -37,8 +37,9 @@ Blockly.JavaScript['data_variablemenu'] = function(block)
 
 Blockly.JavaScript['data_variable'] = function(block)
 {
-  var code = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
-  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+  //var code = Blockly.JavaScript.valueToCode(block, 'VARIABLE', Blockly.JavaScript.ORDER_NONE)
+  var varName = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VARIABLE'), Blockly.Variables.NAME_TYPE);
+  return [varName, Blockly.JavaScript.ORDER_ATOMIC];
 };
 
 Blockly.JavaScript['data_setvariableto'] = function(block)
