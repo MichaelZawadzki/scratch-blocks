@@ -46,7 +46,7 @@ Blockly.Blocks['data_variable'] = {
       "category": Blockly.Categories.data,
       "output": "String",
       "outputShape": Blockly.OUTPUT_SHAPE_ROUND,
-      "checkboxInFlyout": true,
+      "checkboxInFlyout": !true,
       "extensions": ["contextMenu_getVariableBlock", "colours_data"]
     });
   }
