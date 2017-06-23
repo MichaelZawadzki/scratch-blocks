@@ -478,7 +478,12 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   this.svgPath_.setAttribute('stroke', strokeColour);
 
   // Render block fill
+
   var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour();
+
+  // TODO: MMZ Use getColourSecondary() for isShadow() blocks?
+  //var fillColour = (this.isGlowingBlock_ || this.isShadow()) ? this.getColourSecondary() : this.getColour();
+
   this.svgPath_.setAttribute('fill', fillColour);
 
   // Render opacity
