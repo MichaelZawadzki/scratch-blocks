@@ -412,8 +412,8 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDragging>.blocklyPath,',
   '.blocklyDragging>.blocklyPathLight {',
-    'fill-opacity: .8;',
-    'stroke-opacity: .8;',
+    'fill-opacity: 1;',
+    'stroke-opacity: 1;',
   '}',
 
   '.blocklyDragging>.blocklyPath {',
