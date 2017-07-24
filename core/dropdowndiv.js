@@ -352,6 +352,14 @@ Blockly.DropDownDiv.isVisible = function() {
 };
 
 /**
+ * Gets the owner of the dropdown
+ * @return {Object} owner Objectof the drop-down
+ */
+Blockly.DropDownDiv.getOwner = function() {
+  return Blockly.DropDownDiv.owner_;
+};
+
+/**
  * Hide the menu only if it is owned by the provided object.
  * @param {Object} owner Object which must be owning the drop-down to hide
  * @return {Boolean} True if hidden
@@ -401,5 +409,22 @@ Blockly.DropDownDiv.hideWithoutAnimation = function() {
   if (Blockly.DropDownDiv.onHide_) {
     Blockly.DropDownDiv.onHide_();
     Blockly.DropDownDiv.onHide_ = null;
+  }
+};
+
+/**
+ * Hide the menu if the owner block is not on the worksapce
+ */
+Blockly.DropDownDiv.hideIfNoSourceBlock = function(workspace) {
+  if (!Blockly.DropDownDiv.isVisible()) {
+    return;
+  }
+  if(workspace) {
+    if(Blockly.DropDownDiv.owner_) {
+      var sourceBlock = Blockly.DropDownDiv.owner_.sourceBlock_;
+      if(sourceBlock === null || workspace.getBlockById(sourceBlock.id) === null) {
+        Blockly.DropDownDiv.hideWithoutAnimation();
+      }
+    }
   }
 };
