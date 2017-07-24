@@ -356,7 +356,7 @@ Blockly.DropDownDiv.isVisible = function() {
  * @return {Object} owner Objectof the drop-down
  */
 Blockly.DropDownDiv.getOwner = function() {
-  return !!Blockly.DropDownDiv.owner_;
+  return Blockly.DropDownDiv.owner_;
 };
 
 /**
