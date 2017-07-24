@@ -1611,7 +1611,7 @@ Blockly.WorkspaceSvg.prototype.scrollTopCenter = function(_offsetTop) {
 
   // Same as centering logic above for X
   var x = (metrics.contentWidth - metrics.viewWidth) / 2;
-  if (this.flyout_) {
+  if (this.flyout_ && this.toolboxPosition != Blockly.TOOLBOX_AT_RIGHT) {
     x -= this.flyout_.width_ / 2;
   }
 
@@ -1722,6 +1722,14 @@ Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
     } else if (this.toolboxPosition == Blockly.TOOLBOX_AT_LEFT ||
         this.toolboxPosition == Blockly.TOOLBOX_AT_RIGHT) {
       svgSize.width -= this.toolbox_.getWidth();
+    }
+  }else if(this.flyout_){
+     if (this.toolboxPosition == Blockly.TOOLBOX_AT_TOP ||
+        this.toolboxPosition == Blockly.TOOLBOX_AT_BOTTOM) {
+      svgSize.height -= this.flyout_.getHeight();
+    } else if (this.toolboxPosition == Blockly.TOOLBOX_AT_LEFT ||
+        this.toolboxPosition == Blockly.TOOLBOX_AT_RIGHT) {
+      svgSize.width -= this.flyout_.getWidth();
     }
   }
   // Set the margin to match the flyout's margin so that the workspace does
