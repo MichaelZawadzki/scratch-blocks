@@ -507,6 +507,10 @@ Blockly.Workspace.prototype.undo = function(redo) {
   finally {
     Blockly.Events.recordUndo = true;
   }
+  // Clear drop down div if opened
+  if (Blockly.DropDownDiv) {
+      Blockly.DropDownDiv.hideIfNoSourceBlock(appWorkspace.getWorkspace());
+  }
 };
 
 /**
