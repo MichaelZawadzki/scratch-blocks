@@ -1611,7 +1611,7 @@ Blockly.WorkspaceSvg.prototype.scrollTopCenter = function(_offsetTop) {
 
   // Same as centering logic above for X
   var x = (metrics.contentWidth - metrics.viewWidth) / 2;
-  if (this.flyout_) {
+  if (this.flyout_ && this.toolboxPosition != Blockly.TOOLBOX_AT_RIGHT) {
     x -= this.flyout_.width_ / 2;
   }
 
