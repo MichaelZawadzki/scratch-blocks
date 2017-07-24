@@ -268,7 +268,8 @@ Blockly.VerticalFlyout.prototype.position = function() {
     var y = 0;
   }
 
-  if(this.workspace_.toolboxPosition == Blockly.TOOLBOX_AT_RIGHT){
+
+  if(!this.workspace_.toolbox_ && this.workspace_.toolboxPosition == Blockly.TOOLBOX_AT_RIGHT){
       x += this.width_;
   }
 
