@@ -352,6 +352,14 @@ Blockly.DropDownDiv.isVisible = function() {
 };
 
 /**
+ * Gets the owner of the dropdown
+ * @return {Object} owner Objectof the drop-down
+ */
+Blockly.DropDownDiv.getOwner = function() {
+  return !!Blockly.DropDownDiv.owner_;
+};
+
+/**
  * Hide the menu only if it is owned by the provided object.
  * @param {Object} owner Object which must be owning the drop-down to hide
  * @return {Boolean} True if hidden
