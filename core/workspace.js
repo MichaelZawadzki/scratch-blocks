@@ -191,6 +191,7 @@ Blockly.Workspace.prototype.getAllBlocks = function() {
   return blocks;
 };
 
+
 /**
  * Dispose of all blocks in workspace.
  */

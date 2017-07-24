@@ -411,3 +411,20 @@ Blockly.DropDownDiv.hideWithoutAnimation = function() {
     Blockly.DropDownDiv.onHide_ = null;
   }
 };
+
+/**
+ * Hide the menu if the owner block is not on the worksapce
+ */
+Blockly.DropDownDiv.hideIfNoSourceBlock = function(workspace) {
+  if (!Blockly.DropDownDiv.isVisible()) {
+    return;
+  }
+  if(workspace) {
+    if(Blockly.DropDownDiv.owner_) {
+      var sourceBlock = Blockly.DropDownDiv.owner_.sourceBlock_;
+      if(sourceBlock === null || workspace.getBlockById(sourceBlock.id) === null) {
+        Blockly.DropDownDiv.hideWithoutAnimation();
+      }
+    }
+  }
+};
