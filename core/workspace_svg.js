@@ -63,7 +63,7 @@ goog.require('goog.userAgent');
  * @extends {Blockly.Workspace}
  * @constructor
  */
-Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface) {
+Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface, opt_wsHighlightLayer) {
   Blockly.WorkspaceSvg.superClass_.constructor.call(this, options);
   this.getMetrics =
       options.getMetrics || Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_;
@@ -80,6 +80,10 @@ Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface
     this.workspaceDragSurface_ = opt_wsDragSurface;
   }
 
+  if (opt_wsHighlightLayer) {
+    this.workspaceHighlightLayer = opt_wsHighlightLayer;
+  }
+  
   this.useWorkspaceDragSurface_ =
       this.workspaceDragSurface_ && Blockly.utils.is3dSupported();
 
@@ -614,6 +618,12 @@ Blockly.WorkspaceSvg.prototype.resize = function() {
   if (this.scrollbar) {
     this.scrollbar.resize();
   }
+
+  if (this.workspaceHighlightLayer) {
+    var width = this.getParentSvg().getAttribute("width");
+    var height = this.getParentSvg().getAttribute("height");
+    this.workspaceHighlightLayer.resize(width, height);
+  }
   this.updateScreenCalculations_();
 };
 
@@ -685,6 +695,10 @@ Blockly.WorkspaceSvg.prototype.translate = function(x, y) {
   // Now update the block drag surface if we're using one.
   if (this.blockDragSurface_) {
     this.blockDragSurface_.translateAndScaleGroup(x, y, this.scale);
+  }
+
+  if (this.workspaceHighlightLayer) {
+    this.workspaceHighlightLayer.translateLayer(x, y, this.scale);
   }
 };
 
@@ -798,6 +812,35 @@ Blockly.WorkspaceSvg.prototype.render = function() {
   // Render each block.
   for (var i = blocks.length - 1; i >= 0; i--) {
     blocks[i].render(false);
+  }
+};
+
+/**
+ * 
+ */
+Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
+
+  if (this.isFlyout === false) {
+    // CD, TODO: filter connected blocks
+    var activeBlocks = this.getAllBlocks();
+    var lineSegmentInfo = [];
+    var width = this.getParentSvg().getAttribute("width");
+    for(var j = 0; j < activeBlocks.length; j++) {
+      var blockBoundingRect = activeBlocks[j].getBoundingRectangle();
+      for(var i = 0; i < 2; i++)
+        {
+          var lineSegment = {};
+          lineSegment.x = (i === 0) ? blockBoundingRect.topLeft.x : blockBoundingRect.bottomRight.x;
+          lineSegment.y = (i === 0) ? blockBoundingRect.topLeft.y : blockBoundingRect.bottomRight.y - 7;
+
+          lineSegment.x *= this.scale;
+          lineSegment.y *= this.scale;
+          lineSegment.width = width;
+          lineSegmentInfo.push(lineSegment);
+        }
+    }
+    
+    this.workspaceHighlightLayer.updateHighlightLayer(lineSegmentInfo);
   }
 };
 
