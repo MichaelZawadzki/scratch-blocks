@@ -412,8 +412,8 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDragging>.blocklyPath,',
   '.blocklyDragging>.blocklyPathLight {',
-    'fill-opacity: 1;',
-    'stroke-opacity: 1;',
+    'fill-opacity: 1.0;',
+    'stroke-opacity: 1.0;',
   '}',
 
   '.blocklyDragging>.blocklyPath {',
@@ -501,7 +501,7 @@ Blockly.Css.CONTENT = [
     Don't allow users to select text.  It gets annoying when trying to
     drag a block and selected text moves instead.
   */
-  '.blocklySvg text, .blocklyBlockDragSurface text {',
+  '.blocklySvg text, .blocklyBlockDragSurface text, .blocklyFlyout text, .blocklyToolboxDiv text {',
     'user-select: none;',
     '-moz-user-select: none;',
     '-webkit-user-select: none;',
