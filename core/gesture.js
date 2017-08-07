@@ -431,6 +431,12 @@ Blockly.Gesture.prototype.doStart = function(e) {
 
   if (Blockly.utils.isRightButton(e)) {
     this.handleRightClick(e);
+
+    // CD: [CSI-340 + CSI-343]: Unselect the current block when right click, otherwise we don't get workspace events when dragging "selectedBlock"...
+    if (Blockly.selected) {
+      Blockly.selected.unselect();
+    }
+    
     return;
   }
 
