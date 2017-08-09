@@ -47,6 +47,14 @@ Blockly.BlockDragger = function(block, workspace) {
    */
   this.draggingBlock_ = block;
 
+
+   /**
+   * The parent of the top block in the stack that is being dragged when drag starts.
+   * @type {!Blockly.BlockSvg}
+   * @private
+   */
+  this.initialDragParent_ = null;
+
   /**
    * The workspace on which the block is being dragged.
    * @type {!Blockly.WorkspaceSvg}
@@ -152,7 +160,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
 
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
-
+  this.initialDragParent_ = this.draggingBlock_.parentBlock_;
   if (this.draggingBlock_.getParent()) {
     this.draggingBlock_.unplug();
     var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
@@ -223,20 +231,27 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
     this.draggingBlock_.moveOffDragSurface_(newLoc);
   }
-
+  
+  var changedParent = false; 
   var deleted = this.maybeDeleteBlock_();
   if (!deleted) {
     // These are expensive and don't need to be done if we're deleting.
     this.draggingBlock_.moveConnections_(delta.x, delta.y);
+    
     this.draggingBlock_.setDragging(false);
     this.draggedConnectionManager_.applyConnections();
+    var currentParent = this.draggingBlock_.parentBlock_;
+    changedParent = currentParent !== this.initialDragParent_;
+    if(!changedParent){
+      Blockly.Events.disable();
+    }
     this.draggingBlock_.render();
     this.fireMoveEvent_();
     this.draggingBlock_.scheduleSnapAndBump();
   }
   this.workspace_.setResizesEnabled(true);
 
-  if(snappedBack) {
+  if(snappedBack || (!changedParent && !deleted)) {
    Blockly.Events.clearPendingUndo();
    Blockly.Events.enable();
   }
