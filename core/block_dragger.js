@@ -47,6 +47,14 @@ Blockly.BlockDragger = function(block, workspace) {
    */
   this.draggingBlock_ = block;
 
+
+   /**
+   * The parent of the top block in the stack that is being dragged when drag starts.
+   * @type {!Blockly.BlockSvg}
+   * @private
+   */
+  this.initialDragParent_ = null;
+
   /**
    * The workspace on which the block is being dragged.
    * @type {!Blockly.WorkspaceSvg}
@@ -152,7 +160,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
 
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
-
+  this.initialDragParent_ = this.draggingBlock_.parentBlock_;
   if (this.draggingBlock_.getParent()) {
     this.draggingBlock_.unplug();
     var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
@@ -223,20 +231,54 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
     this.draggingBlock_.moveOffDragSurface_(newLoc);
   }
-
+  
+  var changedParent = false; 
   var deleted = this.maybeDeleteBlock_();
-  if (!deleted) {
+  var deletedNewBlock = false;
+  var isNewBlock = false;
+
+  if (deleted) {
+     //If we created a new block only to instantly delete it, dont save the Event
+     if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock())
+     {
+        Blockly.Events.disable();
+        deletedNewBlock = true;
+     }
+   }else{ //!deleted
+    
+    //If we have a new block from the flyout and we didn't delete it after dragging, create the 
+    //undo/redo Event now. 
+    if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock()){
+        Blockly.Events.fire(new Blockly.Events.Create(this.workspace_.flyout_.getPendingNewBlock()));
+        isNewBlock = true;
+    }
+
     // These are expensive and don't need to be done if we're deleting.
     this.draggingBlock_.moveConnections_(delta.x, delta.y);
     this.draggingBlock_.setDragging(false);
     this.draggedConnectionManager_.applyConnections();
+
+    //If we moved the block, but didnt change it's parent AND if it isnt a new block then we dont want to 
+    //add the event to the undo/redo stack
+    var currentParent = this.draggingBlock_.parentBlock_;
+    changedParent = (currentParent !== this.initialDragParent_) || isNewBlock === true;
+    if(!changedParent){
+      Blockly.Events.disable();
+    }
+
     this.draggingBlock_.render();
     this.fireMoveEvent_();
     this.draggingBlock_.scheduleSnapAndBump();
   }
+
   this.workspace_.setResizesEnabled(true);
 
-  if(snappedBack) {
+  //We have released the block, so if it's a NEW block from the flyout, let the flyout know. 
+  if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock()){
+    this.workspace_.flyout_.clearPendingNewBlock();
+  }
+
+  if(snappedBack || (!changedParent && !deleted) || (deletedNewBlock)) {
    Blockly.Events.clearPendingUndo();
    Blockly.Events.enable();
   }
