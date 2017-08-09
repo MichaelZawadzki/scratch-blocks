@@ -234,24 +234,51 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   
   var changedParent = false; 
   var deleted = this.maybeDeleteBlock_();
-  if (!deleted) {
+  var deletedNewBlock = false;
+  var isNewBlock = false;
+
+  if (deleted) {
+     //If we created a new block only to instantly delete it, dont save the Event
+     if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock())
+     {
+        Blockly.Events.disable();
+        deletedNewBlock = true;
+     }
+   }else{ //!deleted
+    
+    //If we have a new block from the flyout and we didn't delete it after dragging, create the 
+    //undo/redo Event now. 
+    if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock()){
+        Blockly.Events.fire(new Blockly.Events.Create(this.workspace_.flyout_.getPendingNewBlock()));
+        isNewBlock = true;
+    }
+
     // These are expensive and don't need to be done if we're deleting.
     this.draggingBlock_.moveConnections_(delta.x, delta.y);
-    
     this.draggingBlock_.setDragging(false);
     this.draggedConnectionManager_.applyConnections();
+
+    //If we moved the block, but didnt change it's parent AND if it isnt a new block then we dont want to 
+    //add the event to the undo/redo stack
     var currentParent = this.draggingBlock_.parentBlock_;
-    changedParent = currentParent !== this.initialDragParent_;
+    changedParent = (currentParent !== this.initialDragParent_) || isNewBlock === true;
     if(!changedParent){
       Blockly.Events.disable();
     }
+
     this.draggingBlock_.render();
     this.fireMoveEvent_();
     this.draggingBlock_.scheduleSnapAndBump();
   }
+
   this.workspace_.setResizesEnabled(true);
 
-  if(snappedBack || (!changedParent && !deleted)) {
+  //We have released the block, so if it's a NEW block from the flyout, let the flyout know. 
+  if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock()){
+    this.workspace_.flyout_.clearPendingNewBlock();
+  }
+
+  if(snappedBack || (!changedParent && !deleted) || (deletedNewBlock)) {
    Blockly.Events.clearPendingUndo();
    Blockly.Events.enable();
   }

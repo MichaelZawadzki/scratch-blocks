@@ -118,6 +118,14 @@ Blockly.Flyout = function(workspaceOptions) {
    * @private
    */
   this.parentToolbox_ = null;
+
+   /**
+   * The pending block to be created. We need to reference it in case it gets deleted before being placed
+   * @type {Blockly.Block}
+   * @private
+   */
+   this.pendingNewBlock_ = null;
+
 };
 
 /**
@@ -634,14 +642,41 @@ Blockly.Flyout.prototype.createBlock = function(originalBlock) {
   }
 
   if (Blockly.Events.isEnabled()) {
-    Blockly.Events.setGroup(true);
-    Blockly.Events.fire(new Blockly.Events.Create(newBlock));
+   Blockly.Events.setGroup(true);
+   // Blockly.Events.fire(new Blockly.Events.Create(newBlock));
+   this.pendingNewBlock_ = newBlock;
   }
   if (this.autoClose) {
     this.hide();
   }
   return newBlock;
 };
+
+
+/**
+* Set pendingNewBlock_ to null;
+*/
+Blockly.Flyout.prototype.clearPendingNewBlock = function()
+{
+  this.pendingNewBlock_ = null;
+};
+
+/**
+* check if Flyout has a pendingNewBlock
+*/
+Blockly.Flyout.prototype.hasPendingNewBlock = function()
+{
+  return this.pendingNewBlock_ !== null;
+};
+
+/**
+* reference to pendingNewBlock_
+*/
+Blockly.Flyout.prototype.getPendingNewBlock = function()
+{
+  return this.pendingNewBlock_;
+};
+
 
 /**
  * Reflow blocks and their buttons.
