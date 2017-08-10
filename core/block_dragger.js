@@ -260,11 +260,11 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
 
     //If we moved the block, but didnt change it's parent AND if it isnt a new block then we dont want to 
     //add the event to the undo/redo stack
-    var currentParent = this.draggingBlock_.parentBlock_;
-    changedParent = (currentParent !== this.initialDragParent_) || isNewBlock === true;
-    if(!changedParent){
-      Blockly.Events.disable();
-    }
+    // var currentParent = this.draggingBlock_.parentBlock_;
+    // changedParent = (currentParent !== this.initialDragParent_) || isNewBlock === true;
+    // if(!changedParent){
+    //   Blockly.Events.disable();
+    // }
 
     this.draggingBlock_.render();
     this.fireMoveEvent_();
@@ -278,7 +278,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.workspace_.flyout_.clearPendingNewBlock();
   }
 
-  if(snappedBack || (!changedParent && !deleted) || (deletedNewBlock)) {
+  if(snappedBack || deletedNewBlock) {//(!changedParent && !deleted) {
    Blockly.Events.clearPendingUndo();
    Blockly.Events.enable();
   }
