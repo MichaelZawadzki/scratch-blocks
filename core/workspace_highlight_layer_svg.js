@@ -34,9 +34,7 @@ goog.require('goog.math.Coordinate');
 
 
 /**
- * Blocks are moved into this SVG during a drag, improving performance.
- * The entire SVG is translated using css transforms instead of SVG so the
- * blocks are never repainted during drag improving performance.
+ * SVG layer that contains the lines behind the blocks.
  * @param {!Element} container Containing element.
  * @constructor
  */
@@ -156,9 +154,11 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
 /**
  * 
  */
-Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y, scale) {
+Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y) {
   if (this.SVG_) {
-    var translation = 'translate(' + x + ',' + y + ') ' + 'scale(' + scale + ')';
-    this.SVG_.setAttribute('transform', translation);
+    var translation = 'translate(' + 0 + ',' + y + ') ';
+    for (var i = 0; i < this.lineSegments_.length; i++) {
+      this.lineSegments_[i].setAttribute('transform', translation);
+    }
   }
 };
