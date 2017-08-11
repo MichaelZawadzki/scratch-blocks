@@ -130,25 +130,32 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.resize = function(width, height) {
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lineSegmentsInfo) {
   
-  var i, b;
+  var i, b, j;
+  var lineIndex = 0;
 
+  for (i = 0; i < lineSegmentsInfo.length; i++) {
+    for(b = 0; b < lineSegmentsInfo[i].lineSegments.length; b++) {
+      var lineSegment = lineSegmentsInfo[i].lineSegments[b];
+
+      this.lineSegments_[lineIndex].setAttribute('y1', lineSegment.y);
+      this.lineSegments_[lineIndex].setAttribute('y2', lineSegment.y);
+      this.lineSegments_[lineIndex].setAttribute('x2', lineSegment.width);
+      this.lineSegments_[lineIndex].setAttribute('visibility', 'visible');
+      lineIndex +=1;
+    }
+  }
+  
   // There are more lineSegments to draw than what we have in the pool.
   // console log it and return.
-  if (this.lineSegments_.length <= lineSegmentsInfo.length) {
-    console.log('There are too many line segments than are supported. Please increase the pool size! (TotalNumberNeeded = ' + lineSegmentsInfo.length + '.)');
-  }
-
-  for (var b = 0; b < lineSegmentsInfo.length; b++) {
-    this.lineSegments_[b].setAttribute('y1', lineSegmentsInfo[b].y);
-    this.lineSegments_[b].setAttribute('y2', lineSegmentsInfo[b].y);
-    this.lineSegments_[b].setAttribute('x2', lineSegmentsInfo[b].width);
-    this.lineSegments_[b].setAttribute('visibility', 'visible');
+  if (lineIndex >= this.lineSegments_.length) {
+    console.log('There are too many line segments than are supported. Please increase the pool size! (TotalNumberNeeded = ' + lineIndex + '.)');
   }
 
   // go through the rest and set the lines to be hidden.
-  for (i = b; i < this.lineSegments_.length; i++) {
-    this.lineSegments_[i].setAttribute('visibility', 'hidden');
+  for (j = lineIndex; j < this.lineSegments_.length; j++) {
+    this.lineSegments_[j].setAttribute('visibility', 'hidden');
   }
+
 };
 
 /**

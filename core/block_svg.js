@@ -526,6 +526,77 @@ Blockly.BlockSvg.prototype.getBoundingRectangle = function() {
 };
 
 /**
+ * Returns highlight object where it holds the id of the block and line segments for which the block has for highlighting.
+ * Coordinate system: workspace coordinates.
+ * @return {!{id: id, lineSegments: [{x:x, y:y}]}}
+ *    Object with top left and bottom right coordinates of the bounding box.
+ */
+Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
+  var blockHighlight = {
+    lineSegments : [],
+    id : this.id
+  };
+
+  // only care about connection blocks.
+  if (this.nextConnection || this.previousConnection) {
+    // if (this.childBlocks_.length > 0) {
+      var blockRect = this.getBoundingRectangle();
+
+      if (this.previousConnection) {
+        blockHighlight.lineSegments.push(
+          {
+            x : blockRect.topLeft.x,
+            y : blockRect.topLeft.y
+          });
+      }
+
+      // always render the last line
+      var bottomOffset = this.nextConnection ? 7 : 0;
+      blockHighlight.lineSegments.push(
+        {
+          x : blockRect.bottomRight.x,
+          y : blockRect.bottomRight.y - bottomOffset
+        });
+      
+      
+      // if it is a control block, but doesn't have any inner blocks then we need to add the hard coded lines.
+      if (this.childBlocks_.length === 0 || this.childBlocks_.length === 1) {
+
+        if (this.type === 'control_if' || this.type === 'control_if_else') {
+          blockHighlight.lineSegments.push(
+            {
+              x : blockRect.bottomRight.x,
+              y : blockRect.bottomRight.y - 40
+            });
+  
+          blockHighlight.lineSegments.push(
+            {
+              x : blockRect.topLeft.x,
+              y : blockRect.topLeft.y + 48
+            });
+
+          if (this.type === 'control_if_else') {
+            blockHighlight.lineSegments.push(
+              {
+                x : blockRect.bottomRight.x,
+                y : blockRect.bottomRight.y - 64
+              });
+    
+            blockHighlight.lineSegments.push(
+              {
+                x : blockRect.topLeft.x,
+                y : blockRect.topLeft.y + 72
+              });
+          }
+        }
+      }
+    // }
+  }
+
+  return blockHighlight;
+};
+
+/**
  * Set block opacity for SVG rendering.
  * @param {number} opacity Intended opacity, betweeen 0 and 1
  */

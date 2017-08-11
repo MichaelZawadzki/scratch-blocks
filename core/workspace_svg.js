@@ -858,18 +858,14 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
     var lineSegmentInfo = [];
     var width = this.getParentSvg().getAttribute("width");
     for(var j = 0; j < activeBlocks.length; j++) {
-      var blockBoundingRect = activeBlocks[j].getBoundingRectangle();
-      for(var i = 0; i < 2; i++)
-        {
-          var lineSegment = {};
-          lineSegment.x = (i === 0) ? blockBoundingRect.topLeft.x : blockBoundingRect.bottomRight.x;
-          lineSegment.y = (i === 0) ? blockBoundingRect.topLeft.y : blockBoundingRect.bottomRight.y - 7;
+      var blockHighlight = activeBlocks[j].getBlockHighlightObject();
+      for(var i = 0; i < blockHighlight.lineSegments.length; i++) {
+        blockHighlight.lineSegments[i].x *= this.scale;
+        blockHighlight.lineSegments[i].y *= this.scale;
+        blockHighlight.lineSegments[i].width = width;
+      }
 
-          lineSegment.x *= this.scale;
-          lineSegment.y *= this.scale;
-          lineSegment.width = width;
-          lineSegmentInfo.push(lineSegment);
-        }
+      lineSegmentInfo.push(blockHighlight);
     }
     
     this.workspaceHighlightLayer.updateHighlightLayer(lineSegmentInfo);
