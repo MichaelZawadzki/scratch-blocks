@@ -132,18 +132,6 @@ Blockly.Events.UI = 'ui';
  */
 Blockly.Events.FIRE_QUEUE_ = [];
 
-Blockly.Events.record = true;
-
-
-/**
- * Set the state of recording for redo/undo
- * @param {boolean} true if we want to record events, false if not
- */
- Blockly.Events.setRecord = function(_allowRecording){
-    Blockly.Events.record = _allowRecording;
- }
-
-
 /**
  * Create a custom event and fire it.
  * @param {!Blockly.Events.Abstract} event Custom data for event.
@@ -156,9 +144,8 @@ Blockly.Events.fire = function(event) {
     // First event added; schedule a firing of the event queue.
     setTimeout(Blockly.Events.fireNow_, 0);
   }
-  if(Blockly.Events.record){
-    Blockly.Events.FIRE_QUEUE_.push(event);
-  }
+  Blockly.Events.FIRE_QUEUE_.push(event);
+  
 };
 
 /**

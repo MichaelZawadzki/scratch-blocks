@@ -264,7 +264,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
      changedParent = (currentParent !== this.initialDragParent_) || isNewBlock === true;
      if(!changedParent){
       //Blockly.Events.disable();
-      Blockly.Events.setRecord(false);
+      Blockly.Events.recordUndo = false;
     }
 
     this.draggingBlock_.render();
@@ -288,7 +288,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.workspace_.toolbox_.removeDeleteStyle();
   }
   Blockly.Events.setGroup(false);
-  Blockly.Events.setRecord(true);
+  Blockly.Events.recordUndo = true;
 };
 
 
