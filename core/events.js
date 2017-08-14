@@ -145,7 +145,6 @@ Blockly.Events.fire = function(event) {
     setTimeout(Blockly.Events.fireNow_, 0);
   }
   Blockly.Events.FIRE_QUEUE_.push(event);
-  
 };
 
 /**
