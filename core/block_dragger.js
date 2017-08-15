@@ -272,6 +272,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.draggingBlock_.scheduleSnapAndBump();
   }
 
+  Blockly.Events.fireSavedEvents();
   this.workspace_.setResizesEnabled(true);
 
   //We have released the block, so if it's a NEW block from the flyout, let the flyout know. 

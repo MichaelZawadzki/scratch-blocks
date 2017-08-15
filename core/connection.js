@@ -226,7 +226,8 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
   childBlock.setParent(parentBlock);
   if (event) {
     event.recordNew();
-    Blockly.Events.fire(event);
+    // Blockly.Events.fire(event);
+    Blockly.Events.saveEvent(event); 
   }
 };
 
@@ -575,8 +576,9 @@ Blockly.Connection.prototype.disconnectInternal_ = function(parentBlock,
   this.targetConnection = null;
   childBlock.setParent(null);
   if (event) {
-    event.recordNew();
-    Blockly.Events.fire(event);
+    //This needs to get done when we drop it now...
+     event.recordNew();
+     Blockly.Events.saveEvent(event);
   }
 };
 
