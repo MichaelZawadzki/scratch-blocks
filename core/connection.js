@@ -226,8 +226,15 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
   childBlock.setParent(parentBlock);
   if (event) {
     event.recordNew();
-    // Blockly.Events.fire(event);
-    Blockly.Events.saveEvent(event); 
+   
+    if(Blockly.Events.recordUndo){
+      //If this is part of a user-action, we don't KNOW if we want to record it until
+      //the user finishes the move in block-dragger.
+      Blockly.Events.saveEvent(event); 
+    }else{
+      Blockly.Events.fire(event);
+    }
+    
   }
 };
 
