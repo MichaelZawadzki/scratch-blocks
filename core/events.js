@@ -132,6 +132,43 @@ Blockly.Events.UI = 'ui';
  */
 Blockly.Events.FIRE_QUEUE_ = [];
 
+
+/**
+ * List of events queued for firing in a different frame.
+ * @private
+ */
+Blockly.Events.SAVED_FIRE_QUEUE_ = [];
+
+
+/**
+ * Create a custom event and add it to the potential fire queue
+ * @param {!Blockly.Events.Abstract} event Custom data for event.
+ */
+Blockly.Events.saveEvent = function(event) {
+  if (!Blockly.Events.isEnabled()) {
+    return;
+  }
+  Blockly.Events.SAVED_FIRE_QUEUE_.push(event);
+};
+
+/**
+ * Add the potential events to the actual queue to be fired
+ * @param {!Blockly.Events.Abstract} event Custom data for event.
+ */
+Blockly.Events.fireSavedEvents = function(event) {
+  if (!Blockly.Events.isEnabled()) {
+    return;
+  }
+  for (var i = 0, event; event = Blockly.Events.SAVED_FIRE_QUEUE_[i]; i++) {
+     Blockly.Events.FIRE_QUEUE_.push(event);
+  }
+  Blockly.Events.SAVED_FIRE_QUEUE_.length = 0;
+  Blockly.Events.fireNow_();
+};
+
+
+
+
 /**
  * Create a custom event and fire it.
  * @param {!Blockly.Events.Abstract} event Custom data for event.
