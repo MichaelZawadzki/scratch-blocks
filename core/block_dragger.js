@@ -265,6 +265,9 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
      if(!changedParent){
       //Blockly.Events.disable();
       Blockly.Events.recordUndo = false;
+    }else
+    {
+      Blockly.Events.fireSavedEvents();
     }
 
     this.draggingBlock_.render();
@@ -272,7 +275,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.draggingBlock_.scheduleSnapAndBump();
   }
 
-  Blockly.Events.fireSavedEvents();
+
   this.workspace_.setResizesEnabled(true);
 
   //We have released the block, so if it's a NEW block from the flyout, let the flyout know. 
@@ -317,6 +320,7 @@ Blockly.BlockDragger.prototype.fireMoveEvent_ = function() {
   event.oldCoordinate = this.startXY_;
   event.recordNew();
   Blockly.Events.fire(event);
+
 };
 
 /**
