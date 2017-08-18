@@ -31,6 +31,7 @@ goog.provide('Blockly.WorkspaceSvg');
 goog.require('Blockly.Colours');
 goog.require('Blockly.ConnectionDB');
 goog.require('Blockly.constants');
+goog.require('Blockly.DataCategory');
 goog.require('Blockly.DropDownDiv');
 goog.require('Blockly.Events');
 goog.require('Blockly.Gesture');
@@ -107,7 +108,7 @@ Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface
       new Blockly.Grid(options.gridPattern, options.gridOptions) : null;
 
   this.registerToolboxCategoryCallback(Blockly.VARIABLE_CATEGORY_NAME,
-      Blockly.Variables.flyoutCategory);
+      Blockly.DataCategory);
   this.registerToolboxCategoryCallback(Blockly.PROCEDURE_CATEGORY_NAME,
       Blockly.Procedures.flyoutCategory);
 };
@@ -946,22 +947,12 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
   try {
     var block = Blockly.Xml.domToBlock(xmlBlock, this);
 
+    // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
+    Blockly.utils.changeObscuredShadowIds(block);
+
     var blocks = block.getDescendants();
     for (var i = blocks.length - 1; i >= 0; i--) {
       var descendant = blocks[i];
-
-      // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
-      for (var j = 0; j < descendant.inputList.length; j++) {
-        var connection = descendant.inputList[j].connection;
-        if (connection) {
-          var shadowDom = connection.getShadowDom();
-          if (shadowDom) {
-            shadowDom.setAttribute('id', Blockly.utils.genUid());
-            connection.setShadowDom(shadowDom);
-          }
-        }
-      }
-
       // Rerender to get around problem with IE and Edge not measuring text
       // correctly when it is hidden.
       if (goog.userAgent.IE || goog.userAgent.EDGE) {
