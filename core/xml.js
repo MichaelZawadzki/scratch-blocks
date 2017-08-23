@@ -41,12 +41,14 @@ goog.require('goog.userAgent');
  * @param {boolean} opt_noId True if the encoder should skip the block ids.
  * @return {!Element} XML document.
  */
-Blockly.Xml.workspaceToDom = function(workspace, opt_noId) {
+Blockly.Xml.workspaceToDom = function(workspace, opt_noId, requireTriggerBlock) {
   var xml = goog.dom.createDom('xml');
   xml.appendChild(Blockly.Xml.variablesToDom(workspace.getAllVariables()));
   var blocks = workspace.getTopBlocks(true);
   for (var i = 0, block; block = blocks[i]; i++) {
-    xml.appendChild(Blockly.Xml.blockToDomWithXY(block, opt_noId));
+    if(requireTriggerBlock !== true ||  block.type === "event_whenflagclicked") {
+      xml.appendChild(Blockly.Xml.blockToDomWithXY(block, opt_noId));
+    }
   }
   return xml;
 };
