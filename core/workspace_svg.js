@@ -225,6 +225,12 @@ Blockly.WorkspaceSvg.prototype.blockDragSurface_ = null;
 Blockly.WorkspaceSvg.prototype.workspaceDragSurface_ = null;
 
 /**
+ * A way to 'lock' the workspace to keep user from dragging the blocks or modifying the workspace
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.locked = false;
+
+/**
   * Whether to move workspace to the drag surface when it is dragged.
   * True if it should move, false if it should be translated directly.
   * @type {boolean}
@@ -847,6 +853,30 @@ Blockly.WorkspaceSvg.prototype.render = function() {
     blocks[i].render(false);
   }
 };
+
+
+
+/**
+ * Toggles if the workspace allows user-interaction of blocks.
+ * Currently only intended for main workspace.
+ * @param {boolean} isLocked True if workspace should be locked.
+ */
+Blockly.WorkspaceSvg.prototype.setLocked = function(isLocked) {
+  this.locked = isLocked;
+};
+
+/**
+ * Check if the workspace allows user-interaction of blocks.
+ * Currently only intended for main workspace.
+ * return True if workspace should be locked.
+ */
+Blockly.WorkspaceSvg.prototype.isLocked = function() {
+  return this.locked === true;
+};
+
+
+
+
 
 /**
  * 

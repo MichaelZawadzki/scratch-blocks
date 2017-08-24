@@ -194,6 +194,14 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   if (goog.isFunction(this.onchange)) {
     this.setOnChange(this.onchange);
   }
+
+  if( this.workspace.isLocked())
+  {
+    this.editable_ = false; 
+    this.movable_ = false; 
+    this.deletable_ = false;
+  }
+
 };
 
 /**
