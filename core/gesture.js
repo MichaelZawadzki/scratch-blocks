@@ -292,7 +292,7 @@ Blockly.Gesture.prototype.updateDragDelta_ = function(currentXY) {
  */
 Blockly.Gesture.prototype.updateIsDraggingFromFlyout_ = function() {
   // Disabled blocks may not be dragged from the flyout.
-  if (this.targetBlock_.disabled) {
+  if (this.targetBlock_.disabled || !this.targetBlock_.movable_) {
     return false;
   }
   if (!this.flyout_.isScrollable() ||
