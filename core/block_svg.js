@@ -536,7 +536,10 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     lineSegments : [],
     id : this.id
   };
-
+  var TOP_OFFSET = 48;
+  var EXTRA_BOTTOM_INSECT = 7;
+  var EMPTY_CONTROL_BLOCK_PADDING = 32;
+   
   if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true) {
       // only care about connection blocks.
       if (this.nextConnection || this.previousConnection) {
@@ -552,7 +555,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     
         // always render the last line
         if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
-          var bottomOffset = this.nextConnection ? 7 : 0;
+          var bottomOffset = this.nextConnection ? EXTRA_BOTTOM_INSECT : 0;
           blockHighlight.lineSegments.push(
             {
               x : blockRect.bottomRight.x,
@@ -569,7 +572,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
           }
         }
     
-        var offsetY = 48;
+        var offsetY = TOP_OFFSET;
         
         // go through all the substacks and add lines where appropriate.
         for(var j = 0; j < subStacks.length; j++) {
@@ -592,7 +595,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
                   y : blockRect.topLeft.y + offsetY
                 });
       
-              offsetY += 32;
+              offsetY += EMPTY_CONTROL_BLOCK_PADDING;
             } else {
               offsetY += substack.renderHeight;
             }
