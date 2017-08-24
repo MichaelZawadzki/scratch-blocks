@@ -537,61 +537,69 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     id : this.id
   };
 
-  // only care about connection blocks.
-  if (this.nextConnection || this.previousConnection) {
-    // if (this.childBlocks_.length > 0) {
-      var blockRect = this.getBoundingRectangle();
-
-      if (this.previousConnection) {
-        blockHighlight.lineSegments.push(
-          {
-            x : blockRect.topLeft.x,
-            y : blockRect.topLeft.y
-          });
-      }
-
-      // always render the last line
-      var bottomOffset = this.nextConnection ? 7 : 0;
-      blockHighlight.lineSegments.push(
-        {
-          x : blockRect.bottomRight.x,
-          y : blockRect.bottomRight.y - bottomOffset
-        });
-      
-      
-      // if it is a control block, but doesn't have any inner blocks then we need to add the hard coded lines.
-      if (this.childBlocks_.length === 0 || this.childBlocks_.length === 1) {
-
-        if (this.type === 'control_if' || this.type === 'control_if_else') {
-          blockHighlight.lineSegments.push(
-            {
-              x : blockRect.bottomRight.x,
-              y : blockRect.bottomRight.y - 40
-            });
-  
+  if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true) {
+      // only care about connection blocks.
+      if (this.nextConnection || this.previousConnection) {
+        var blockRect = this.getBoundingRectangle();
+        var subStacks = [];
+        if (this.previousConnection) {
           blockHighlight.lineSegments.push(
             {
               x : blockRect.topLeft.x,
-              y : blockRect.topLeft.y + 48
+              y : blockRect.topLeft.y
             });
-
-          if (this.type === 'control_if_else') {
-            blockHighlight.lineSegments.push(
-              {
-                x : blockRect.bottomRight.x,
-                y : blockRect.bottomRight.y - 64
-              });
+        }
     
-            blockHighlight.lineSegments.push(
-              {
-                x : blockRect.topLeft.x,
-                y : blockRect.topLeft.y + 72
-              });
+        // always render the last line
+        if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
+          var bottomOffset = this.nextConnection ? 7 : 0;
+          blockHighlight.lineSegments.push(
+            {
+              x : blockRect.bottomRight.x,
+              y : blockRect.bottomRight.y - bottomOffset
+            });
+        }
+        
+        for(var i = 0; i < this.inputList.length; i++) {
+          var input = this.inputList[i];
+    
+          // type Blockly.NEXT_STATEMENT is the "substack" input type where blocks goes inside of the control blocks.
+          if (input.type === Blockly.NEXT_STATEMENT) {
+            subStacks.push(input);
+          }
+        }
+    
+        var offsetY = 48;
+        
+        // go through all the substacks and add lines where appropriate.
+        for(var j = 0; j < subStacks.length; j++) {
+          var substack = subStacks[j];
+          
+          if (substack.renderHeight) {
+            // empty sub stack add the line.
+            if (!substack.connection.targetConnection) {
+              blockHighlight.lineSegments.push(
+                {
+                  x : blockRect.topLeft.x,
+                  y : blockRect.topLeft.y + offsetY
+                });
+      
+              offsetY += substack.renderHeight;
+      
+              blockHighlight.lineSegments.push(
+                {
+                  x : blockRect.topLeft.x,
+                  y : blockRect.topLeft.y + offsetY
+                });
+      
+              offsetY += 32;
+            } else {
+              offsetY += substack.renderHeight;
+            }
           }
         }
       }
-    // }
-  }
+    }
 
   return blockHighlight;
 };

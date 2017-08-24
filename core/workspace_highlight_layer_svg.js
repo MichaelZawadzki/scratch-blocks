@@ -132,25 +132,39 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
   
   var i, b, j;
   var lineIndex = 0;
+  var totalLineSegments = lineSegmentsInfo.map(function(lineSegment){
+    return lineSegment.lineSegments.length;
+  });
+  var totalNumberNeeded = 0;
+  for(var num = 0; num < totalLineSegments.length; num++) {
+    totalNumberNeeded += totalLineSegments[num];
+  }
+
+  // There are more lineSegments to draw than what we have in the pool.
+  // console log it and return.
+  if (totalNumberNeeded > this.lineSegments_.length) {
+    Blockly.alert('There are too many line segments than are supported. Please increase the pool size! (TotalNumberNeeded = ' + totalNumberNeeded + '.)');
+    return;
+  }
+
+  var previousY;
 
   for (i = 0; i < lineSegmentsInfo.length; i++) {
     for(b = 0; b < lineSegmentsInfo[i].lineSegments.length; b++) {
       var lineSegment = lineSegmentsInfo[i].lineSegments[b];
 
-      this.lineSegments_[lineIndex].setAttribute('y1', lineSegment.y);
-      this.lineSegments_[lineIndex].setAttribute('y2', lineSegment.y);
-      this.lineSegments_[lineIndex].setAttribute('x2', lineSegment.width);
-      this.lineSegments_[lineIndex].setAttribute('visibility', 'visible');
+      // skip the new line if there is a line already occupying the Y position.
+      if (previousY !== lineSegment.y) {
+        this.lineSegments_[lineIndex].setAttribute('y1', lineSegment.y);
+        this.lineSegments_[lineIndex].setAttribute('y2', lineSegment.y);
+        this.lineSegments_[lineIndex].setAttribute('x2', lineSegment.width);
+        this.lineSegments_[lineIndex].setAttribute('visibility', 'visible');
+        previousY = lineSegment.y;
+      }
       lineIndex +=1;
     }
   }
   
-  // There are more lineSegments to draw than what we have in the pool.
-  // console log it and return.
-  if (lineIndex >= this.lineSegments_.length) {
-    console.log('There are too many line segments than are supported. Please increase the pool size! (TotalNumberNeeded = ' + lineIndex + '.)');
-  }
-
   // go through the rest and set the lines to be hidden.
   for (j = lineIndex; j < this.lineSegments_.length; j++) {
     this.lineSegments_[j].setAttribute('visibility', 'hidden');
@@ -159,7 +173,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
 };
 
 /**
- * 
+ * Translate the layer so that it matches the workspace.
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y) {
   if (this.SVG_) {
