@@ -195,6 +195,10 @@ Blockly.Events.fireNow_ = function() {
     var workspace = Blockly.Workspace.getById(event.workspaceId);
     if (workspace) {
       workspace.fireChangeListener(event);
+
+      if (event.type === 'move') {
+        workspace.updateHighlightLayer();
+      }
     }
   }
 };

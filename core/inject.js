@@ -34,6 +34,11 @@ goog.require('Blockly.Grid');
 goog.require('Blockly.Options');
 goog.require('Blockly.WorkspaceSvg');
 goog.require('Blockly.WorkspaceDragSurfaceSvg');
+
+// CD (July. 25th 2017)
+// custom highlighting layer.
+goog.require('Blockly.WorkspaceHighlightLayerSvg');
+
 goog.require('goog.dom');
 goog.require('goog.ui.Component');
 goog.require('goog.userAgent');
@@ -64,9 +69,10 @@ Blockly.inject = function(container, opt_options) {
   // so that the broowser does not repaint during the drag.
   var blockDragSurface = new Blockly.BlockDragSurfaceSvg(subContainer);
   var workspaceDragSurface = new Blockly.WorkspaceDragSurfaceSvg(subContainer);
+  var workspaceHighlightLayer = new Blockly.WorkspaceHighlightLayerSvg(svg);
 
   var workspace = Blockly.createMainWorkspace_(svg, options, blockDragSurface,
-      workspaceDragSurface);
+      workspaceDragSurface, workspaceHighlightLayer);
   Blockly.init_(workspace);
   Blockly.mainWorkspace = workspace;
 
@@ -199,9 +205,9 @@ Blockly.createDom_ = function(container, options) {
  * @return {!Blockly.Workspace} Newly created main workspace.
  * @private
  */
-Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspaceDragSurface) {
+Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer) {
   options.parentWorkspace = null;
-  var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface);
+  var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer);
   mainWorkspace.scale = options.zoomOptions.startScale;
   svg.appendChild(mainWorkspace.createDom('blocklyMainBackground'));
 

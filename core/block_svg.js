@@ -526,6 +526,88 @@ Blockly.BlockSvg.prototype.getBoundingRectangle = function() {
 };
 
 /**
+ * Returns highlight object where it holds the id of the block and line segments for which the block has for highlighting.
+ * Coordinate system: workspace coordinates.
+ * @return {!{id: id, lineSegments: [{x:x, y:y}]}}
+ *    Object with top left and bottom right coordinates of the bounding box.
+ */
+Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
+  var blockHighlight = {
+    lineSegments : [],
+    id : this.id
+  };
+  var TOP_OFFSET = 48;
+  var EXTRA_BOTTOM_INSECT = 7;
+  var EMPTY_CONTROL_BLOCK_PADDING = 32;
+   
+  if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true) {
+      // only care about connection blocks.
+      if (this.nextConnection || this.previousConnection) {
+        var blockRect = this.getBoundingRectangle();
+        var subStacks = [];
+        if (this.previousConnection) {
+          blockHighlight.lineSegments.push(
+            {
+              x : blockRect.topLeft.x,
+              y : blockRect.topLeft.y
+            });
+        }
+    
+        // always render the last line
+        if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
+          var bottomOffset = this.nextConnection ? EXTRA_BOTTOM_INSECT : 0;
+          blockHighlight.lineSegments.push(
+            {
+              x : blockRect.bottomRight.x,
+              y : blockRect.bottomRight.y - bottomOffset
+            });
+        }
+        
+        for(var i = 0; i < this.inputList.length; i++) {
+          var input = this.inputList[i];
+    
+          // type Blockly.NEXT_STATEMENT is the "substack" input type where blocks goes inside of the control blocks.
+          if (input.type === Blockly.NEXT_STATEMENT) {
+            subStacks.push(input);
+          }
+        }
+    
+        var offsetY = TOP_OFFSET;
+        
+        // go through all the substacks and add lines where appropriate.
+        for(var j = 0; j < subStacks.length; j++) {
+          var substack = subStacks[j];
+          
+          if (substack.renderHeight) {
+            // empty sub stack add the line.
+            if (!substack.connection.targetConnection) {
+              blockHighlight.lineSegments.push(
+                {
+                  x : blockRect.topLeft.x,
+                  y : blockRect.topLeft.y + offsetY
+                });
+      
+              offsetY += substack.renderHeight;
+      
+              blockHighlight.lineSegments.push(
+                {
+                  x : blockRect.topLeft.x,
+                  y : blockRect.topLeft.y + offsetY
+                });
+      
+              offsetY += EMPTY_CONTROL_BLOCK_PADDING;
+            } else {
+              offsetY += substack.renderHeight;
+            }
+          }
+        }
+      }
+    }
+
+  return blockHighlight;
+};
+
+/**
  * Set block opacity for SVG rendering.
  * @param {number} opacity Intended opacity, betweeen 0 and 1
  */

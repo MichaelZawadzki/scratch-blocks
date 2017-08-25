@@ -178,6 +178,8 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   if (this.workspace_.toolbox_) {
     this.workspace_.toolbox_.addDeleteStyle();
   }
+
+  this.workspace_.updateHighlightLayer();
 };
 
 /**
