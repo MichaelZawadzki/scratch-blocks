@@ -41,22 +41,7 @@ goog.require('goog.math.Coordinate');
 Blockly.WorkspaceHighlightLayerSvg = function(container) {
   this.container_ = container;
   this.createDom();
-
-  // Make a bunch of lines so that we don't need to dynamically create them.
-  for (var i = 0; i < 100; i++) {
-    var line = Blockly.utils.createSvgElement('line',{
-      'x1': 0,
-      'y1': 10 + (10*i),
-      'x2': 300,
-      'y2': 10 + (10*i),
-      'class': 'blockHighlightLine',
-      'visibility' : 'hidden',
-    }, this.SVG_);
-    line.setAttribute('stroke-width', '1');
-    line.setAttribute('stroke', '#b6b6b6');
-    line.setAttribute('stroke-dasharray', '4 4');
-    this.lineSegments_.push(line);
-  }
+  this.createSVGLines_();
 };
 
 /**
@@ -104,6 +89,28 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.createDom = function() {
 };
 
 /**
+ * Create a pool of svg lines.
+ */
+Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGLines_ = function() {
+  
+  // Make a bunch of lines so that they can be turn on/off without having to recreating it every time.
+  for (var i = 0; i < 100; i++) {
+    var line = Blockly.utils.createSvgElement('line',{
+      'x1': 0,
+      'y1': 10 + (10*i),
+      'x2': 300,
+      'y2': 10 + (10*i),
+      'class': 'blockHighlightLine',
+      'visibility' : 'hidden',
+    }, this.SVG_);
+    line.setAttribute('stroke-width', '1');
+    line.setAttribute('stroke', '#b6b6b6');
+    line.setAttribute('stroke-dasharray', '4 4');
+    this.lineSegments_.push(line);
+  }
+};
+
+/**
  * Respond to workspace being resized.
  * @param {!element} width, width of the workspace.
  * @param {!element} height, height of the workspace.
@@ -141,10 +148,9 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
   }
 
   // There are more lineSegments to draw than what we have in the pool.
-  // console log it and return.
-  if (totalNumberNeeded > this.lineSegments_.length) {
-    Blockly.alert('There are too many line segments than are supported. Please increase the pool size! (TotalNumberNeeded = ' + totalNumberNeeded + '.)');
-    return;
+  // create some new ones.
+  if (totalNumberNeeded > this.lineSegments_.length-1) {
+    this.createSVGLines_();
   }
 
   var previousY;
