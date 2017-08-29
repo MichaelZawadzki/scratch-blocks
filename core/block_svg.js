@@ -539,8 +539,9 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
   var TOP_OFFSET = 48;
   var EXTRA_BOTTOM_INSECT = 7;
   var EMPTY_CONTROL_BLOCK_PADDING = 32;
-   
-  if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true) {
+  
+
+  if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true && this.isConnectedToHatBlock() === true) {
       // only care about connection blocks.
       if (this.nextConnection || this.previousConnection) {
         var blockRect = this.getBoundingRectangle();
@@ -1573,4 +1574,11 @@ Blockly.BlockSvg.prototype.scheduleSnapAndBump = function() {
     block.bumpNeighbours_();
     Blockly.Events.setGroup(false);
   }, Blockly.BUMP_DELAY);
+};
+
+/**
+ * set block is connected to the hat block
+ */
+Blockly.BlockSvg.prototype.setIsConnectedToHatBlock = function(isConnected) {
+  Blockly.BlockSvg.superClass_.setIsConnectedToHatBlock.call(this, isConnected);
 };

@@ -168,6 +168,10 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   /** @type {boolean} */
   this.isInsertionMarker_ = false;
 
+  /** ChuckD: Added to indicate whether this block is connected to the hat block */
+  /** @type {boolean} */
+  this.isConnectedToHatBlock_ = false;
+
   // Copy the type-specific functions and data from the prototype.
   if (prototypeName) {
     /** @type {string} */
@@ -1826,3 +1830,30 @@ Blockly.Block.prototype.toDevString = function() {
   }
   return msg;
 };
+
+/**
+ * set block is connected to the hat block
+ * @param {boolean=} isConnected whether this block is connected to the hat block.
+ */
+Blockly.Block.prototype.setIsConnectedToHatBlock = function(isConnected) {
+  this.isConnectedToHatBlock_ = isConnected;
+
+  // now check to see if any of the input list has blocks inside them, if so, we need to then go through each connected blocks.
+  for (var i = 0; i < this.inputList.length; i++) {
+    var inputList = this.inputList[i];
+    if (inputList.type === Blockly.NEXT_STATEMENT) {
+      var targetBlock = inputList.connection.targetBlock();
+      while(targetBlock) {
+        targetBlock.setIsConnectedToHatBlock(isConnected);
+        targetBlock = targetBlock.getNextBlock();
+      }
+    }
+  }
+};
+
+/**
+ * get whether the block is connected to the hat block
+ */
+Blockly.Block.prototype.isConnectedToHatBlock = function() {
+  return this.isConnectedToHatBlock_;
+}
