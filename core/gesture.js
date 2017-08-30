@@ -465,13 +465,6 @@ Blockly.Gesture.prototype.doStart = function(e) {
  */
 Blockly.Gesture.prototype.handleMove = function(e) {
 
-console.log("Mouse move");
-if(e.touches)
-{
-console.log(e.touches); 
-}
-
-
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
     this.workspaceDragger_.drag(this.currentDragDeltaXY_);

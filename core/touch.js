@@ -61,6 +61,8 @@ if (goog.events.BrowserFeature.TOUCH_ENABLED) {
  */
 Blockly.longPid_ = 0;
 
+Blockly.Touch.isMultiTouch_ = false;
+
 /**
  * Context menus on touch devices are activated using a long-press.
  * Unfortunately the contextmenu touch event is currently (2015) only suported
@@ -224,3 +226,9 @@ Blockly.Touch.splitEventByTouches = function(e) {
   }
   return events;
 };
+
+Blockly.Touch.setIsMultiTouch = function(_isMulti) {
+  Blockly.Touch.isMultiTouch_ = _isMulti;
+
+  console.log("Set multi touch to: " + Blockly.Touch.isMultiTouch_);
+}

@@ -390,12 +390,18 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
   var handled = false;
   var wrapFunc = function(e) {
 
-if(e.changedTouches)
-{
-  console.log("# e:");
-  console.log(e);
-  console.log(e.changedTouches);
-}
+
+    if(e.changedTouches)
+    {
+      console.log("Touche length: " + e.changedTouches.length);
+      if(e.changedTouches.length > 1) {
+        Blockly.Touch.setIsMultiTouch(true);
+      }
+      else {
+        Blockly.Touch.setIsMultiTouch(false);
+      }
+    }
+
 
     var captureIdentifier = !opt_noCaptureIdentifier;
     // Handle each touch point separately.  If the event was a mouse event, this
