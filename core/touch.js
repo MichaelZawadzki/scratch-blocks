@@ -230,5 +230,22 @@ Blockly.Touch.splitEventByTouches = function(e) {
 Blockly.Touch.setIsMultiTouch = function(_isMulti) {
   Blockly.Touch.isMultiTouch_ = _isMulti;
 
-  console.log("Set multi touch to: " + Blockly.Touch.isMultiTouch_);
+  //console.log("Set multi touch to: " + Blockly.Touch.isMultiTouch_);
+}
+
+Blockly.Touch.setClientFromMultiTouch = function(e) {
+  if (goog.string.startsWith(e.type, 'touch') && e.changedTouches) {
+    // Map the touch event's properties to the event.
+    var numTouches = e.changedTouches.length;
+    e.clientX = 0;
+    e.clientY = 0;
+    for(var i = 0; i < numTouches; i++)
+    {
+      var touchPoint = e.changedTouches[i];
+      e.clientX += touchPoint.clientX;
+      e.clientY += touchPoint.clientY;
+    }
+    e.clientX /= numTouches;
+    e.clientY /= numTouches;
+  }
 }

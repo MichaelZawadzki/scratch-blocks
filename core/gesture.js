@@ -327,6 +327,11 @@ Blockly.Gesture.prototype.updateIsDraggingBlock_ = function() {
     return false;
   }
 
+  // console.log("Possibly start drag block!");
+  // console.log("Multi touch: "+ Blockly.Touch.isMultiTouch_);
+  // if(Blockly.Touch.isMultiTouch_)
+  //   return;
+
   if (this.flyout_) {
     this.isDraggingBlock_ = this.updateIsDraggingFromFlyout_();
   } else if (this.targetBlock_.isMovable()){
@@ -356,12 +361,15 @@ Blockly.Gesture.prototype.updateIsDraggingWorkspace_ = function() {
     return;
   }
 
-  // if (this.flyout_) {
-  //   this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
-  // }
-  //else {
-  //  this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
-  //}
+  if(Blockly.Touch.isMultiTouch_)
+  {
+    if (this.flyout_) {
+      this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
+    }
+    else {
+     this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
+    }
+  }
 
   if(this.workspaceDragger_) {
     this.isDraggingWorkspace_ = true;
@@ -464,6 +472,9 @@ Blockly.Gesture.prototype.doStart = function(e) {
  * @package
  */
 Blockly.Gesture.prototype.handleMove = function(e) {
+
+  //console.log("Mouse move event");
+  //console.log("Is multi touch? " + Blockly.Touch.isMultiTouch_);
 
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {

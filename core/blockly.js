@@ -390,34 +390,45 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
   var handled = false;
   var wrapFunc = function(e) {
 
-
-    if(e.changedTouches)
+    //if(e.changedTouches && e.changedTouches.length == 2)
+    if(e.touches && e.touches.length == 2)
     {
-      console.log("Touche length: " + e.changedTouches.length);
-      if(e.changedTouches.length > 1) {
-        Blockly.Touch.setIsMultiTouch(true);
-      }
-      else {
-        Blockly.Touch.setIsMultiTouch(false);
-      }
-    }
+      //console.log("Touch length: " + e.changedTouches.length);
+      Blockly.Touch.setIsMultiTouch(true);
 
-
-    var captureIdentifier = !opt_noCaptureIdentifier;
-    // Handle each touch point separately.  If the event was a mouse event, this
-    // will hand back an array with one element, which we're fine handling.
-    var events = Blockly.Touch.splitEventByTouches(e);
-    for (var i = 0, event; event = events[i]; i++) {
-      if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(event)) {
-        continue;
-      }
-      Blockly.Touch.setClientFromTouch(event);
+      Blockly.Touch.setClientFromMultiTouch(e);
       if (thisObject) {
-        func.call(thisObject, event);
+        func.call(thisObject, e);
       } else {
-        func(event);
+        func(e);
       }
       handled = true;
+    }
+    else
+    {
+      // if(e.touches) {
+      //   console.log("Touch length: " + e.touches.length);
+      // }
+      // if(e.changedTouches) {
+      //   console.log("Changed touch length: " + e.changedTouches.length);
+      // }
+      Blockly.Touch.setIsMultiTouch(false);
+      var captureIdentifier = !opt_noCaptureIdentifier;
+      // Handle each touch point separately.  If the event was a mouse event, this
+      // will hand back an array with one element, which we're fine handling.
+      var events = Blockly.Touch.splitEventByTouches(e);
+      for (var i = 0, event; event = events[i]; i++) {
+        if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(event)) {
+          continue;
+        }
+        Blockly.Touch.setClientFromTouch(event);
+        if (thisObject) {
+          func.call(thisObject, event);
+        } else {
+          func(event);
+        }
+        handled = true;
+      }
     }
   };
 
