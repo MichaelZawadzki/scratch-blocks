@@ -356,14 +356,17 @@ Blockly.Gesture.prototype.updateIsDraggingWorkspace_ = function() {
     return;
   }
 
-  if (this.flyout_) {
-    this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
-  } else {
-    this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
-  }
+  // if (this.flyout_) {
+  //   this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
+  // }
+  //else {
+  //  this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
+  //}
 
-  this.isDraggingWorkspace_ = true;
-  this.workspaceDragger_.startDrag();
+  if(this.workspaceDragger_) {
+    this.isDraggingWorkspace_ = true;
+    this.workspaceDragger_.startDrag();
+  }
 };
 
 /**
