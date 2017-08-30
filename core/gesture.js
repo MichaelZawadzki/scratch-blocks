@@ -481,6 +481,10 @@ Blockly.Gesture.prototype.handleMove = function(e) {
  * @package
  */
 Blockly.Gesture.prototype.handleUp = function(e) {
+
+console.log("Mouse up");
+console.log(e);
+
   this.updateFromEvent_(e);
   Blockly.longStop_();
 

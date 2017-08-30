@@ -389,6 +389,14 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
     opt_noCaptureIdentifier) {
   var handled = false;
   var wrapFunc = function(e) {
+
+if(e.changedTouches)
+{
+  console.log("# e:");
+  console.log(e);
+  console.log(e.changedTouches);
+}
+
     var captureIdentifier = !opt_noCaptureIdentifier;
     // Handle each touch point separately.  If the event was a mouse event, this
     // will hand back an array with one element, which we're fine handling.

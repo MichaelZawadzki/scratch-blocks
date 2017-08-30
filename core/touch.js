@@ -206,6 +206,7 @@ Blockly.Touch.isMouseOrTouchEvent = function(e) {
  *     event will have exactly one changed touch.
  */
 Blockly.Touch.splitEventByTouches = function(e) {
+
   var events = [];
   if (e.changedTouches) {
     for (var i = 0; i < e.changedTouches.length; i++) {
