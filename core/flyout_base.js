@@ -19,9 +19,7 @@
  */
 
 /**
- * @fileoverview Base class for a file tray containing blocks that may be
- * dragged into the workspace.  Defines basic interactions that are shared
- * between vertical and horizontal flyouts.
+ * @fileoverview Flyout tray containing blocks which may be created.
  * @author fraser@google.com (Neil Fraser)
  */
 'use strict';
@@ -278,6 +276,28 @@ Blockly.Flyout.prototype.init = function(targetWorkspace) {
   // A flyout connected to a workspace doesn't have its own current gesture.
   this.workspace_.getGesture =
       this.targetWorkspace_.getGesture.bind(this.targetWorkspace_);
+
+  // Get variables from the main workspace rather than the target workspace.
+  this.workspace_.getVariable =
+      this.targetWorkspace_.getVariable.bind(this.targetWorkspace_);
+
+  this.workspace_.getVariableById =
+      this.targetWorkspace_.getVariableById.bind(this.targetWorkspace_);
+
+  this.workspace_.getVariablesOfType =
+      this.targetWorkspace_.getVariablesOfType.bind(this.targetWorkspace_);
+
+  this.workspace_.deleteVariable =
+      this.targetWorkspace_.deleteVariable.bind(this.targetWorkspace_);
+
+  this.workspace_.deleteVariableById =
+      this.targetWorkspace_.deleteVariableById.bind(this.targetWorkspace_);
+
+  this.workspace_.renameVariable =
+      this.targetWorkspace_.renameVariable.bind(this.targetWorkspace_);
+
+  this.workspace_.renameVariableById =
+      this.targetWorkspace_.renameVariableById.bind(this.targetWorkspace_);
 };
 
 /**
@@ -318,8 +338,7 @@ Blockly.Flyout.prototype.setParentToolbox = function(toolbox) {
  * @return {number} The width of the flyout.
  */
 Blockly.Flyout.prototype.getWidth = function() {
-  return this.parentToolbox_ ? this.parentToolbox_.getWidth() :
-      this.DEFAULT_WIDTH;
+  return this.DEFAULT_WIDTH;
 };
 
 /**
@@ -529,24 +548,17 @@ Blockly.Flyout.prototype.clearOldBlocks_ = function() {
 
 /**
  * Add listeners to a block that has been added to the flyout.
- * @param {Element} root The root node of the SVG group the block is in.
+ * @param {!Element} root The root node of the SVG group the block is in.
  * @param {!Blockly.Block} block The block to add listeners for.
  * @param {!Element} rect The invisible rectangle under the block that acts as
  *     a button for that block.
  * @private
  */
 Blockly.Flyout.prototype.addBlockListeners_ = function(root, block, rect) {
-  if (this.autoClose) {
-    this.listeners_.push(Blockly.bindEventWithChecks_(root, 'mousedown', null,
-        this.createBlockFunc_(block)));
-    this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
-        this.createBlockFunc_(block)));
-  } else {
-    this.listeners_.push(Blockly.bindEventWithChecks_(root, 'mousedown', null,
-        this.blockMouseDown_(block)));
-    this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
-        this.blockMouseDown_(block)));
-  }
+  this.listeners_.push(Blockly.bindEventWithChecks_(root, 'mousedown', null,
+      this.blockMouseDown_(block)));
+  this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
+      this.blockMouseDown_(block)));
   this.listeners_.push(Blockly.bindEvent_(root, 'mouseover', block,
       block.addSelect));
   this.listeners_.push(Blockly.bindEvent_(root, 'mouseout', block,
@@ -631,7 +643,6 @@ Blockly.Flyout.prototype.reflow = function() {
     this.workspace_.removeChangeListener(this.reflowWrapper_);
   }
   var blocks = this.workspace_.getTopBlocks(false);
-
   this.reflowInternal_(blocks);
   if (this.reflowWrapper_) {
     this.workspace_.addChangeListener(this.reflowWrapper_);
@@ -645,4 +656,63 @@ Blockly.Flyout.prototype.reflow = function() {
  */
 Blockly.Flyout.prototype.isScrollable = function() {
   return this.scrollbar_ ? this.scrollbar_.isVisible() : false;
+};
+
+/**
+ * Copy a block from the flyout to the workspace and position it correctly.
+ * @param {!Blockly.Block} oldBlock The flyout block to copy.
+ * @return {!Blockly.Block} The new block in the main workspace.
+ * @private
+ */
+Blockly.Flyout.prototype.placeNewBlock_ = function(oldBlock) {
+  var targetWorkspace = this.targetWorkspace_;
+  var svgRootOld = oldBlock.getSvgRoot();
+  if (!svgRootOld) {
+    throw 'oldBlock is not rendered.';
+  }
+
+  // Create the new block by cloning the block in the flyout (via XML).
+  var xml = Blockly.Xml.blockToDom(oldBlock);
+  // The target workspace would normally resize during domToBlock, which will
+  // lead to weird jumps.  Save it for terminateDrag.
+  targetWorkspace.setResizesEnabled(false);
+
+  // Using domToBlock instead of domToWorkspace means that the new block will be
+  // placed at position (0, 0) in main workspace units.
+  var block = Blockly.Xml.domToBlock(xml, targetWorkspace);
+  var svgRootNew = block.getSvgRoot();
+  if (!svgRootNew) {
+    throw 'block is not rendered.';
+  }
+
+  // The offset in pixels between the main workspace's origin and the upper left
+  // corner of the injection div.
+  var mainOffsetPixels = targetWorkspace.getOriginOffsetInPixels();
+
+  // The offset in pixels between the flyout workspace's origin and the upper
+  // left corner of the injection div.
+  var flyoutOffsetPixels = this.workspace_.getOriginOffsetInPixels();
+
+  // The position of the old block in flyout workspace coordinates.
+  var oldBlockPosWs = oldBlock.getRelativeToSurfaceXY();
+
+  // The position of the old block in pixels relative to the flyout
+  // workspace's origin.
+  var oldBlockPosPixels = oldBlockPosWs.scale(this.workspace_.scale);
+
+  // The position of the old block in pixels relative to the upper left corner
+  // of the injection div.
+  var oldBlockOffsetPixels = goog.math.Coordinate.sum(flyoutOffsetPixels,
+      oldBlockPosPixels);
+
+  // The position of the old block in pixels relative to the origin of the
+  // main workspace.
+  var finalOffsetPixels = goog.math.Coordinate.difference(oldBlockOffsetPixels,
+      mainOffsetPixels);
+
+  // The position of the old block in main workspace coordinates.
+  var finalOffsetMainWs = finalOffsetPixels.scale(1 / targetWorkspace.scale);
+
+  block.moveBy(finalOffsetMainWs.x, finalOffsetMainWs.y);
+  return block;
 };

@@ -218,7 +218,7 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
 
   var event;
   if (Blockly.Events.isEnabled()) {
-    event = new Blockly.Events.Move(childBlock);
+    event = new Blockly.Events.BlockMove(childBlock);
   }
   // Establish the connections.
   Blockly.Connection.connectReciprocally_(parentConnection, childConnection);
@@ -375,9 +375,16 @@ Blockly.Connection.prototype.canConnectToPrevious_ = function(candidate) {
     return false;
   }
 
-  if (isFirstStatementConnection) {
+  // Complex blocks with no previous connection will not be allowed to connect
+  // mid-stack.
+  var sourceHasPreviousConn = this.sourceBlock_.previousConnection != null;
+
+  if (isFirstStatementConnection && sourceHasPreviousConn) {
     return true;
-  } else if (isNextConnection) {
+  }
+
+  if (isNextConnection ||
+      (isFirstStatementConnection && !sourceHasPreviousConn)) {
     // If the candidate is the first connection in a stack, we can connect.
     if (!candidate.targetConnection) {
       return true;
@@ -561,7 +568,7 @@ Blockly.Connection.prototype.disconnectInternal_ = function(parentBlock,
     childBlock) {
   var event;
   if (Blockly.Events.isEnabled()) {
-    event = new Blockly.Events.Move(childBlock);
+    event = new Blockly.Events.BlockMove(childBlock);
   }
   var otherConnection = this.targetConnection;
   otherConnection.targetConnection = null;

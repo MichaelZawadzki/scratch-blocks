@@ -99,6 +99,17 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
         '</shadow>'+
       '</value>'+
     '</block>'+
+    '<block type="motion_glideto" id="motion_glideto">'+
+      '<value name="SECS">'+
+        '<shadow type="math_number">'+
+          '<field name="NUM">1</field>'+
+        '</shadow>'+
+      '</value>'+
+      '<value name="TO">'+
+        '<shadow type="motion_glideto_menu">'+
+        '</shadow>'+
+      '</value>'+
+    '</block>'+
     '<block type="motion_changexby" id="motion_changexby">'+
       '<value name="DX">'+
         '<shadow type="math_number">'+
@@ -575,6 +586,18 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
     '</block>'+
     '<block type="operator_length" id="operator_length">'+
       '<value name="STRING">'+
+        '<shadow type="text">'+
+          '<field name="TEXT">world</field>'+
+        '</shadow>'+
+      '</value>'+
+    '</block>'+
+    '<block type="operator_contains" id="operator_contains">'+
+      '<value name="STRING1">'+
+        '<shadow type="text">'+
+          '<field name="TEXT">hello</field>'+
+        '</shadow>'+
+      '</value>'+
+      '<value name="STRING2">'+
         '<shadow type="text">'+
           '<field name="TEXT">world</field>'+
         '</shadow>'+

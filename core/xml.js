@@ -110,7 +110,8 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
     if (field.name && field.EDITABLE) {
       var container = goog.dom.createDom('field', null, field.getValue());
       container.setAttribute('name', field.name);
-      if (field instanceof Blockly.FieldVariable) {
+      if (field instanceof Blockly.FieldVariable || field instanceof
+        Blockly.FieldVariableGetter) {
         var variable = block.workspace.getVariable(field.getValue());
         if (variable) {
           container.setAttribute('id', variable.getId());
@@ -333,38 +334,46 @@ Blockly.Xml.domToWorkspace = function(xml, workspace) {
   if (workspace.setResizesEnabled) {
     workspace.setResizesEnabled(false);
   }
-  for (var i = 0; i < childCount; i++) {
-    var xmlChild = xml.childNodes[i];
-    var name = xmlChild.nodeName.toLowerCase();
-    if (name == 'block' ||
-        (name == 'shadow' && !Blockly.Events.recordUndo)) {
-      // Allow top-level shadow blocks if recordUndo is disabled since
-      // that means an undo is in progress.  Such a block is expected
-      // to be moved to a nested destination in the next operation.
-      var block = Blockly.Xml.domToBlock(xmlChild, workspace);
-      newBlockIds.push(block.id);
-      var blockX = parseInt(xmlChild.getAttribute('x'), 10);
-      var blockY = parseInt(xmlChild.getAttribute('y'), 10);
-      if (!isNaN(blockX) && !isNaN(blockY)) {
-        block.moveBy(workspace.RTL ? width - blockX : blockX, blockY);
-      }
-    } else if (name == 'shadow') {
-      goog.asserts.fail('Shadow block cannot be a top-level block.');
-    }  else if (name == 'variables') {
-      if (i == 1) {
-        Blockly.Xml.domToVariables(xmlChild, workspace);
-      }
-      else {
-        throw Error('\'variables\' tag must be the first element in the' +
-          'workspace XML, but it was found in another location.');
+  var variablesFirst = true;
+  try {
+    for (var i = 0; i < childCount; i++) {
+      var xmlChild = xml.childNodes[i];
+      var name = xmlChild.nodeName.toLowerCase();
+      if (name == 'block' ||
+          (name == 'shadow' && !Blockly.Events.recordUndo)) {
+        // Allow top-level shadow blocks if recordUndo is disabled since
+        // that means an undo is in progress.  Such a block is expected
+        // to be moved to a nested destination in the next operation.
+        var block = Blockly.Xml.domToBlock(xmlChild, workspace);
+        newBlockIds.push(block.id);
+        var blockX = parseInt(xmlChild.getAttribute('x'), 10);
+        var blockY = parseInt(xmlChild.getAttribute('y'), 10);
+        if (!isNaN(blockX) && !isNaN(blockY)) {
+          block.moveBy(workspace.RTL ? width - blockX : blockX, blockY);
+        }
+        variablesFirst = false;
+      } else if (name == 'shadow') {
+        goog.asserts.fail('Shadow block cannot be a top-level block.');
+        variablesFirst = false;
+      }  else if (name == 'variables') {
+        if (variablesFirst) {
+          Blockly.Xml.domToVariables(xmlChild, workspace);
+        }
+        else {
+          throw Error('\'variables\' tag must exist once before block and ' +
+            'shadow tag elements in the workspace XML, but it was found in ' +
+            'another location.');
+        }
+        variablesFirst = false;
       }
     }
   }
-  if (!existingGroup) {
-    Blockly.Events.setGroup(false);
+  finally {
+    if (!existingGroup) {
+      Blockly.Events.setGroup(false);
+    }
+    Blockly.Field.stopCache();
   }
-  Blockly.Field.stopCache();
-
   workspace.updateVariableStore(false);
   // Re-enable workspace resizing.
   if (workspace.setResizesEnabled) {
@@ -491,7 +500,7 @@ Blockly.Xml.domToBlock = function(xmlBlock, workspace) {
     Blockly.Events.enable();
   }
   if (Blockly.Events.isEnabled()) {
-    Blockly.Events.fire(new Blockly.Events.Create(topBlock));
+    Blockly.Events.fire(new Blockly.Events.BlockCreate(topBlock));
   }
   return topBlock;
 };
@@ -597,11 +606,12 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
       case 'field':
         var field = block.getField(name);
         var text = xmlChild.textContent;
-        if (field instanceof Blockly.FieldVariable) {
+        if (field instanceof Blockly.FieldVariable ||
+          field instanceof Blockly.FieldVariableGetter) {
           // TODO (marisaleung): When we change setValue and getValue to
           // interact with id's instead of names, update this so that we get
           // the variable based on id instead of textContent.
-          var type = xmlChild.getAttribute('variabletype') || '';
+          var type = xmlChild.getAttribute('variableType') || '';
           var variable = workspace.getVariable(text);
           if (!variable) {
             variable = workspace.createVariable(text, type,
@@ -701,6 +711,9 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
       goog.asserts.assert(child.isShadow(),
                           'Shadow block not allowed non-shadow child.');
     }
+    // Ensure this block doesn't have any variable inputs.
+    goog.asserts.assert(block.getVars().length == 0,
+        'Shadow blocks cannot have variable fields.');
     block.setShadow(true);
   }
   return block;

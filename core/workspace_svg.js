@@ -31,6 +31,7 @@ goog.provide('Blockly.WorkspaceSvg');
 goog.require('Blockly.Colours');
 goog.require('Blockly.ConnectionDB');
 goog.require('Blockly.constants');
+goog.require('Blockly.DataCategory');
 goog.require('Blockly.DropDownDiv');
 goog.require('Blockly.Events');
 goog.require('Blockly.Gesture');
@@ -107,7 +108,7 @@ Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface
       new Blockly.Grid(options.gridPattern, options.gridOptions) : null;
 
   this.registerToolboxCategoryCallback(Blockly.VARIABLE_CATEGORY_NAME,
-      Blockly.Variables.flyoutCategory);
+      Blockly.DataCategory);
   this.registerToolboxCategoryCallback(Blockly.PROCEDURE_CATEGORY_NAME,
       Blockly.Procedures.flyoutCategory);
 };
@@ -247,6 +248,14 @@ Blockly.WorkspaceSvg.prototype.isDragSurfaceActive_ = false;
 Blockly.WorkspaceSvg.prototype.lastRecordedPageScroll_ = null;
 
 /**
+ * The first parent div with 'injectionDiv' in the name, or null if not set.
+ * Access this with getInjectionDiv.
+ * @type {!Element}
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.injectionDiv_ = null;
+
+/**
  * Map from function names to callbacks, for deciding what to do when a button
  * is clicked.
  * @type {!Object<string, function(!Blockly.FlyoutButton)>}
@@ -317,6 +326,41 @@ Blockly.WorkspaceSvg.prototype.getSvgXY = function(element) {
     element = element.parentNode;
   } while (element && element != this.getParentSvg());
   return new goog.math.Coordinate(x, y);
+};
+
+/**
+ * Return the position of the workspace origin relative to the injection div
+ * origin in pixels.
+ * The workspace origin is where a block would render at position (0, 0).
+ * It is not the upper left corner of the workspace SVG.
+ * @return {!goog.math.Coordinate} Offset in pixels.
+ * @package
+ */
+Blockly.WorkspaceSvg.prototype.getOriginOffsetInPixels = function() {
+  return Blockly.utils.getInjectionDivXY_(this.svgBlockCanvas_);
+};
+
+/**
+ * Return the injection div that is a parent of this workspace.
+ * Walks the DOM the first time it's called, then returns a cached value.
+ * @return {!Element} The first parent div with 'injectionDiv' in the name.
+ * @package
+ */
+Blockly.WorkspaceSvg.prototype.getInjectionDiv = function() {
+  // NB: it would be better to pass this in at createDom, but is more likely to
+  // break existing uses of Blockly.
+  if (!this.injectionDiv_) {
+    var element = this.svgGroup_;
+    while (element) {
+      var classes = element.getAttribute('class') || '';
+      if ((' ' + classes + ' ').indexOf(' injectionDiv ') != -1) {
+        this.injectionDiv_ = element;
+        break;
+      }
+      element = element.parentNode;
+    }
+  }
+  return this.injectionDiv_;
 };
 
 /**
@@ -902,22 +946,12 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
   try {
     var block = Blockly.Xml.domToBlock(xmlBlock, this);
 
+    // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
+    Blockly.utils.changeObscuredShadowIds(block);
+
     var blocks = block.getDescendants();
     for (var i = blocks.length - 1; i >= 0; i--) {
       var descendant = blocks[i];
-
-      // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
-      for (var j = 0; j < descendant.inputList.length; j++) {
-        var connection = descendant.inputList[j].connection;
-        if (connection) {
-          var shadowDom = connection.getShadowDom();
-          if (shadowDom) {
-            shadowDom.setAttribute('id', Blockly.utils.genUid());
-            connection.setShadowDom(shadowDom);
-          }
-        }
-      }
-
       // Rerender to get around problem with IE and Edge not measuring text
       // correctly when it is hidden.
       if (goog.userAgent.IE || goog.userAgent.EDGE) {
@@ -972,9 +1006,19 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
     Blockly.Events.enable();
   }
   if (Blockly.Events.isEnabled() && !block.isShadow()) {
-    Blockly.Events.fire(new Blockly.Events.Create(block));
+    Blockly.Events.fire(new Blockly.Events.BlockCreate(block));
   }
   block.select();
+};
+
+/**
+ * Refresh the toolbox unless there's a drag in progress.
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.refreshToolboxSelection_ = function() {
+  if (this.toolbox_ && this.toolbox_.flyout_ && !this.currentGesture_) {
+    this.toolbox_.refreshSelection();
+  }
 };
 
 /**
@@ -982,28 +1026,63 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
  * TODO: google/blockly:#468
  * @param {string} oldName Variable to rename.
  * @param {string} newName New variable name.
+ * @package
  */
 Blockly.WorkspaceSvg.prototype.renameVariable = function(oldName, newName) {
   Blockly.WorkspaceSvg.superClass_.renameVariable.call(this, oldName, newName);
-  // Refresh the toolbox unless there's a drag in progress.
-  if (this.toolbox_ && this.toolbox_.flyout_ && !Blockly.Flyout.startFlyout_) {
-    this.toolbox_.refreshSelection();
-  }
+  this.refreshToolboxSelection_();
+};
+
+/**
+ * Rename a variable by updating its name in the variable map.  Update the
+ *     flyout to show the renamed variable immediately.
+ * @param {string} id Id of the variable to rename.
+ * @param {string} newName New variable name.
+ * @package
+ */
+Blockly.WorkspaceSvg.prototype.renameVariableById = function(id, newName) {
+  Blockly.WorkspaceSvg.superClass_.renameVariableById.call(this, id, newName);
+  this.refreshToolboxSelection_();
+};
+
+/**
+ * Delete a variable by the passed in name.   Update the flyout to show
+ *     immediately that the variable is deleted.
+ * @param {string} name Name of variable to delete.
+ * @package
+ */
+Blockly.WorkspaceSvg.prototype.deleteVariable = function(name) {
+  Blockly.WorkspaceSvg.superClass_.deleteVariable.call(this, name);
+  this.refreshToolboxSelection_();
+};
+
+/**
+ * Delete a variable by the passed in id.   Update the flyout to show
+ *     immediately that the variable is deleted.
+ * @param {string} id Id of variable to delete.
+ * @package
+ */
+Blockly.WorkspaceSvg.prototype.deleteVariableById = function(id) {
+  Blockly.WorkspaceSvg.superClass_.deleteVariableById.call(this, id);
+  this.refreshToolboxSelection_();
 };
 
 /**
  * Create a new variable with the given name.  Update the flyout to show the new
  *     variable immediately.
- * TODO: #468
  * @param {string} name The new variable's name.
+ * @param {string=} opt_type The type of the variable like 'int' or 'string'.
+ *     Does not need to be unique. Field_variable can filter variables based on
+ *     their type. This will default to '' which is a specific type.
+ * @param {string=} opt_id The unique id of the variable. This will default to
+ *     a UUID.
  * @return {?Blockly.VariableModel} The newly created variable.
+ * @package
  */
-Blockly.WorkspaceSvg.prototype.createVariable = function(name) {
-  var newVar = Blockly.WorkspaceSvg.superClass_.createVariable.call(this, name);
-  // Don't refresh the toolbox if there's a drag in progress.
-  if (this.toolbox_ && this.toolbox_.flyout_ && !this.currentGesture_) {
-    this.toolbox_.refreshSelection();
-  }
+Blockly.WorkspaceSvg.prototype.createVariable = function(name, opt_type, opt_id) {
+  var newVar = Blockly.WorkspaceSvg.superClass_.createVariable.call(this, name,
+    opt_type, opt_id);
+  this.refreshToolboxSelection_();
   return newVar;
 };
 
@@ -1326,7 +1405,7 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
         deleteNext();
       } else {
         Blockly.confirm(Blockly.Msg.DELETE_ALL_BLOCKS.
-            replace('%1', deleteList.length),
+            replace('%1', String(deleteCount)),
             function(ok) {
               if (ok) {
                 deleteNext();
@@ -1848,6 +1927,24 @@ Blockly.WorkspaceSvg.prototype.cancelCurrentGesture = function() {
   if (this.currentGesture_) {
     this.currentGesture_.cancel();
   }
+};
+
+/**
+ * Don't even think about using this function before talking to rachel-fenichel.
+ *
+ * Force a drag to start without clicking and dragging the block itself.  Used
+ * to attach duplicated blocks to the mouse pointer.
+ * @param {!Object} fakeEvent An object with the properties needed to start a
+ *     drag, including clientX and clientY.
+ * @param {!Blockly.BlockSvg} block The block to start dragging.
+ * @package
+ */
+Blockly.WorkspaceSvg.prototype.startDragWithFakeEvent = function(fakeEvent,
+    block) {
+  Blockly.Touch.clearTouchIdentifier();
+  Blockly.Touch.checkTouchIdentifier(fakeEvent);
+  var gesture = block.workspace.getGesture(fakeEvent);
+  gesture.forceStartBlockDrag(fakeEvent, block);
 };
 
 /**
