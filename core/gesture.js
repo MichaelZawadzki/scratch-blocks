@@ -464,6 +464,14 @@ Blockly.Gesture.prototype.doStart = function(e) {
  * @package
  */
 Blockly.Gesture.prototype.handleMove = function(e) {
+
+console.log("Mouse move");
+if(e.touches)
+{
+console.log(e.touches); 
+}
+
+
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
     this.workspaceDragger_.drag(this.currentDragDeltaXY_);
@@ -481,13 +489,8 @@ Blockly.Gesture.prototype.handleMove = function(e) {
  * @package
  */
 Blockly.Gesture.prototype.handleUp = function(e) {
-
-console.log("Mouse up");
-console.log(e);
-
   this.updateFromEvent_(e);
   Blockly.longStop_();
-
   if (this.isEnding_) {
     console.log('Trying to end a gesture recursively.');
     return;
