@@ -389,11 +389,9 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
     opt_noCaptureIdentifier) {
   var handled = false;
   var wrapFunc = function(e) {
-
-    //if(e.changedTouches && e.changedTouches.length == 2)
-    if(e.touches && e.touches.length == 2)
+    // OB: Should it be 'touches' or 'changedTouches'? For now, changedTouches works better
+    if(e.changedTouches && e.changedTouches.length == 2)
     {
-      //console.log("Touch length: " + e.changedTouches.length);
       Blockly.Touch.setIsMultiTouch(true);
 
       Blockly.Touch.setClientFromMultiTouch(e);
@@ -406,12 +404,6 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
     }
     else
     {
-      // if(e.touches) {
-      //   console.log("Touch length: " + e.touches.length);
-      // }
-      // if(e.changedTouches) {
-      //   console.log("Changed touch length: " + e.changedTouches.length);
-      // }
       Blockly.Touch.setIsMultiTouch(false);
       var captureIdentifier = !opt_noCaptureIdentifier;
       // Handle each touch point separately.  If the event was a mouse event, this

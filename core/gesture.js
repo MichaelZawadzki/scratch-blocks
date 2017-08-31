@@ -327,11 +327,6 @@ Blockly.Gesture.prototype.updateIsDraggingBlock_ = function() {
     return false;
   }
 
-  // console.log("Possibly start drag block!");
-  // console.log("Multi touch: "+ Blockly.Touch.isMultiTouch_);
-  // if(Blockly.Touch.isMultiTouch_)
-  //   return;
-
   if (this.flyout_) {
     this.isDraggingBlock_ = this.updateIsDraggingFromFlyout_();
   } else if (this.targetBlock_.isMovable()){
@@ -472,10 +467,6 @@ Blockly.Gesture.prototype.doStart = function(e) {
  * @package
  */
 Blockly.Gesture.prototype.handleMove = function(e) {
-
-  //console.log("Mouse move event");
-  //console.log("Is multi touch? " + Blockly.Touch.isMultiTouch_);
-
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
     this.workspaceDragger_.drag(this.currentDragDeltaXY_);
