@@ -229,8 +229,6 @@ Blockly.Touch.splitEventByTouches = function(e) {
 
 Blockly.Touch.setIsMultiTouch = function(_isMulti) {
   Blockly.Touch.isMultiTouch_ = _isMulti;
-
-  //console.log("Set multi touch to: " + Blockly.Touch.isMultiTouch_);
 }
 
 Blockly.Touch.setClientFromMultiTouch = function(e) {
