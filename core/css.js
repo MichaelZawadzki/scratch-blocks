@@ -584,7 +584,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyFlyoutBackground {',
     'fill: $colour_flyout;',
-    'fill-opacity: .8;',
+    'fill-opacity: 0;',
   '}',
 
   '.blocklyMainWorkspaceScrollbar {',
