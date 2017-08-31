@@ -390,7 +390,7 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
   var handled = false;
   var wrapFunc = function(e) {
     // OB: Should it be 'touches' or 'changedTouches'? For now, changedTouches works better
-    if(e.changedTouches && e.changedTouches.length == 2)
+    if(Blockly.mainWorkspace.options.multiTouchScroll === true &&  e.changedTouches && e.changedTouches.length == 2)
     {
       Blockly.Touch.setIsMultiTouch(true);
 

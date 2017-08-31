@@ -356,7 +356,11 @@ Blockly.Gesture.prototype.updateIsDraggingWorkspace_ = function() {
     return;
   }
 
-  if(Blockly.Touch.isMultiTouch_)
+  var workspace = Blockly.getMainWorkspace();
+  var allowDragWorkspace = (workspace.options.preventWorkspaceDragging !== true || workspace.options.multiTouchScroll === true && Blockly.Touch.isMultiTouch_);
+
+  //if(Blockly.Touch.isMultiTouch_)
+  if(allowDragWorkspace)
   {
     if (this.flyout_) {
       this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
