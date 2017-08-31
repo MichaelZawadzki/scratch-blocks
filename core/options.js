@@ -155,6 +155,8 @@ Blockly.Options = function(options) {
   this.toolboxPosition = toolboxPosition;
   this.contextMenuOptions = options['contextMenu'];
   this.disableBlocksContextMenu = options['disableBlocksContextMenu'];
+  this.preventWorkspaceDragging = options['preventWorkspaceDragging'];
+  this.multiTouchScroll = options['multiTouchScroll'];
 };
 
 /**

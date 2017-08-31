@@ -389,21 +389,38 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
     opt_noCaptureIdentifier) {
   var handled = false;
   var wrapFunc = function(e) {
-    var captureIdentifier = !opt_noCaptureIdentifier;
-    // Handle each touch point separately.  If the event was a mouse event, this
-    // will hand back an array with one element, which we're fine handling.
-    var events = Blockly.Touch.splitEventByTouches(e);
-    for (var i = 0, event; event = events[i]; i++) {
-      if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(event)) {
-        continue;
-      }
-      Blockly.Touch.setClientFromTouch(event);
+    // OB: Should it be 'touches' or 'changedTouches'? For now, changedTouches works better
+    if(Blockly.mainWorkspace.options.multiTouchScroll === true &&  e.changedTouches && e.changedTouches.length == 2)
+    {
+      Blockly.Touch.setIsMultiTouch(true);
+
+      Blockly.Touch.setClientFromMultiTouch(e);
       if (thisObject) {
-        func.call(thisObject, event);
+        func.call(thisObject, e);
       } else {
-        func(event);
+        func(e);
       }
       handled = true;
+    }
+    else
+    {
+      Blockly.Touch.setIsMultiTouch(false);
+      var captureIdentifier = !opt_noCaptureIdentifier;
+      // Handle each touch point separately.  If the event was a mouse event, this
+      // will hand back an array with one element, which we're fine handling.
+      var events = Blockly.Touch.splitEventByTouches(e);
+      for (var i = 0, event; event = events[i]; i++) {
+        if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(event)) {
+          continue;
+        }
+        Blockly.Touch.setClientFromTouch(event);
+        if (thisObject) {
+          func.call(thisObject, event);
+        } else {
+          func(event);
+        }
+        handled = true;
+      }
     }
   };
 

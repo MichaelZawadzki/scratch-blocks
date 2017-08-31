@@ -435,6 +435,10 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       // Mouse-wheel.
       Blockly.bindEventWithChecks_(this.svgGroup_, 'wheel', this,
           this.onMouseWheel_);
+
+
+      Blockly.bindEventWithChecks_(this.svgGroup_, 'scroll', this,
+          this.onPopminou_);
     }
   }
 

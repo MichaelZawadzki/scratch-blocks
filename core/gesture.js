@@ -356,14 +356,24 @@ Blockly.Gesture.prototype.updateIsDraggingWorkspace_ = function() {
     return;
   }
 
-  if (this.flyout_) {
-    this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
-  } else {
-    this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
+  var workspace = Blockly.getMainWorkspace();
+  var allowDragWorkspace = (workspace.options.preventWorkspaceDragging !== true || workspace.options.multiTouchScroll === true && Blockly.Touch.isMultiTouch_);
+
+  //if(Blockly.Touch.isMultiTouch_)
+  if(allowDragWorkspace)
+  {
+    if (this.flyout_) {
+      this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
+    }
+    else {
+     this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
+    }
   }
 
-  this.isDraggingWorkspace_ = true;
-  this.workspaceDragger_.startDrag();
+  if(this.workspaceDragger_) {
+    this.isDraggingWorkspace_ = true;
+    this.workspaceDragger_.startDrag();
+  }
 };
 
 /**
@@ -480,7 +490,6 @@ Blockly.Gesture.prototype.handleMove = function(e) {
 Blockly.Gesture.prototype.handleUp = function(e) {
   this.updateFromEvent_(e);
   Blockly.longStop_();
-
   if (this.isEnding_) {
     console.log('Trying to end a gesture recursively.');
     return;
