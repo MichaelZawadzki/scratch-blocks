@@ -188,6 +188,11 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   if (goog.isFunction(this.init)) {
     this.init();
   }
+  // OB: Call a post initialization function, if it exists.
+  // Used to override behavior/properties of blocks already defined.
+  if(goog.isFunction(this.postInit)) {
+    this.postInit();
+  }
   // Record initial inline state.
   /** @type {boolean|undefined} */
   this.inputsInlineDefault = this.inputsInline;
