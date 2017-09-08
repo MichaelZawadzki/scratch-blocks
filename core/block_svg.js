@@ -962,6 +962,8 @@ Blockly.BlockSvg.prototype.setDragging = function(adding) {
   for (var i = 0; i < this.childBlocks_.length; i++) {
     this.childBlocks_[i].setDragging(adding);
   }
+
+  this.setIsConnectedToHatBlock(!adding);
 };
 
 /**
