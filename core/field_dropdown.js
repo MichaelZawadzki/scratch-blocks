@@ -258,6 +258,7 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
         this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
     } else if (this.box_) {
       this.box_.setAttribute('fill', this.sourceBlock_.getColourTertiary());
+      this.box_.setAttribute('fill-opacity', Blockly.Colours.dropdownButtonPressedOpacity);
     }
   }
 };
@@ -274,6 +275,7 @@ Blockly.FieldDropdown.prototype.onHide = function() {
         this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
     } else if (this.box_) {
       this.box_.setAttribute('fill', this.sourceBlock_.getColour());
+      this.box_.setAttribute('fill-opacity', 1);
     }
   }
 };
