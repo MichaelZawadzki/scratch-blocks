@@ -166,8 +166,8 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
         this.lineSegments_[lineIndex].setAttribute('x2', lineSegment.width);
         this.lineSegments_[lineIndex].setAttribute('visibility', 'visible');
         previousY = lineSegment.y;
+        lineIndex +=1;
       }
-      lineIndex +=1;
     }
   }
   
