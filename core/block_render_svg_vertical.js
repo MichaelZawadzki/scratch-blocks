@@ -492,6 +492,7 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   // Update colours of input shapes.
   for (var shape in this.inputShapes_) {
     this.inputShapes_[shape].setAttribute('fill', this.getColourTertiary());
+    this.inputShapes_[shape].setAttribute('fill-opacity', Blockly.Colours.inputShapeOpacity);
   }
 
   // Render icon(s) if applicable

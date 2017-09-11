@@ -103,5 +103,6 @@ Blockly.Colours = {
   "numPadText": "#FFFFFF",
   "valueReportBackground": "#FFFFFF",
   "valueReportBorder": "#AAAAAA",
-  "dropdownButtonPressedOpacity" : 1
+  "dropdownButtonPressedOpacity" : 1,
+  "inputShapeOpacity" : 1
 };
