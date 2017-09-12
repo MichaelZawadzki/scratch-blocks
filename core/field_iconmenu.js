@@ -239,7 +239,7 @@ Blockly.FieldIconMenu.prototype.showEditor_ = function() {
   // Update source block colour to look selected
   this.savedPrimary_ = this.sourceBlock_.getColour();
   this.sourceBlock_.setColour(this.sourceBlock_.getColourSecondary(),
-    this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+    this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary(), this.sourceBlock_.getColourQuaternary());
 
   var scale = this.sourceBlock_.workspace.scale;
   // Offset for icon-type horizontal blocks.
@@ -280,7 +280,7 @@ Blockly.FieldIconMenu.prototype.onHide_ = function() {
   // when a block is dragged from the flyout.
   if (this.sourceBlock_) {
     this.sourceBlock_.setColour(this.savedPrimary_,
-      this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+      this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary(), this.sourceBlock_.getColourQuaternary());
   }
   Blockly.DropDownDiv.content_.removeAttribute('role');
   Blockly.DropDownDiv.content_.removeAttribute('aria-haspopup');
