@@ -255,7 +255,7 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
     if (this.sourceBlock_.isShadow()) {
       this.savedPrimary_ = this.sourceBlock_.getColour();
       this.sourceBlock_.setColour(this.sourceBlock_.getColourTertiary(),
-        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary(), this.sourceBlock_.getColourQuaternary());
     } else if (this.box_) {
       this.box_.setAttribute('fill', this.sourceBlock_.getColourTertiary());
       this.box_.setAttribute('fill-opacity', Blockly.Colours.dropdownButtonPressedOpacity);
@@ -272,7 +272,7 @@ Blockly.FieldDropdown.prototype.onHide = function() {
   if (!this.disableColourChange_ && this.sourceBlock_) {
     if (this.sourceBlock_.isShadow()) {
       this.sourceBlock_.setColour(this.savedPrimary_,
-        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary(), this.sourceBlock_.getColourQuaternary());
     } else if (this.box_) {
       this.box_.setAttribute('fill', this.sourceBlock_.getColour());
       this.box_.setAttribute('fill-opacity', 1);

@@ -489,9 +489,10 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   // Render opacity
   this.svgPath_.setAttribute('fill-opacity', this.getOpacity());
 
+  var shapeFillColour = this.getColourQuaternary() ? this.getColourQuaternary() : this.getColourTertiary();
   // Update colours of input shapes.
   for (var shape in this.inputShapes_) {
-    this.inputShapes_[shape].setAttribute('fill', this.getColourTertiary());
+    this.inputShapes_[shape].setAttribute('fill', shapeFillColour);
     this.inputShapes_[shape].setAttribute('fill-opacity', Blockly.Colours.inputShapeOpacity);
   }
 
