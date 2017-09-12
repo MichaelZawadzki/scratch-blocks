@@ -136,6 +136,14 @@ Blockly.BlockSvg.prototype.isGlowingStack_ = false;
 Blockly.BlockSvg.INLINE = -1;
 
 /**
+ * Constant for specifying the extra space that the connector tab takes up under a block.
+ * Don't collide with Blockly.INPUT_VALUE and friends.
+ * @const
+ */
+Blockly.BlockSvg.EXTRA_BOTTOM_INSECT = 7;
+
+
+/**
  * Create and initialize the SVG representation of the block.
  * May be called more than once.
  */
@@ -239,6 +247,38 @@ Blockly.BlockSvg.prototype.unselect = function() {
 Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
   this.isGlowingBlock_ = isGlowingBlock;
   this.updateColour();
+};
+
+/**
+ * Glow the workspace behind this particular block, to highlight it visually as if it's running.
+ * @param {boolean} isGlowingBlock Whether the block should glow.
+ */
+Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
+  var highlightRect = this.workspace.workspaceHighlightLayer.highlightRect_;
+  if(isGlowingBlock === true){
+    highlightRect.setAttribute('visibility', 'visible');
+  }else{
+    highlightRect.setAttribute('visibility', 'hidden');
+    return;
+  }
+
+  var highlightBlockObject = this.getBlockHighlightObject();
+  if(highlightBlockObject.lineSegments === 'undefined' ||
+     highlightBlockObject.lineSegments.length === 0)
+  {
+    highlightRect.setAttribute('visibility', 'hidden');
+    return;
+  }
+
+  var topY = highlightBlockObject.lineSegments[0].y;
+  var width = this.workspace.getParentSvg().getAttribute("width");
+  var scale = this.workspace.scale;
+
+  highlightRect.setAttribute('x', 0);
+  highlightRect.setAttribute('y', topY * scale);
+  highlightRect.setAttribute('width', width);
+  highlightRect.setAttribute('height', (this.height - Blockly.BlockSvg.EXTRA_BOTTOM_INSECT) * scale);
+
 };
 
 /**
@@ -537,7 +577,6 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     id : this.id
   };
   var TOP_OFFSET = 48;
-  var EXTRA_BOTTOM_INSECT = 7;
   var EMPTY_CONTROL_BLOCK_PADDING = 32;
   
 
@@ -556,7 +595,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     
         // always render the last line
         if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
-          var bottomOffset = this.nextConnection ? EXTRA_BOTTOM_INSECT : 0;
+          var bottomOffset = this.nextConnection ? Blockly.BlockSvg.EXTRA_BOTTOM_INSECT : 0;
           blockHighlight.lineSegments.push(
             {
               x : blockRect.bottomRight.x,

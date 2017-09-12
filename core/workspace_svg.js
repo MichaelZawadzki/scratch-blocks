@@ -977,6 +977,22 @@ Blockly.WorkspaceSvg.prototype.glowStack = function(id, isGlowingStack) {
 };
 
 /**
+ * Glow/unglow the workspace behind a block.
+ * @param {?string} id ID of block to find.
+ * @param {boolean} isGlowingBlock Whether to glow the block.
+ */
+Blockly.WorkspaceSvg.prototype.glowBlockBG = function(id, isGlowingBlock) {
+  var block = null;
+  if (id) {
+    block = this.getBlockById(id);
+    if (!block) {
+      throw 'Tried to glow block bg that does not exist.';
+    }
+  }
+  block.setGlowBlockBG(isGlowingBlock);
+};
+
+/**
  * Visually report a value associated with a block.
  * In Scratch, appears as a pop-up next to the block when a reporter block is clicked.
  * @param {?string} id ID of block to report associated value.
