@@ -137,7 +137,6 @@ Blockly.BlockSvg.INLINE = -1;
 
 /**
  * Constant for specifying the extra space that the connector tab takes up under a block.
- * Don't collide with Blockly.INPUT_VALUE and friends.
  * @const
  */
 Blockly.BlockSvg.EXTRA_BOTTOM_INSECT = 7;
