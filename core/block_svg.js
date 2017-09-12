@@ -324,8 +324,12 @@ Blockly.BlockSvg.prototype.setParent = function(newParent) {
     this.moveConnections_(newXY.x - oldXY.x, newXY.y - oldXY.y);
     // If we are a shadow block, inherit tertiary colour.
     if (this.isShadow()) {
-      this.setColour(this.getColour(), this.getColourSecondary(),
-        newParent.getColourTertiary(), newParent.getColourQuaternary());
+      this.setColour(this.getColour(false), this.getColourSecondary(false),
+        newParent.getColourTertiary(false), newParent.getColourQuaternary(false));
+      this.setAltColour(this.getColour(true), this.getColourSecondary(true),
+        newParent.getColourTertiary(true), newParent.getColourQuaternary(true));
+
+      this.setUseAltColours(newParent.useAltColours_);
     }
   }
 };
@@ -1332,9 +1336,23 @@ Blockly.BlockSvg.prototype.setColour = function(colour, colourSecondary,
   Blockly.BlockSvg.superClass_.setColour.call(this, colour, colourSecondary,
       colourTertiary, colourQuaternary);
 
-  if (this.rendered) {
-    this.updateColour();
-  }
+  // if (this.rendered) {
+  //   this.updateColour();
+  // }
+};
+
+Blockly.BlockSvg.prototype.setAltColour = function(colour, colourSecondary,
+    colourTertiary, colourQuaternary) {
+  Blockly.BlockSvg.superClass_.setAltColour.call(this, colour, colourSecondary,
+      colourTertiary, colourQuaternary);
+
+  // if (this.rendered) {
+  //   this.updateColour();
+  // }
+};
+
+Blockly.BlockSvg.prototype.setUseAltColours = function(useAlt) {
+  Blockly.BlockSvg.superClass_.setUseAltColours.call(this, useAlt);
 };
 
 /**
