@@ -24,3 +24,24 @@ The "getting started" guide including [FAQ](https://scratch.mit.edu/developers#f
 
 ## Donate
 We provide [Scratch](https://scratch.mit.edu) free of charge, and want to keep it that way! Please consider making a [donation](https://secure.donationpay.org/scratchfoundation/) to support our continued engineering, design, community, and resource development efforts. Donations of any size are appreciated. Thank you!
+
+
+## Using uncompressed files in a project
+
+We want to be able to use scratch-blocks' in other projects, so that debugging is easier and the workflow is not as invasive as when we need to compile the library, commit it to git, and then pull the updated library in the project.
+
+#### In scratch-blocks
+
+Uncompressed files need to be copied over to the project's directory. The 'moveUncompressedFiles' bash script takes care of this. To use the script, make a local copy of it, and rename its extension to '.sh'. You then need to edit the script so it points to the proper project folder.
+
+Once the script is ready, you need to make sure that there is a current "blockly_vertical_uncompressed.js"; if not, run 'build.py' to generate one.
+
+Finally, run the 'moveUncompressedFiles' script, and the files will be copied to their destination!
+
+#### In your project
+
+You need to make sure that the destination folder you are copying the files to is at the same level as your index file, so that it can be served properly.
+
+You need the closure library in your project, since scratch-blocks' uncompressed files make use of it. The library folder needs to be at the same level as your project's scratch-blocks folder, where the uncompressed files are copied (and so, also at the same level as your index).
+
+Once the uncompressed files have been copied over to your project, refresh your browser, and you should see your changes!
