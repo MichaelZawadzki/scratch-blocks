@@ -44,4 +44,6 @@ You need to make sure that the destination folder you are copying the files to i
 
 You need the closure library in your project, since scratch-blocks' uncompressed files make use of it. The library folder needs to be at the same level as your project's scratch-blocks folder, where the uncompressed files are copied (and so, also at the same level as your index).
 
+Your index.html needs to use the uncompressed versions of scratch-blocks. Remove the reference to the compressed library, and instead use the same references as in scratch-blocks' 'test/vertical_playground.html'.
+
 Once the uncompressed files have been copied over to your project, refresh your browser, and you should see your changes!
