@@ -42,6 +42,7 @@ Blockly.WorkspaceHighlightLayerSvg = function(container) {
   this.container_ = container;
   this.createDom();
   this.createSVGLines_();
+  this.createSVGRect_();
 };
 
 /**
@@ -64,6 +65,13 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.container_ = null;
  * @private 
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.lineSegments_ = [];
+
+/**
+ * rect to draw on the layer.
+ * @type {element}
+ * @private 
+ */
+Blockly.WorkspaceHighlightLayerSvg.prototype.highlightRect_ = null;
 
 /**
  * Create the layer and inject it into the container.
@@ -110,6 +118,27 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGLines_ = function() {
   }
 };
 
+
+/**
+ * Create a single svg rect.
+ */
+Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGRect_ = function() {
+  
+    // Make an SVG Rect to use for highlighting without having to recreate it every time.
+    var rect = Blockly.utils.createSvgElement('rect',{
+      'x': 0,
+      'y': 0,
+      'width': 300,
+      'height': 10,
+      'fill' : '#e1f2ff',
+      'stroke' : '#e1f2ff',
+      'fill-opacity' : '1.0',
+      'class': 'blockHighlightRect',
+      'visibility' : 'hidden',
+    }, this.SVG_);
+    this.highlightRect_ = rect;
+};
+
 /**
  * Respond to workspace being resized.
  * @param {!element} width, width of the workspace.
@@ -127,6 +156,10 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.resize = function(width, height) {
       if (visibility === 'visible') {
         this.lineSegments_[i].setAttribute('x2', width);
       }
+    }
+    var rectVisibility = this.highlightRect_.getAttribute('visibility');
+    if(rectVisibility === 'visible'){
+       this.highlightRect_.setAttribute('width', width);
     }
   }
 };
@@ -179,6 +212,28 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
 };
 
 /**
+ * Update rect rendering. This function assumes all incoming values are already scaled. 
+ * @param {!element} visible, 
+ * @param {!element} x, x position of the left of the highlighted block.
+ * @param {!element} y, y position of the top of the highlighted block
+ * @param {!element} width, width of the workspace.
+ * @param {!element} height, height of the highlighted block.
+ */
+Blockly.WorkspaceHighlightLayerSvg.prototype.UpdateHighlightRect = function(visible, x, y, width, height)
+{
+  if(visible){
+    this.highlightRect_.setAttribute('visibility', 'visible');
+  }else{
+    this.highlightRect_.setAttribute('visibility', 'hidden');
+  }
+  this.highlightRect_.setAttribute('x', x);
+  this.highlightRect_.setAttribute('y', y);
+  this.highlightRect_.setAttribute('width', width);
+  this.highlightRect_.setAttribute('height',height);
+
+}
+
+/**
  * Translate the layer so that it matches the workspace.
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y) {
@@ -187,5 +242,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y) {
     for (var i = 0; i < this.lineSegments_.length; i++) {
       this.lineSegments_[i].setAttribute('transform', translation);
     }
+
+    this.highlightRect_.setAttribute('transform', translation);
   }
 };

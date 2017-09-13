@@ -136,6 +136,13 @@ Blockly.BlockSvg.prototype.isGlowingStack_ = false;
 Blockly.BlockSvg.INLINE = -1;
 
 /**
+ * Constant for specifying the extra space that the connector tab takes up under a block.
+ * @const
+ */
+Blockly.BlockSvg.EXTRA_BOTTOM_INSECT = 7;
+
+
+/**
  * Create and initialize the SVG representation of the block.
  * May be called more than once.
  */
@@ -239,6 +246,31 @@ Blockly.BlockSvg.prototype.unselect = function() {
 Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
   this.isGlowingBlock_ = isGlowingBlock;
   this.updateColour();
+};
+
+/**
+ * Glow the workspace behind this particular block, to highlight it visually as if it's running.
+ * @param {boolean} isGlowingBlock Whether the block should glow.
+ */
+Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
+  var highlightBlockObject = this.getBlockHighlightObject();
+  var scale = this.workspace.scale;
+  var width = this.workspace.getParentSvg().getAttribute("width"); //do NOT apply scale!
+
+  //Make sure the block info is valid before using isGlowingBlock and calculating rect!
+  var visible = false; 
+  var topY = 0;
+  var height = 0;
+  
+  if(highlightBlockObject.lineSegments !== 'undefined' &&
+     highlightBlockObject.lineSegments.length !== 0)
+  {
+    visible = isGlowingBlock;
+    topY = highlightBlockObject.lineSegments[0].y * scale;
+    height = (this.height - Blockly.BlockSvg.EXTRA_BOTTOM_INSECT) * scale;
+  }
+
+  this.workspace.workspaceHighlightLayer.UpdateHighlightRect(visible, 0, topY, width, height);
 };
 
 /**
@@ -537,7 +569,6 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     id : this.id
   };
   var TOP_OFFSET = 48;
-  var EXTRA_BOTTOM_INSECT = 7;
   var EMPTY_CONTROL_BLOCK_PADDING = 32;
   
 
@@ -556,7 +587,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     
         // always render the last line
         if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
-          var bottomOffset = this.nextConnection ? EXTRA_BOTTOM_INSECT : 0;
+          var bottomOffset = this.nextConnection ? Blockly.BlockSvg.EXTRA_BOTTOM_INSECT : 0;
           blockHighlight.lineSegments.push(
             {
               x : blockRect.bottomRight.x,
