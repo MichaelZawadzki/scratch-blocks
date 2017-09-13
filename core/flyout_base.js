@@ -219,6 +219,13 @@ Blockly.Flyout.prototype.contentHeight_ = 0;
 Blockly.Flyout.prototype.verticalOffset_ = 0;
 
 /**
+ * Vertical Padding of flyout.
+ * @type {number}
+ * @const
+ */
+Blockly.Flyout.prototype.VERTICAL_PADDING = 0;
+
+/**
  * Range of a drag angle from a flyout considered "dragging toward workspace".
  * Drags that are within the bounds of this many degrees from the orthogonal
  * line to the flyout edge are considered to be "drags toward the workspace".
