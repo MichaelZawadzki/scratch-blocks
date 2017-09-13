@@ -212,6 +212,24 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
 };
 
 /**
+ * Update rect rendering. This function assumes all incoming values are already scaled. 
+ * @param {element} lineSegmentsInfo
+ */
+Blockly.WorkspaceHighlightLayerSvg.prototype.UpdateHighlightRect = function(visible, x, y, width, height)
+{
+  if(visible){
+    this.highlightRect_.setAttribute('visibility', 'visible');
+  }else{
+    this.highlightRect_.setAttribute('visibility', 'hidden');
+  }
+  this.highlightRect_.setAttribute('x', x);
+  this.highlightRect_.setAttribute('y', y);
+  this.highlightRect_.setAttribute('width', width);
+  this.highlightRect_.setAttribute('height',height);
+
+}
+
+/**
  * Translate the layer so that it matches the workspace.
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y) {

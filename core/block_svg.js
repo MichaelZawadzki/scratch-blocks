@@ -253,31 +253,24 @@ Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
  * @param {boolean} isGlowingBlock Whether the block should glow.
  */
 Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
-  var highlightRect = this.workspace.workspaceHighlightLayer.highlightRect_;
-  if(isGlowingBlock === true){
-    highlightRect.setAttribute('visibility', 'visible');
-  }else{
-    highlightRect.setAttribute('visibility', 'hidden');
-    return;
-  }
-
   var highlightBlockObject = this.getBlockHighlightObject();
-  if(highlightBlockObject.lineSegments === 'undefined' ||
-     highlightBlockObject.lineSegments.length === 0)
+  var scale = this.workspace.scale;
+  var width = this.workspace.getParentSvg().getAttribute("width"); //do NOT apply scale!
+
+  //Make sure the block info is valid before using isGlowingBlock and calculating rect!
+  var visible = false; 
+  var topY = 0;
+  var height = 0;
+  
+  if(highlightBlockObject.lineSegments !== 'undefined' &&
+     highlightBlockObject.lineSegments.length !== 0)
   {
-    highlightRect.setAttribute('visibility', 'hidden');
-    return;
+    visible = isGlowingBlock;
+    topY = highlightBlockObject.lineSegments[0].y * scale;
+    height = (this.height - Blockly.BlockSvg.EXTRA_BOTTOM_INSECT) * scale;
   }
 
-  var topY = highlightBlockObject.lineSegments[0].y;
-  var width = this.workspace.getParentSvg().getAttribute("width");
-  var scale = this.workspace.scale;
-
-  highlightRect.setAttribute('x', 0);
-  highlightRect.setAttribute('y', topY * scale);
-  highlightRect.setAttribute('width', width);
-  highlightRect.setAttribute('height', (this.height - Blockly.BlockSvg.EXTRA_BOTTOM_INSECT) * scale);
-
+  this.workspace.workspaceHighlightLayer.UpdateHighlightRect(visible, 0, topY, width, height);
 };
 
 /**
