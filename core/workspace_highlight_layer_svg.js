@@ -213,7 +213,11 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
 
 /**
  * Update rect rendering. This function assumes all incoming values are already scaled. 
- * @param {element} lineSegmentsInfo
+ * @param {!element} visible, 
+ * @param {!element} x, x position of the left of the highlighted block.
+ * @param {!element} y, y position of the top of the highlighted block
+ * @param {!element} width, width of the workspace.
+ * @param {!element} height, height of the highlighted block.
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.UpdateHighlightRect = function(visible, x, y, width, height)
 {
