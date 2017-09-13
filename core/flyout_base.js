@@ -221,7 +221,7 @@ Blockly.Flyout.prototype.verticalOffset_ = 0;
 /**
  * Vertical Padding of flyout.
  * @type {number}
- * @private
+ * @const
  */
 Blockly.Flyout.prototype.VERTICAL_PADDING = 0;
 
