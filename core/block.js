@@ -221,11 +221,25 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
 Blockly.Block.prototype.data = null;
 
 /**
+ * Use main or alternate color sets
+ * @type {boolean}
+ * @private
+ */
+Blockly.Block.prototype.useAltColours_ = false;
+
+/**
  * Colour of the block in '#RRGGBB' format.
  * @type {string}
  * @private
  */
 Blockly.Block.prototype.colour_ = '#FF0000';
+
+/**
+ * Alternateolour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
+Blockly.Block.prototype.colourAlt_ = '#00FFFF';
 
 /**
  * Secondary colour of the block in '#RRGGBB' format.
@@ -235,6 +249,13 @@ Blockly.Block.prototype.colour_ = '#FF0000';
 Blockly.Block.prototype.colourSecondary_ = '#FF0000';
 
 /**
+ * Alternate secondary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
+Blockly.Block.prototype.colourSecondaryAlt_ = '#FF00FF';
+
+/**
  * Tertiary colour of the block in '#RRGGBB' format.
  * @type {string}
  * @private
@@ -242,11 +263,25 @@ Blockly.Block.prototype.colourSecondary_ = '#FF0000';
 Blockly.Block.prototype.colourTertiary_ = '#FF0000';
 
 /**
+ * Alternate tertiary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
+Blockly.Block.prototype.colourTertiaryAlt_ = '#FF00FF';
+
+/**
  * Quaternary colour of the block in '#RRGGBB' format.
  * @type {string}
  * @private
  */
 Blockly.Block.prototype.colourQuaternary_ = undefined;
+
+/**
+ * Alternate quaternary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
+Blockly.Block.prototype.colourQuaternaryAlt_ = undefined;
 
 /**
  * Dispose of this block.
@@ -759,32 +794,48 @@ Blockly.Block.prototype.setTooltip = function(newTip) {
  * Get the colour of a block.
  * @return {string} #RRGGBB string.
  */
-Blockly.Block.prototype.getColour = function() {
-  return this.colour_;
+Blockly.Block.prototype.getColour = function(altColor) {
+  if(altColor) {
+    return this.colourAlt_;
+  } else {
+    return this.colour_;
+  }
 };
 
 /**
  * Get the secondary colour of a block.
  * @return {string} #RRGGBB string.
  */
-Blockly.Block.prototype.getColourSecondary = function() {
-  return this.colourSecondary_;
+Blockly.Block.prototype.getColourSecondary = function(altColor) {
+  if(altColor) {
+    return this.colourSecondaryAlt_;
+  } else {
+    return this.colourSecondary_;
+  }
 };
 
 /**
  * Get the tertiary colour of a block.
  * @return {string} #RRGGBB string.
  */
-Blockly.Block.prototype.getColourTertiary = function() {
-  return this.colourTertiary_;
+Blockly.Block.prototype.getColourTertiary = function(altColor) {
+  if(altColor) {
+    return this.colourTertiaryAlt_;
+  } else {
+    return this.colourTertiary_;
+  }
 };
 
 /**
  * Get the quaternary colour of a block.
  * @return {string} #RRGGBB string.
  */
-Blockly.Block.prototype.getColourQuaternary = function() {
-  return this.colourQuaternary_;
+Blockly.Block.prototype.getColourQuaternary = function(altColor) {
+  if(altColor) {
+    return this.colourQuaternaryAlt_;
+  } else {
+    return this.colourQuaternary_;
+  }
 };
 
 /**
@@ -805,7 +856,16 @@ Blockly.Block.prototype.makeColour_ = function(colour) {
 };
 
 /**
- * Change the colour of a block, and optional secondary/teriarty colours.
+ * Change between the main or alternate color sets of a block
+ * @param {boolean} useAlt set to TRUE to use the alternate colors; otherwise, use main colors
+ */
+Blockly.Block.prototype.setUseAltColours = function(useAlt) {
+  this.useAltColours_ = useAlt;
+  this.updateColour();
+}
+
+/**
+ * Set the main colour of a block, and optional secondary/teriarty/quaternary colours.
  * @param {number|string} colour HSV hue value, or #RRGGBB string.
  * @param {number|string} colourSecondary HSV hue value, or #RRGGBB string.
  * @param {number|string} colourTertiary HSV hue value, or #RRGGBB string.
@@ -829,18 +889,37 @@ Blockly.Block.prototype.setColour = function(colour, colourSecondary, colourTert
   }
   if (colourQuaternary !== undefined) {
     this.colourQuaternary_ = this.makeColour_(colourQuaternary);
-  } 
-  // else {
-  //   this.colourQuaternary_ = this.makeColour_('#00ff00');
-
-  //   goog.color.rgbArrayToHex(
-  //       goog.color.darken(goog.color.hexToRgb(this.colour_),
-  //       0.4));
-      
-  // }
-  if (this.rendered) {
-    this.updateColour();
   }
+};
+
+/**
+ * Set the alternate colours of a block, and optional secondary/teriarty/quaternary colours.
+ * @param {number|string} colour HSV hue value, or #RRGGBB string.
+ * @param {number|string} colourSecondary HSV hue value, or #RRGGBB string.
+ * @param {number|string} colourTertiary HSV hue value, or #RRGGBB string.
+ * @param {number|string} colourQuaternary HSV hue value, or #RRGGBB string.
+ */
+Blockly.Block.prototype.setAltColour = function(colour, colourSecondary, colourTertiary, colourQuaternary) {
+  if(colour !== undefined) {
+    this.colourAlt_ = this.makeColour_(colour);
+  }
+  if (colourSecondary !== undefined) {
+    this.colourSecondaryAlt_ = this.makeColour_(colourSecondary);
+  } else {
+    this.colourSecondaryAlt_ = goog.color.rgbArrayToHex(
+        goog.color.darken(goog.color.hexToRgb(this.colour_),
+        0.1));
+  }
+  if (colourTertiary !== undefined) {
+    this.colourTertiaryAlt_ = this.makeColour_(colourTertiary);
+  } else {
+    this.colourTertiaryAlt_ = goog.color.rgbArrayToHex(
+        goog.color.darken(goog.color.hexToRgb(this.colour_),
+        0.2));
+  }
+  if (colourQuaternary !== undefined) {
+    this.colourQuaternaryAlt_ = this.makeColour_(colourQuaternary);
+  } 
 };
 
 /**
@@ -1196,6 +1275,7 @@ Blockly.Block.prototype.jsonInit = function(json) {
   // Set basic properties of block.
   if (json['colour'] !== undefined) {
     this.setColourFromJson_(json);
+    this.setAltColourFromJson_(json);
   }
 
   // Interpolate the message blocks.
@@ -1298,6 +1378,8 @@ Blockly.Block.prototype.mixin = function(mixinObj, opt_disableCheck) {
  *     contains string table references.
  * @param {string|?} tertiary Tertiary colour, which may be a string that
  *     contains string table references.
+ * @param {string|?} quaternary Quaternary colour, which may be a string that
+ *     contains string table references.
  * @private
  */
 Blockly.Block.prototype.setColourFromRawValues_ = function(primary, secondary,
@@ -1314,6 +1396,20 @@ Blockly.Block.prototype.setColourFromRawValues_ = function(primary, secondary,
   this.setColour(primary, secondary, tertiary, quaternary);
 };
 
+Blockly.Block.prototype.setAltColourFromRawValues_ = function(primary, secondary,
+    tertiary, quaternary) {
+  primary = goog.isString(primary) ?
+      Blockly.utils.replaceMessageReferences(primary) : primary;
+  secondary = goog.isString(secondary) ?
+      Blockly.utils.replaceMessageReferences(secondary) : secondary;
+  tertiary = goog.isString(tertiary) ?
+      Blockly.utils.replaceMessageReferences(tertiary) : tertiary;
+  quaternary = goog.isString(quaternary) ?
+      Blockly.utils.replaceMessageReferences(quaternary) : quaternary;
+
+  this.setAltColour(primary, secondary, tertiary, quaternary);
+};
+
 /**
  * Set the colour of the block from JSON, replacing message references as
  * needed.
@@ -1323,6 +1419,11 @@ Blockly.Block.prototype.setColourFromRawValues_ = function(primary, secondary,
 Blockly.Block.prototype.setColourFromJson_ = function(json) {
   this.setColourFromRawValues_(json['colour'], json['colourSecondary'],
       json['colourTertiary'], json['colourQuaternary']);
+};
+
+Blockly.Block.prototype.setAltColourFromJson_ = function(json) {
+  this.setAltColourFromRawValues_(json['colourAlt'], json['colourSecondaryAlt'],
+      json['colourTertiaryAlt'], json['colourQuaternaryAlt']);
 };
 
 /**

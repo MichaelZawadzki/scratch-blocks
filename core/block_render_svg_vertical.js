@@ -462,10 +462,10 @@ Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING = {
  * Change the colour of a block.
  */
 Blockly.BlockSvg.prototype.updateColour = function() {
-  var strokeColour = this.getColourTertiary();
+  var strokeColour = this.getColourTertiary(this.useAltColours_);
   if (this.isShadow() && this.parentBlock_) {
     // Pull shadow block stroke colour from parent block's tertiary if possible.
-    strokeColour = this.parentBlock_.getColourTertiary();
+    strokeColour = this.parentBlock_.getColourTertiary(this.parentBlock_.useAltColours_);
     // Special case: if we contain a colour field, set to a special stroke colour.
     if (this.inputList[0] &&
         this.inputList[0].fieldRow[0] &&
@@ -479,7 +479,7 @@ Blockly.BlockSvg.prototype.updateColour = function() {
 
   // Render block fill
 
-  var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour();
+  var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour(this.useAltColours_);
 
   // TODO: MMZ Use getColourSecondary() for isShadow() blocks?
   //var fillColour = (this.isGlowingBlock_ || this.isShadow()) ? this.getColourSecondary() : this.getColour();
@@ -489,7 +489,7 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   // Render opacity
   this.svgPath_.setAttribute('fill-opacity', this.getOpacity());
 
-  var shapeFillColour = this.getColourQuaternary() ? this.getColourQuaternary() : this.getColourTertiary();
+  var shapeFillColour = this.getColourQuaternary(this.useAltColours_) ? this.getColourQuaternary(this.useAltColours_) : this.getColourTertiary(this.useAltColours_);
   // Update colours of input shapes.
   for (var shape in this.inputShapes_) {
     this.inputShapes_[shape].setAttribute('fill', shapeFillColour);
