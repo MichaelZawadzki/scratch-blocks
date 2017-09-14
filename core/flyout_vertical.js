@@ -206,7 +206,7 @@ Blockly.VerticalFlyout.prototype.getMetrics_ = function() {
   var metrics = {
     viewHeight: viewHeight,
     viewWidth: viewWidth,
-    contentHeight: optionBox.height * this.workspace_.scale + 2 * this.MARGIN,
+    contentHeight: optionBox.height * this.workspace_.scale + 2 * this.MARGIN + this.VERTICAL_PADDING,
     contentWidth: optionBox.width * this.workspace_.scale + 2 * this.MARGIN,
     viewTop: -this.workspace_.scrollY + optionBox.y,
     viewLeft: -this.workspace_.scrollX,
@@ -405,9 +405,10 @@ Blockly.VerticalFlyout.prototype.addBlockListeners_ = function(root, block,
  */
 Blockly.VerticalFlyout.prototype.layout_ = function(contents, gaps) {
   var margin = this.MARGIN;
+  var verticalPadding = this.VERTICAL_PADDING;
   var flyoutWidth = this.getWidth() / this.workspace_.scale;
   var cursorX = margin;
-  var cursorY = margin;
+  var cursorY = margin + verticalPadding;
 
   for (var i = 0, item; item = contents[i]; i++) {
     if (item.type == 'block') {
