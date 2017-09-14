@@ -1322,7 +1322,7 @@ Blockly.BlockSvg.prototype.setDeleteStyle = function(enable) {
 // block has been rendered.
 
 /**
- * Change the colour of a block.
+ * Set the main (default) colours of a block.
  * @param {number|string} colour HSV hue value, or #RRGGBB string.
  * @param {number|string} colourSecondary Secondary HSV hue value, or #RRGGBB
  *    string.
@@ -1335,22 +1335,28 @@ Blockly.BlockSvg.prototype.setColour = function(colour, colourSecondary,
     colourTertiary, colourQuaternary) {
   Blockly.BlockSvg.superClass_.setColour.call(this, colour, colourSecondary,
       colourTertiary, colourQuaternary);
-
-  // if (this.rendered) {
-  //   this.updateColour();
-  // }
 };
 
+/**
+ * Set the alternate colours of a block.
+ * @param {number|string} colour HSV hue value, or #RRGGBB string.
+ * @param {number|string} colourSecondary Secondary HSV hue value, or #RRGGBB
+ *    string.
+ * @param {number|string} colourTertiary Tertiary HSV hue value, or #RRGGBB
+ *    string.
+ * @param {number|string} colourQuaternary Quaternary HSV hue value, or #RRGGBB
+ *    string.
+ */
 Blockly.BlockSvg.prototype.setAltColour = function(colour, colourSecondary,
     colourTertiary, colourQuaternary) {
   Blockly.BlockSvg.superClass_.setAltColour.call(this, colour, colourSecondary,
       colourTertiary, colourQuaternary);
-
-  // if (this.rendered) {
-  //   this.updateColour();
-  // }
 };
 
+/**
+ * Change between the main or alternate colours of a block
+ * @param {boolean} useAlt To use the alternate set of colours or not
+ */
 Blockly.BlockSvg.prototype.setUseAltColours = function(useAlt) {
   Blockly.BlockSvg.superClass_.setUseAltColours.call(this, useAlt);
 };

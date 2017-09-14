@@ -220,6 +220,11 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
  */
 Blockly.Block.prototype.data = null;
 
+/**
+ * Use main or alternate color sets
+ * @type {boolean}
+ * @private
+ */
 Blockly.Block.prototype.useAltColours_ = false;
 
 /**
@@ -227,17 +232,27 @@ Blockly.Block.prototype.useAltColours_ = false;
  * @type {string}
  * @private
  */
-Blockly.Block.prototype.currentColour_ = '#FF0000';
 Blockly.Block.prototype.colour_ = '#FF0000';
-Blockly.Block.prototype.colourAlt_ = '#FF00FF';
+
+/**
+ * Alternateolour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
+Blockly.Block.prototype.colourAlt_ = '#00FFFF';
 
 /**
  * Secondary colour of the block in '#RRGGBB' format.
  * @type {string}
  * @private
  */
-Blockly.Block.prototype.currentColourSecondary_ = '#FF0000';
 Blockly.Block.prototype.colourSecondary_ = '#FF0000';
+
+/**
+ * Alternate secondary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
 Blockly.Block.prototype.colourSecondaryAlt_ = '#FF00FF';
 
 /**
@@ -245,8 +260,13 @@ Blockly.Block.prototype.colourSecondaryAlt_ = '#FF00FF';
  * @type {string}
  * @private
  */
-Blockly.Block.prototype.currentColourTertiary_ = '#FF0000';
 Blockly.Block.prototype.colourTertiary_ = '#FF0000';
+
+/**
+ * Alternate tertiary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
 Blockly.Block.prototype.colourTertiaryAlt_ = '#FF00FF';
 
 /**
@@ -254,8 +274,13 @@ Blockly.Block.prototype.colourTertiaryAlt_ = '#FF00FF';
  * @type {string}
  * @private
  */
-Blockly.Block.prototype.currentColourQuaternary_ = undefined;
 Blockly.Block.prototype.colourQuaternary_ = undefined;
+
+/**
+ * Alternate quaternary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
 Blockly.Block.prototype.colourQuaternaryAlt_ = undefined;
 
 /**
@@ -1419,12 +1444,6 @@ Blockly.Block.prototype.setAltColourFromRawValues_ = function(primary, secondary
       Blockly.utils.replaceMessageReferences(quaternary) : quaternary;
 
   this.setAltColour(primary, secondary, tertiary, quaternary);
-
-  // console.log("Setting alt color for " + this.type);
-  // console.log(primary);
-  // console.log(secondary);
-  // console.log(tertiary);
-  // console.log(quaternary);
 };
 
 /**
