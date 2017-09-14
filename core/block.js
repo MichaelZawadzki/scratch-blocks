@@ -854,46 +854,18 @@ Blockly.Block.prototype.makeColour_ = function(colour) {
     throw 'Invalid colour: ' + colour;
   }
 };
-// /**
-//  * Change the colour of a block, and optional secondary/teriarty colours.
-//  * @param {number|string} colour HSV hue value, or #RRGGBB string.
-//  * @param {number|string} colourSecondary HSV hue value, or #RRGGBB string.
-//  * @param {number|string} colourTertiary HSV hue value, or #RRGGBB string.
-//  * @param {number|string} colourQuaternary HSV hue value, or #RRGGBB string.
-//  */
-// Blockly.Block.prototype.setCurrentColour = function(colour, colourSecondary, colourTertiary, colourQuaternary) {
 
-//   this.currentColour_ = this.makeColour_(colour);
-//   if (colourSecondary !== undefined) {
-//     this.currentColourSecondary_ = this.makeColour_(colourSecondary);
-//   } else {
-//     this.currentColourSecondary_ = goog.color.rgbArrayToHex(
-//         goog.color.darken(goog.color.hexToRgb(this.currentColour_),
-//         0.1));
-//   }
-//   if (currentColourTertiary !== undefined) {
-//     this.currentColourTertiary_ = this.makeColour_(colourTertiary);
-//   } else {
-//     this.currentColourTertiary_ = goog.color.rgbArrayToHex(
-//         goog.color.darken(goog.color.hexToRgb(this.currentColour_),
-//         0.2));
-//   }
-//   if (currentColourQuaternary !== undefined) {
-//     this.currentColourQuaternary_ = this.makeColour_(colourQuaternary);
-//   }
-
-//   if (this.rendered) {
-//     this.updateColour();
-//   }
-// };
-
+/**
+ * Change between the main or alternate color sets of a block
+ * @param {boolean} useAlt set to TRUE to use the alternate colors; otherwise, use main colors
+ */
 Blockly.Block.prototype.setUseAltColours = function(useAlt) {
   this.useAltColours_ = useAlt;
   this.updateColour();
 }
 
 /**
- * Change the colour of a block, and optional secondary/teriarty colours.
+ * Set the main colour of a block, and optional secondary/teriarty/quaternary colours.
  * @param {number|string} colour HSV hue value, or #RRGGBB string.
  * @param {number|string} colourSecondary HSV hue value, or #RRGGBB string.
  * @param {number|string} colourTertiary HSV hue value, or #RRGGBB string.
@@ -918,14 +890,10 @@ Blockly.Block.prototype.setColour = function(colour, colourSecondary, colourTert
   if (colourQuaternary !== undefined) {
     this.colourQuaternary_ = this.makeColour_(colourQuaternary);
   }
-
-  // if (this.rendered) {
-  //   this.updateColour();
-  // }
 };
 
 /**
- * Change the colour of a block, and optional secondary/teriarty colours.
+ * Set the alternate colours of a block, and optional secondary/teriarty/quaternary colours.
  * @param {number|string} colour HSV hue value, or #RRGGBB string.
  * @param {number|string} colourSecondary HSV hue value, or #RRGGBB string.
  * @param {number|string} colourTertiary HSV hue value, or #RRGGBB string.
@@ -952,10 +920,6 @@ Blockly.Block.prototype.setAltColour = function(colour, colourSecondary, colourT
   if (colourQuaternary !== undefined) {
     this.colourQuaternaryAlt_ = this.makeColour_(colourQuaternary);
   } 
-  
-  //if (this.rendered) {
-  //  this.updateColour();
-  //}
 };
 
 /**
