@@ -229,7 +229,7 @@ Blockly.Block.prototype.useAltColours_ = false;
  */
 Blockly.Block.prototype.currentColour_ = '#FF0000';
 Blockly.Block.prototype.colour_ = '#FF0000';
-Blockly.Block.prototype.colourAlt_ = '#0000FF';
+Blockly.Block.prototype.colourAlt_ = '#FF00FF';
 
 /**
  * Secondary colour of the block in '#RRGGBB' format.
@@ -238,7 +238,7 @@ Blockly.Block.prototype.colourAlt_ = '#0000FF';
  */
 Blockly.Block.prototype.currentColourSecondary_ = '#FF0000';
 Blockly.Block.prototype.colourSecondary_ = '#FF0000';
-Blockly.Block.prototype.colourSecondaryAlt_ = '#0000FF';
+Blockly.Block.prototype.colourSecondaryAlt_ = '#FF00FF';
 
 /**
  * Tertiary colour of the block in '#RRGGBB' format.
@@ -247,7 +247,7 @@ Blockly.Block.prototype.colourSecondaryAlt_ = '#0000FF';
  */
 Blockly.Block.prototype.currentColourTertiary_ = '#FF0000';
 Blockly.Block.prototype.colourTertiary_ = '#FF0000';
-Blockly.Block.prototype.colourTertiaryAlt_ = '#0000FF';
+Blockly.Block.prototype.colourTertiaryAlt_ = '#FF00FF';
 
 /**
  * Quaternary colour of the block in '#RRGGBB' format.
