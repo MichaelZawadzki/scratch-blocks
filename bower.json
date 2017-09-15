@@ -25,6 +25,8 @@
         "CONTRIBUTING.md",
         "package.json",
         "webpack.config.js",
+        "buildSmall_temp.py",
+        "moveUncompressedFiles.sh_template.sh",
         "jsconfig.json",
         "gh-pages",
         ".vscode"
