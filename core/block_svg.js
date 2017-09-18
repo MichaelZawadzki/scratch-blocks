@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-/**
+/** 
  * @fileoverview Methods for graphically rendering a block as SVG.
  * @author fraser@google.com (Neil Fraser)
  */
@@ -139,7 +139,7 @@ Blockly.BlockSvg.INLINE = -1;
  * Constant for specifying the extra space that the connector tab takes up under a block.
  * @const
  */
-Blockly.BlockSvg.EXTRA_BOTTOM_INSECT = 7;
+//Blockly.BlockSvg.EXTRA_BOTTOM_INSECT = 7;
 
 
 /**
@@ -267,7 +267,9 @@ Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
   {
     visible = isGlowingBlock;
     topY = highlightBlockObject.lineSegments[0].y * scale;
-    height = (this.height - Blockly.BlockSvg.EXTRA_BOTTOM_INSECT) * scale;
+    //MAXIM: We will need to calculate this better in the future when we do re-flow blocks to multiple lines.
+    //Perhaps blocks can even have a 'top height' variable
+    height = Blockly.BlockSvg.MIN_BLOCK_Y * scale;
   }
 
   this.workspace.workspaceHighlightLayer.UpdateHighlightRect(visible, 0, topY, width, height);
@@ -572,8 +574,13 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     lineSegments : [],
     id : this.id
   };
-  var TOP_OFFSET = 48;
-  var EMPTY_CONTROL_BLOCK_PADDING = 32;
+
+  //Height of the Hat block. Note that the Y value is the corner of the block, NOT the top of the rounded
+  //part. (Search for START_HAT_HEIGHT to see other places this is used.)
+  var TOP_OFFSET = Blockly.BlockSvg.MIN_BLOCK_Y;
+
+  //Space inside an empty control block. 
+  var EMPTY_CONTROL_BLOCK_PADDING = Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER - Blockly.BlockSvg.NOTCH_HEIGHT;
   
 
   if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true && this.isConnectedToHatBlock() === true) {
@@ -591,7 +598,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     
         // always render the last line
         if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
-          var bottomOffset = this.nextConnection ? Blockly.BlockSvg.EXTRA_BOTTOM_INSECT : 0;
+          var bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
           blockHighlight.lineSegments.push(
             {
               x : blockRect.bottomRight.x,
