@@ -83,7 +83,8 @@ Blockly.FieldImage.prototype.init = function() {
     },
     this.fieldGroup_);
   this.setValue(this.src_);
-  this.sourceBlock_.getSvgRoot().appendChild(this.fieldGroup_);
+  //this.sourceBlock_.getSvgRoot().appendChild(this.fieldGroup_);
+  this.sourceBlock_.getSvgContentRoot().appendChild(this.fieldGroup_);
 
   // Configure the field to be transparent with respect to tooltips.
   this.setTooltip(this.sourceBlock_);

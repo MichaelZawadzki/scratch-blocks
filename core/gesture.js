@@ -406,6 +406,13 @@ Blockly.Gesture.prototype.startDraggingBlock_ = function() {
   this.blockDragger_.startBlockDrag(this.currentDragDeltaXY_);
   this.blockDragger_.dragBlock(this.mostRecentEvent_,
       this.currentDragDeltaXY_);
+
+  // OB: Add an event when a block is dragged
+  var eventsEnabled = Blockly.Events.isEnabled();
+  if (eventsEnabled) {
+     var event = new Blockly.Events.StartDrag(this.targetBlock_);
+     Blockly.Events.fire(event);
+  }
 };
 
 /**

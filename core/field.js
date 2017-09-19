@@ -174,7 +174,9 @@ Blockly.Field.prototype.init = function() {
       this.fieldGroup_);
 
   this.updateEditable();
-  this.sourceBlock_.getSvgRoot().appendChild(this.fieldGroup_);
+  //this.sourceBlock_.getSvgRoot().appendChild(this.fieldGroup_);
+  this.sourceBlock_.getSvgContentRoot().appendChild(this.fieldGroup_);
+
   // Force a render.
   this.render_();
   this.size_.width = 0;

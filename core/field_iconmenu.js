@@ -88,7 +88,8 @@ Blockly.FieldIconMenu.prototype.init = function(block) {
   });
   this.arrowIcon_.setAttributeNS('http://www.w3.org/1999/xlink',
       'xlink:href', Blockly.mainWorkspace.options.pathToMedia + 'dropdown-arrow.svg');
-  block.getSvgRoot().appendChild(this.arrowIcon_);
+  //block.getSvgRoot().appendChild(this.arrowIcon_);
+  block.getSvgContentRoot().appendChild(this.arrowIcon_);
   Blockly.FieldIconMenu.superClass_.init.call(this, block);
 };
 

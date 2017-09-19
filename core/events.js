@@ -127,6 +127,12 @@ Blockly.Events.VAR_RENAME = 'var_rename';
 Blockly.Events.UI = 'ui';
 
 /**
+ * Name of event that records a block drag
+ * @const
+ */
+Blockly.Events.BLOCK_START_DRAG = 'start_drag';
+
+/**
  * List of events queued for firing.
  * @private
  */
@@ -370,6 +376,9 @@ Blockly.Events.fromJson = function(json, workspace) {
       break;
     case Blockly.Events.UI:
       event = new Blockly.Events.Ui(null);
+      break;
+    case Blockly.Events.BLOCK_START_DRAG:
+      event = new Blockly.Events.StartDrag(null);
       break;
     default:
       throw 'Unknown event type.';
@@ -1125,6 +1134,48 @@ Blockly.Events.VarRename.prototype.run = function(forward) {
     workspace.renameVariableById(this.varId, this.oldName);
   }
 };
+
+
+
+/**
+ * Class for a block drag event. 
+ * @param {Blockly.Block} block The moved block.  Null for a blank event.
+ * @extends {Blockly.Events.Abstract}
+ * @constructor
+ */
+Blockly.Events.StartDrag = function(block) {
+  if (!block) {
+    return;  // Blank event to be populated by fromJson.
+  }
+  Blockly.Events.StartDrag.superClass_.constructor.call(this, block);
+  this.recordUndo = false;
+};
+goog.inherits(Blockly.Events.StartDrag, Blockly.Events.Abstract);
+
+/**
+ * Type of this event.
+ * @type {string}
+ */
+Blockly.Events.StartDrag.prototype.type = Blockly.Events.BLOCK_START_DRAG;
+
+/**
+ * Encode the event as JSON.
+ * @return {!Object} JSON representation.
+ */
+Blockly.Events.StartDrag.prototype.toJson = function() {
+  var json = Blockly.Events.StartDrag.superClass_.toJson.call(this);
+  return json;
+};
+
+/**
+ * Decode the JSON event.
+ * @param {!Object} json JSON representation.
+ */
+Blockly.Events.StartDrag.prototype.fromJson = function(json) {
+  Blockly.Events.StartDrag.superClass_.fromJson.call(this, json);
+};
+
+
 
 /**
  * Enable/disable a block depending on whether it is properly connected.

@@ -62,6 +62,8 @@ Blockly.BlockSvg = function(workspace, prototypeName, opt_id) {
       this.svgGroup_);
   this.svgPath_.tooltip = this;
 
+  this.svgContentGroup_ = Blockly.utils.createSvgElement('g', {'class': 'blocklyBlockContent'}, this.svgGroup_);
+
   /** @type {boolean} */
   this.rendered = false;
 
@@ -191,7 +193,7 @@ Blockly.BlockSvg.prototype.initInputShape = function(input) {
       'class': 'blocklyPath',
       'style': 'visibility: hidden' // Hide by default - shown when not connected.
     },
-    this.svgGroup_
+    this.svgContentGroup_
   );
 };
 
@@ -1061,6 +1063,10 @@ Blockly.BlockSvg.prototype.setInsertionMarker = function(insertionMarker, opt_mi
  */
 Blockly.BlockSvg.prototype.getSvgRoot = function() {
   return this.svgGroup_;
+};
+
+Blockly.BlockSvg.prototype.getSvgContentRoot = function() {
+  return this.svgContentGroup_;
 };
 
 /**
