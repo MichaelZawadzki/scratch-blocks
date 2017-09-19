@@ -93,6 +93,8 @@ Blockly.Workspace = function(opt_options) {
 
   // MMZ-TODO: Add these predefiend variables using createVariable on the Map
   //this.variableList = Blockly.Variables.getPredefiendVars();
+
+  this.reflowBlockMaxWidth = 200;
 };
 
 /**

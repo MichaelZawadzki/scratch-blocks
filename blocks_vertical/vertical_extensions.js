@@ -76,6 +76,7 @@ Blockly.ScratchBlocks.VerticalExtensions.SHAPE_STATEMENT = function() {
   this.setInputsInline(true);
   this.setPreviousStatement(true, null);
   this.setNextStatement(true, null);
+  this.setCanReflow(true);
 };
 
 /**
@@ -139,6 +140,7 @@ Blockly.ScratchBlocks.VerticalExtensions.OUTPUT_BOOLEAN = function() {
   this.setInputsInline(true);
   this.setOutputShape(Blockly.OUTPUT_SHAPE_HEXAGONAL);
   this.setOutput(true, 'Boolean');
+  this.setCanReflow(true);
 };
 
 /**

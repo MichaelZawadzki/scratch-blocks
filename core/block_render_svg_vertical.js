@@ -720,6 +720,7 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   var hasDummy = false;
   var lastType = undefined;
 
+  var currentRowTotalWidth = 0;
   // Previously created row, for special-casing row heights on C- and E- shaped blocks.
   var previousRow;
   for (var i = 0, input; input = inputList[i]; i++) {
@@ -729,8 +730,10 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
     var row;
     if (!lastType ||
         lastType == Blockly.NEXT_STATEMENT ||
-        input.type == Blockly.NEXT_STATEMENT) {
+        input.type == Blockly.NEXT_STATEMENT || 
+        this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.workspace.reflowBlockMaxWidth) {
       // Create new row.
+      currentRowTotalWidth = 0;
       lastType = input.type;
       row = [];
       if (input.type != Blockly.NEXT_STATEMENT) {
@@ -857,6 +860,7 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
       }
     }
     previousRow = row;
+    currentRowTotalWidth += input.renderWidth;
   }
   // Compute padding for output blocks.
   // Data is attached to the row.
@@ -900,8 +904,48 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   inputRows.hasValue = hasValue;
   inputRows.hasStatement = hasStatement;
   inputRows.hasDummy = hasDummy;
+
+
   return inputRows;
 };
+
+Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
+{
+  var rowWidth = 0;
+   if (input.type == Blockly.INPUT_VALUE &&
+        (!input.connection || !input.connection.isConnected())) {
+      switch (input.connection.getOutputShape()) {
+        case Blockly.OUTPUT_SHAPE_SQUARE:
+          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+          break;
+        case Blockly.OUTPUT_SHAPE_ROUND:
+          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+          break;
+        case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+          break;
+        default:
+          rowWidth = 0;
+      }
+    } else {
+      rowWidth = 0;
+    }
+
+    // Expand input size.
+    if (input.connection) {
+      var linkedBlock = input.connection.targetBlock();
+      var paddedHeight = 0;
+      var paddedWidth = 0;
+      if (linkedBlock) {
+        // A block is connected to the input - use its size.
+        var bBox = linkedBlock.getHeightWidth();
+        paddedWidth = bBox.width;
+      }
+      rowWidth = Math.max(rowWidth, paddedWidth);
+    }
+
+    return rowWidth;
+}
 
 /**
  * For a block with output,
