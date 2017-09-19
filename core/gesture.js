@@ -406,6 +406,13 @@ Blockly.Gesture.prototype.startDraggingBlock_ = function() {
   this.blockDragger_.startBlockDrag(this.currentDragDeltaXY_);
   this.blockDragger_.dragBlock(this.mostRecentEvent_,
       this.currentDragDeltaXY_);
+
+  // OB: Add an event when a block is dragged
+  var eventsEnabled = Blockly.Events.isEnabled();
+  if (eventsEnabled) {
+     var event = new Blockly.Events.StartDrag(this.targetBlock_);
+     Blockly.Events.fire(event);
+  }
 };
 
 /**
@@ -530,8 +537,10 @@ Blockly.Gesture.prototype.cancel = function() {
   // Disposing of a block cancels in-progress drags, but dragging to a delete
   // area disposes of a block and leads to recursive disposal. Break that cycle.
   if (this.isEnding_) {
+    console.log('Trying to cancel a gesture recursively.');
     return;
   }
+  this.isEnding_ = true;
   Blockly.longStop_();
   if (this.isDraggingBlock_) {
     this.blockDragger_.endBlockDrag(this.mostRecentEvent_,

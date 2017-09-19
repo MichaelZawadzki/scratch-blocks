@@ -219,6 +219,13 @@ Blockly.Flyout.prototype.contentHeight_ = 0;
 Blockly.Flyout.prototype.verticalOffset_ = 0;
 
 /**
+ * Vertical Padding of flyout.
+ * @type {number}
+ * @const
+ */
+Blockly.Flyout.prototype.VERTICAL_PADDING = 0;
+
+/**
  * Range of a drag angle from a flyout considered "dragging toward workspace".
  * Drags that are within the bounds of this many degrees from the orthogonal
  * line to the flyout edge are considered to be "drags toward the workspace".
@@ -346,8 +353,7 @@ Blockly.Flyout.prototype.setParentToolbox = function(toolbox) {
  * @return {number} The width of the flyout.
  */
 Blockly.Flyout.prototype.getWidth = function() {
-  return this.parentToolbox_ ? this.parentToolbox_.getWidth() :
-      this.DEFAULT_WIDTH;
+  return this.DEFAULT_WIDTH;
 };
 
 /**
@@ -564,17 +570,10 @@ Blockly.Flyout.prototype.clearOldBlocks_ = function() {
  * @private
  */
 Blockly.Flyout.prototype.addBlockListeners_ = function(root, block, rect) {
-  if (this.autoClose) {
-    this.listeners_.push(Blockly.bindEventWithChecks_(root, 'mousedown', null,
-        this.createBlockFunc_(block)));
-    this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
-        this.createBlockFunc_(block)));
-  } else {
-    this.listeners_.push(Blockly.bindEventWithChecks_(root, 'mousedown', null,
-        this.blockMouseDown_(block)));
-    this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
-        this.blockMouseDown_(block)));
-  }
+  this.listeners_.push(Blockly.bindEventWithChecks_(root, 'mousedown', null,
+      this.blockMouseDown_(block)));
+  this.listeners_.push(Blockly.bindEventWithChecks_(rect, 'mousedown', null,
+      this.blockMouseDown_(block)));
   this.listeners_.push(Blockly.bindEvent_(root, 'mouseover', block,
       block.addSelect));
   this.listeners_.push(Blockly.bindEvent_(root, 'mouseout', block,

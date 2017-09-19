@@ -66,6 +66,20 @@ Blockly.Css.styleSheet_ = null;
 Blockly.Css.mediaPath_ = '';
 
 /**
+ * Default font.
+ * @type {string}
+ * @private
+ */
+Blockly.Css.defaultFont = '"Helvetica Neue", Helvetica, sans-serif';
+
+/**
+ * A new font defined in the workspace options. Will override the default font
+ * @type {string}
+ * @private
+ */
+Blockly.Css.font = null;
+
+/**
  * Inject the CSS into the DOM.  This is preferable over using a regular CSS
  * file since:
  * a) It loads synchronously and doesn't force a redraw later.
@@ -101,6 +115,14 @@ Blockly.Css.inject = function(hasCss, pathToMedia) {
         Blockly.Colours[colourProperty]
       );
     }
+  }
+
+  // Dynamically replace the default font in the CSS, if there's another font defined
+  if(Blockly.Css.font) {
+    text = text.replace(
+        new RegExp(Blockly.Css.defaultFont, 'g'),
+        Blockly.Css.font
+      );
   }
 
   // Inject CSS tag at start of head.
@@ -217,7 +239,7 @@ Blockly.Css.CONTENT = [
     'box-shadow: 4px 4px 20px 1px rgba(0,0,0,.15);',
     'color: #000;',
     'display: none;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 9pt;',
     'opacity: 0.9;',
     'padding: 2px;',
@@ -301,7 +323,7 @@ Blockly.Css.CONTENT = [
     'border: 1px solid $colour_numPadBorder;',
     'cursor: pointer;',
     'font-weight: 600;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 12pt;',
     '-webkit-tap-highlight-color: rgba(0,0,0,0);',
   '}',
@@ -338,7 +360,7 @@ Blockly.Css.CONTENT = [
     'overflow: auto;',
     'word-wrap: break-word;',
     'text-align: center;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: .8em;',
   '}',
 
@@ -439,7 +461,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyText {',
     'fill: #fff;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 12pt;',
     'font-weight: 500;',
   '}',
@@ -559,7 +581,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyHtmlInput {',
     'border: none;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 12pt;',
     'height: 100%;',
     'margin: 0;',
@@ -584,7 +606,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyFlyoutBackground {',
     'fill: $colour_flyout;',
-    'fill-opacity: .8;',
+    'fill-opacity: 0;',
   '}',
 
   '.blocklyMainWorkspaceScrollbar {',
@@ -696,7 +718,7 @@ Blockly.Css.CONTENT = [
     'overflow-x: visible;',
     'overflow-y: auto;',
     'position: absolute;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'z-index: 40;', /* so blocks go over toolbox when dragging */
   '}',
 
@@ -785,7 +807,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyTreeLabel {',
     'cursor: default;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 16px;',
     'padding: 0 3px;',
     'vertical-align: middle;',
@@ -869,7 +891,7 @@ Blockly.Css.CONTENT = [
     'border-style: solid;',
     'border-width: 1px;',
     'cursor: default;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'margin: 0;',
     'outline: none;',
     'padding: 4px 0;',
@@ -881,7 +903,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDropDownDiv .goog-menu {',
     'cursor: default;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'outline: none;',
     'z-index: 20000;',  /* Arbitrary, but some apps depend on it... */
   '}',
@@ -917,7 +939,7 @@ Blockly.Css.CONTENT = [
    */
   '.blocklyWidgetDiv .goog-menuitem {',
     'color: #000;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'list-style: none;',
     'margin: 0;',
      /* 28px on the left for icon or checkbox; 7em on the right for shortcut. */
@@ -927,7 +949,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDropDownDiv .goog-menuitem {',
     'color: #fff;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'font-weight: bold;',
     'list-style: none;',
     'margin: 0;',
@@ -965,7 +987,7 @@ Blockly.Css.CONTENT = [
   '.blocklyWidgetDiv .goog-menuitem-content ',
   '.blocklyDropDownDiv .goog-menuitem-content {',
     'color: #000;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
   '}',
 
   /* State: disabled. */
@@ -1113,47 +1135,66 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.scratchCategoryMenu {',
-    'width: 250px;',
+    'width: 60px;',
     'background: $colour_toolbox;',
     'color: $colour_toolboxText;',
-    'font-size: .9em;',
+    'font-size: .7em;',
     'user-select: none;',
     '-webkit-user-select: none;',
     '-moz-user-select: none;',
     '-ms-user-select: none;',
   '}',
 
-  '.scratchCategoryRow {',
-    'width: 50%;',
+  '.scratchCategoryMenuHorizontal {',
+    'width: 100%;',
+    'height: 50px;',
+    'background: $colour_toolbox;',
+    'color: $colour_toolboxText;',
+    'font-size: .7em;',
+    'user-select: none;',
+    '-webkit-user-select: none;',
+    '-moz-user-select: none;',
+    '-ms-user-select: none;',
+  '}',
+
+  '.scratchCategoryMenuHorizontal .scratchCategoryMenuRow {',
+    'float: left;',
+    'margin: 3px;',
+  '}',
+
+  '.scratchCategoryMenuRow {',
+  '}',
+
+  '.scratchCategoryMenu .scratchCategoryMenuRow + .scratchCategoryMenuRow:before {',
+    'display: block;',
+    'border-top: 1px solid #ddd;',
+    'content: "";',
+    'width: 60%;',
+    'margin: 4px auto;',
   '}',
 
   '.scratchCategoryMenuItem {',
-    'padding: 4px;',
-    'width: 50%;',
+    'padding: 6px 0px;',
     'cursor: pointer;',
+    'margin: 0px 2px;',
+    'text-align: center;',
+  '}',
+
+  '.scratchCategoryMenuHorizontal .scratchCategoryMenuItem {',
+    'padding: 6px 5px;',
   '}',
 
   '.scratchCategoryMenuItem.categorySelected {',
     'background: $colour_toolboxSelected;',
-    'border-radius: 16px;',
+    'border-radius: 6px;',
   '}',
 
-  '.scratchCategoryItemBubbleLTR {',
-    'width: 14px;',
-    'height: 14px;',
+  '.scratchCategoryItemBubble {',
+    'width: 16px;',
+    'height: 16px;',
     'border: 1px solid;',
-    'border-radius: 8px;',
-    'float: left;',
-    'margin-right: 8px;',
-  '}',
-
-  '.scratchCategoryItemBubbleRTL {',
-    'width: 14px;',
-    'height: 14px;',
-    'border: 1px solid;',
-    'border-radius: 8px;',
-    'float: right;',
-    'margin-left: 8px;',
+    'border-radius: 100%;',
+    'margin: 0 auto 3px;',
   '}',
 
   '.scratchCategoryMenuItem:hover {',

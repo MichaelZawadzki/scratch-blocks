@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-/**
+/** 
  * @fileoverview Methods for graphically rendering a block as SVG.
  * @author fraser@google.com (Neil Fraser)
  */
@@ -61,6 +61,8 @@ Blockly.BlockSvg = function(workspace, prototypeName, opt_id) {
   this.svgPath_ = Blockly.utils.createSvgElement('path', {'class': 'blocklyPath blocklyBlockBackground'},
       this.svgGroup_);
   this.svgPath_.tooltip = this;
+
+  this.svgContentGroup_ = Blockly.utils.createSvgElement('g', {'class': 'blocklyBlockContent'}, this.svgGroup_);
 
   /** @type {boolean} */
   this.rendered = false;
@@ -136,6 +138,13 @@ Blockly.BlockSvg.prototype.isGlowingStack_ = false;
 Blockly.BlockSvg.INLINE = -1;
 
 /**
+ * Constant for specifying the extra space that the connector tab takes up under a block.
+ * @const
+ */
+//Blockly.BlockSvg.EXTRA_BOTTOM_INSECT = 7;
+
+
+/**
  * Create and initialize the SVG representation of the block.
  * May be called more than once.
  */
@@ -184,7 +193,7 @@ Blockly.BlockSvg.prototype.initInputShape = function(input) {
       'class': 'blocklyPath',
       'style': 'visibility: hidden' // Hide by default - shown when not connected.
     },
-    this.svgGroup_
+    this.svgContentGroup_
   );
 };
 
@@ -239,6 +248,33 @@ Blockly.BlockSvg.prototype.unselect = function() {
 Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
   this.isGlowingBlock_ = isGlowingBlock;
   this.updateColour();
+};
+
+/**
+ * Glow the workspace behind this particular block, to highlight it visually as if it's running.
+ * @param {boolean} isGlowingBlock Whether the block should glow.
+ */
+Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
+  var highlightBlockObject = this.getBlockHighlightObject();
+  var scale = this.workspace.scale;
+  var width = this.workspace.getParentSvg().getAttribute("width"); //do NOT apply scale!
+
+  //Make sure the block info is valid before using isGlowingBlock and calculating rect!
+  var visible = false; 
+  var topY = 0;
+  var height = 0;
+  
+  if(highlightBlockObject.lineSegments !== 'undefined' &&
+     highlightBlockObject.lineSegments.length !== 0)
+  {
+    visible = isGlowingBlock;
+    topY = highlightBlockObject.lineSegments[0].y * scale;
+    //MAXIM: We will need to calculate this better in the future when we do re-flow blocks to multiple lines.
+    //Perhaps blocks can even have a 'top height' variable
+    height = Blockly.BlockSvg.MIN_BLOCK_Y * scale;
+  }
+
+  this.workspace.workspaceHighlightLayer.UpdateHighlightRect(visible, 0, topY, width, height);
 };
 
 /**
@@ -324,8 +360,12 @@ Blockly.BlockSvg.prototype.setParent = function(newParent) {
     this.moveConnections_(newXY.x - oldXY.x, newXY.y - oldXY.y);
     // If we are a shadow block, inherit tertiary colour.
     if (this.isShadow()) {
-      this.setColour(this.getColour(), this.getColourSecondary(),
-        newParent.getColourTertiary());
+      this.setColour(this.getColour(false), this.getColourSecondary(false),
+        newParent.getColourTertiary(false), newParent.getColourQuaternary(false));
+      this.setAltColour(this.getColour(true), this.getColourSecondary(true),
+        newParent.getColourTertiary(true), newParent.getColourQuaternary(true));
+
+      this.setUseAltColours(newParent.useAltColours_);
     }
   }
 };
@@ -536,9 +576,13 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     lineSegments : [],
     id : this.id
   };
-  var TOP_OFFSET = 48;
-  var EXTRA_BOTTOM_INSECT = 7;
-  var EMPTY_CONTROL_BLOCK_PADDING = 32;
+
+  //Height of the Hat block. Note that the Y value is the corner of the block, NOT the top of the rounded
+  //part. (Search for START_HAT_HEIGHT to see other places this is used.)
+  var TOP_OFFSET = Blockly.BlockSvg.MIN_BLOCK_Y;
+
+  //Space inside an empty control block. 
+  var EMPTY_CONTROL_BLOCK_PADDING = Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER - Blockly.BlockSvg.NOTCH_HEIGHT;
   
 
   if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true && this.isConnectedToHatBlock() === true) {
@@ -556,7 +600,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     
         // always render the last line
         if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
-          var bottomOffset = this.nextConnection ? EXTRA_BOTTOM_INSECT : 0;
+          var bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
           blockHighlight.lineSegments.push(
             {
               x : blockRect.bottomRight.x,
@@ -962,6 +1006,8 @@ Blockly.BlockSvg.prototype.setDragging = function(adding) {
   for (var i = 0; i < this.childBlocks_.length; i++) {
     this.childBlocks_[i].setDragging(adding);
   }
+
+  this.setIsConnectedToHatBlock(!adding);
 };
 
 /**
@@ -1024,6 +1070,10 @@ Blockly.BlockSvg.prototype.setInsertionMarker = function(insertionMarker, opt_mi
  */
 Blockly.BlockSvg.prototype.getSvgRoot = function() {
   return this.svgGroup_;
+};
+
+Blockly.BlockSvg.prototype.getSvgContentRoot = function() {
+  return this.svgContentGroup_;
 };
 
 /**
@@ -1316,21 +1366,43 @@ Blockly.BlockSvg.prototype.setDeleteStyle = function(enable) {
 // block has been rendered.
 
 /**
- * Change the colour of a block.
+ * Set the main (default) colours of a block.
  * @param {number|string} colour HSV hue value, or #RRGGBB string.
  * @param {number|string} colourSecondary Secondary HSV hue value, or #RRGGBB
  *    string.
  * @param {number|string} colourTertiary Tertiary HSV hue value, or #RRGGBB
  *    string.
+ * @param {number|string} colourQuaternary Quaternary HSV hue value, or #RRGGBB
+ *    string.
  */
 Blockly.BlockSvg.prototype.setColour = function(colour, colourSecondary,
-    colourTertiary) {
+    colourTertiary, colourQuaternary) {
   Blockly.BlockSvg.superClass_.setColour.call(this, colour, colourSecondary,
-      colourTertiary);
+      colourTertiary, colourQuaternary);
+};
 
-  if (this.rendered) {
-    this.updateColour();
-  }
+/**
+ * Set the alternate colours of a block.
+ * @param {number|string} colour HSV hue value, or #RRGGBB string.
+ * @param {number|string} colourSecondary Secondary HSV hue value, or #RRGGBB
+ *    string.
+ * @param {number|string} colourTertiary Tertiary HSV hue value, or #RRGGBB
+ *    string.
+ * @param {number|string} colourQuaternary Quaternary HSV hue value, or #RRGGBB
+ *    string.
+ */
+Blockly.BlockSvg.prototype.setAltColour = function(colour, colourSecondary,
+    colourTertiary, colourQuaternary) {
+  Blockly.BlockSvg.superClass_.setAltColour.call(this, colour, colourSecondary,
+      colourTertiary, colourQuaternary);
+};
+
+/**
+ * Change between the main or alternate colours of a block
+ * @param {boolean} useAlt To use the alternate set of colours or not
+ */
+Blockly.BlockSvg.prototype.setUseAltColours = function(useAlt) {
+  Blockly.BlockSvg.superClass_.setUseAltColours.call(this, useAlt);
 };
 
 /**

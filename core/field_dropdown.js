@@ -223,10 +223,7 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
   // Recalculate height for the total content, not only box height.
   menuSize.height = menuDom.scrollHeight;
 
-  var primaryColour = (this.sourceBlock_.isShadow()) ?
-    this.sourceBlock_.parentBlock_.getColour() : this.sourceBlock_.getColour();
-
-  Blockly.DropDownDiv.setColour(primaryColour, this.sourceBlock_.getColourTertiary());
+  this.setCurrentColors();
 
   var category = (this.sourceBlock_.isShadow()) ?
     this.sourceBlock_.parentBlock_.getCategory() : this.sourceBlock_.getCategory();
@@ -247,6 +244,7 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
   Blockly.DropDownDiv.show(this, primaryX, primaryY, secondaryX, secondaryY,
     this.onHide.bind(this));
 
+
   menu.setAllowAutoFocus(true);
   menuDom.focus();
 
@@ -255,11 +253,19 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
     if (this.sourceBlock_.isShadow()) {
       this.savedPrimary_ = this.sourceBlock_.getColour();
       this.sourceBlock_.setColour(this.sourceBlock_.getColourTertiary(),
-        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary(), this.sourceBlock_.getColourQuaternary());
     } else if (this.box_) {
       this.box_.setAttribute('fill', this.sourceBlock_.getColourTertiary());
+      this.box_.setAttribute('fill-opacity', Blockly.Colours.dropdownButtonPressedOpacity);
     }
   }
+};
+
+Blockly.FieldDropdown.prototype.setCurrentColors = function() {
+  var primaryColour = (this.sourceBlock_.isShadow()) ?
+    this.sourceBlock_.parentBlock_.getColour(this.sourceBlock_.parentBlock_.useAltColours_) : this.sourceBlock_.getColour(this.sourceBlock_.useAltColours_);
+
+  Blockly.DropDownDiv.setColour(primaryColour, this.sourceBlock_.getColourTertiary(this.sourceBlock_.useAltColours_));
 };
 
 /**
@@ -271,9 +277,10 @@ Blockly.FieldDropdown.prototype.onHide = function() {
   if (!this.disableColourChange_ && this.sourceBlock_) {
     if (this.sourceBlock_.isShadow()) {
       this.sourceBlock_.setColour(this.savedPrimary_,
-        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+        this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary(), this.sourceBlock_.getColourQuaternary());
     } else if (this.box_) {
       this.box_.setAttribute('fill', this.sourceBlock_.getColour());
+      this.box_.setAttribute('fill-opacity', 1);
     }
   }
 };

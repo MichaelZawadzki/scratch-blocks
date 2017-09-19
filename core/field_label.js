@@ -72,7 +72,8 @@ Blockly.FieldLabel.prototype.init = function() {
   if (!this.visible_) {
     this.textElement_.style.display = 'none';
   }
-  this.sourceBlock_.getSvgRoot().appendChild(this.textElement_);
+  //this.sourceBlock_.getSvgRoot().appendChild(this.textElement_);
+  this.sourceBlock_.getSvgContentRoot().appendChild(this.textElement_);
 
   // Configure the field to be transparent with respect to tooltips.
   this.textElement_.tooltip = this.sourceBlock_;

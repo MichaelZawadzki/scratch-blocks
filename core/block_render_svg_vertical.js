@@ -51,6 +51,7 @@ Blockly.BlockSvg.SEP_SPACE_Y = 2 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Minimum width of a block.
+ * MAXIM: Actually this seems to only be used to compute the right edge of a block....
  * @const
  */
 Blockly.BlockSvg.MIN_BLOCK_X = 16 * Blockly.BlockSvg.GRID_UNIT;
@@ -63,18 +64,21 @@ Blockly.BlockSvg.MIN_BLOCK_X_OUTPUT = 12 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Minimum width of a shadow block with output (single fields).
+ * MAXIM: affects width of things like an empty circle input and a numbered input on a repeat block
  * @const
  */
 Blockly.BlockSvg.MIN_BLOCK_X_SHADOW_OUTPUT = 10 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Minimum height of a block.
+ * MAXIM: height of a 'normal' block, or the height of the top of a C block
  * @const
  */
 Blockly.BlockSvg.MIN_BLOCK_Y = 12 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Height of extra row after a statement input.
+ * MAXIM: This is the BOTTOM height of a "C" block
  * @const
  */
 Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y = 8 * Blockly.BlockSvg.GRID_UNIT;
@@ -88,30 +92,35 @@ Blockly.BlockSvg.MIN_BLOCK_X_WITH_STATEMENT = 40 * Blockly.BlockSvg.GRID_UNIT;
 /**
  * Minimum height of a shadow block with output and a single field.
  * This is used for shadow blocks that only contain a field - which are smaller than even reporters.
+ * MAXIM: Changing this will affect the height of blocks which contain a single input (like a number) but NOT a double input () == () 
  * @const
  */
 Blockly.BlockSvg.MIN_BLOCK_Y_SINGLE_FIELD_OUTPUT = 8 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Minimum height of a non-shadow block with output, i.e. a reporter.
+ * MAXIM: This is the height of a draggable input block. <()==()> or <> or () 
  * @const
  */
 Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER = 10 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Minimum space for a statement input height.
+ * MAXIM: Space that shows up inside an empty C or E block
  * @const
  */
 Blockly.BlockSvg.MIN_STATEMENT_INPUT_HEIGHT = 6 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Width of vertical notch.
+ * MAXIM: Doesnt change the drawing of the notch on it's own, just moves it left or right
  * @const
  */
 Blockly.BlockSvg.NOTCH_WIDTH = 8 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Height of vertical notch.
+ * MAXIM: Doesnt change the drawing of the notch...just for reference? 
  * @const
  */
 Blockly.BlockSvg.NOTCH_HEIGHT = 2 * Blockly.BlockSvg.GRID_UNIT;
@@ -124,6 +133,7 @@ Blockly.BlockSvg.CORNER_RADIUS = 1 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Minimum width of statement input edge on the left, in px.
+ * MAXIM: This is the width of the vertical part of the C or E
  * @const
  */
 Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH = 4 * Blockly.BlockSvg.GRID_UNIT;
@@ -462,10 +472,10 @@ Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING = {
  * Change the colour of a block.
  */
 Blockly.BlockSvg.prototype.updateColour = function() {
-  var strokeColour = this.getColourTertiary();
+  var strokeColour = this.getColourTertiary(this.useAltColours_);
   if (this.isShadow() && this.parentBlock_) {
     // Pull shadow block stroke colour from parent block's tertiary if possible.
-    strokeColour = this.parentBlock_.getColourTertiary();
+    strokeColour = this.parentBlock_.getColourTertiary(this.parentBlock_.useAltColours_);
     // Special case: if we contain a colour field, set to a special stroke colour.
     if (this.inputList[0] &&
         this.inputList[0].fieldRow[0] &&
@@ -479,7 +489,7 @@ Blockly.BlockSvg.prototype.updateColour = function() {
 
   // Render block fill
 
-  var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour();
+  var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour(this.useAltColours_);
 
   // TODO: MMZ Use getColourSecondary() for isShadow() blocks?
   //var fillColour = (this.isGlowingBlock_ || this.isShadow()) ? this.getColourSecondary() : this.getColour();
@@ -489,9 +499,11 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   // Render opacity
   this.svgPath_.setAttribute('fill-opacity', this.getOpacity());
 
+  var shapeFillColour = this.getColourQuaternary(this.useAltColours_) ? this.getColourQuaternary(this.useAltColours_) : this.getColourTertiary(this.useAltColours_);
   // Update colours of input shapes.
   for (var shape in this.inputShapes_) {
-    this.inputShapes_[shape].setAttribute('fill', this.getColourTertiary());
+    this.inputShapes_[shape].setAttribute('fill', shapeFillColour);
+    this.inputShapes_[shape].setAttribute('fill-opacity', Blockly.Colours.inputShapeOpacity);
   }
 
   // Render icon(s) if applicable
@@ -628,9 +640,11 @@ Blockly.BlockSvg.prototype.renderFields_ =
     if (!root) {
       continue;
     }
-    // In blocks with a notch, non-label fields should be bumped to a min X,
-    // to avoid overlapping with the notch.
-    if (this.previousConnection && !(field instanceof Blockly.FieldLabel)) {
+    // In blocks with a notch, fields should be bumped to a min X,
+    // to avoid overlapping with the notch. Label and image fields are
+    // excluded.
+    if (this.previousConnection && !(field instanceof Blockly.FieldLabel) &&
+        !(field instanceof Blockly.FieldImage)) {
       cursorX = this.RTL ?
         Math.min(cursorX, -Blockly.BlockSvg.INPUT_AND_FIELD_MIN_X) :
         Math.max(cursorX, Blockly.BlockSvg.INPUT_AND_FIELD_MIN_X);
@@ -679,6 +693,19 @@ Blockly.BlockSvg.prototype.renderFields_ =
  *     position information.
  * @private
  */
+
+ /* MAXIM Reflow Notes: 
+ *  To determine if we need to reflow, we will need to do several things here:
+ *  Either add a 'var canReflow = bool' property to blocks and apply it to the ones we know may reflow or (since at
+ *  the moment, it's ONLY blocks that contain a <() == ()> block) we specifically check the ones that we know may reflow. 
+ *  We will need to compute the width of the block using the code below (or a special width-only calculation), and if we detect that the width is larger than the
+ *  current workspace.minimumReflowWidth (a variable which we will also need to add and compute) then we will need to add 
+ *  rows to the block and recompute it before sending it to the render.  
+ *  An alternative to having to recompute would be to know that a "next input" was going to exceed the reflow-width (because the current row
+ *  is calculated to be some width such that we would just assume that the width of the next input would exceed the max) and simply
+ *  Add it to the next row. We would do this because we dont calculate the width of the input until AFTER we have decided to add it to the next row or not)
+ */
+
 Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   var inputList = this.inputList;
   var inputRows = [];
