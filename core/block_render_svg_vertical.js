@@ -731,7 +731,8 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
     if (!lastType ||
         lastType == Blockly.NEXT_STATEMENT ||
         input.type == Blockly.NEXT_STATEMENT || 
-        this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.workspace.reflowBlockMaxWidth) {
+        (this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.calculateBlockMaxWidth()))
+    { 
       // Create new row.
       currentRowTotalWidth = 0;
       lastType = input.type;
@@ -947,6 +948,22 @@ Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
     return rowWidth;
 }
 
+Blockly.BlockSvg.prototype.calculateBlockMaxWidth = function()
+{
+   var maxWidth = this.workspace.reflowBlockMaxWidth;
+   var nbSurroundAncestors = -1;
+   var currentChild = this;
+   var count = 0;
+   while(currentChild)
+   {
+      nbSurroundAncestors++;
+      currentChild = currentChild.getSurroundParent();
+   }
+
+   maxWidth -= nbSurroundAncestors * Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH;
+   return maxWidth;
+}
+
 /**
  * For a block with output,
  * determine start and end padding, based on connected inputs.
@@ -960,9 +977,12 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
     return;
   }
   // Blocks with outputs must have single row to be padded.
-  if (inputRows.length > 1) {
-    return;
-  }
+  //Maxim: What?? Why? This just makes things break! This code checks if extra padding is needed
+  //when the height of the content is greater than the height of the generic height...which it is ESPECIALLY
+  //when a block grows to multiple rows! 
+  // if (inputRows.length > 1) {
+  // return;
+  // }
   var row = inputRows[0];
   var shape = this.getOutputShape();
   // Reset any padding: it's about to be set.

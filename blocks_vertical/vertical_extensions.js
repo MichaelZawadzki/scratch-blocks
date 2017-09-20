@@ -76,7 +76,8 @@ Blockly.ScratchBlocks.VerticalExtensions.SHAPE_STATEMENT = function() {
   this.setInputsInline(true);
   this.setPreviousStatement(true, null);
   this.setNextStatement(true, null);
-  this.setCanReflow(true);
+  //Maxim: Put this back in if we want "IF" "{condition}" and "then" in different rows....
+  //this.setCanReflow(true);
 };
 
 /**
