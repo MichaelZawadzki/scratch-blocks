@@ -84,6 +84,8 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
    */
   this.parentBlock_ = null;
 
+  this.canReflow_ = false; 
+
   /**
    * @type {!Array.<!Blockly.Block>}
    * @private
@@ -631,6 +633,16 @@ Blockly.Block.prototype.isMovable = function() {
 Blockly.Block.prototype.setMovable = function(movable) {
   this.movable_ = movable;
 };
+
+
+Blockly.Block.prototype.canReflow = function(){
+  return this.canReflow_;
+}
+
+Blockly.Block.prototype.setCanReflow = function(canReflow){
+  this.canReflow_ = canReflow;
+}
+
 
 
 

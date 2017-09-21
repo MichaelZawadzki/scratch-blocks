@@ -720,6 +720,7 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   var hasDummy = false;
   var lastType = undefined;
 
+  var currentRowTotalWidth = 0;
   // Previously created row, for special-casing row heights on C- and E- shaped blocks.
   var previousRow;
   for (var i = 0, input; input = inputList[i]; i++) {
@@ -729,8 +730,11 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
     var row;
     if (!lastType ||
         lastType == Blockly.NEXT_STATEMENT ||
-        input.type == Blockly.NEXT_STATEMENT) {
+        input.type == Blockly.NEXT_STATEMENT || 
+        (this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.calculateBlockMaxWidth()))
+    { 
       // Create new row.
+      currentRowTotalWidth = 0;
       lastType = input.type;
       row = [];
       if (input.type != Blockly.NEXT_STATEMENT) {
@@ -857,6 +861,7 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
       }
     }
     previousRow = row;
+    currentRowTotalWidth += input.renderWidth;
   }
   // Compute padding for output blocks.
   // Data is attached to the row.
@@ -900,8 +905,64 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   inputRows.hasValue = hasValue;
   inputRows.hasStatement = hasStatement;
   inputRows.hasDummy = hasDummy;
+
+
   return inputRows;
 };
+
+Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
+{
+  var rowWidth = 0;
+   if (input.type == Blockly.INPUT_VALUE &&
+        (!input.connection || !input.connection.isConnected())) {
+      switch (input.connection.getOutputShape()) {
+        case Blockly.OUTPUT_SHAPE_SQUARE:
+          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+          break;
+        case Blockly.OUTPUT_SHAPE_ROUND:
+          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+          break;
+        case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+          break;
+        default:
+          rowWidth = 0;
+      }
+    } else {
+      rowWidth = 0;
+    }
+
+    // Expand input size.
+    if (input.connection) {
+      var linkedBlock = input.connection.targetBlock();
+      var paddedHeight = 0;
+      var paddedWidth = 0;
+      if (linkedBlock) {
+        // A block is connected to the input - use its size.
+        var bBox = linkedBlock.getHeightWidth();
+        paddedWidth = bBox.width;
+      }
+      rowWidth = Math.max(rowWidth, paddedWidth);
+    }
+
+    return rowWidth;
+}
+
+Blockly.BlockSvg.prototype.calculateBlockMaxWidth = function()
+{
+   var maxWidth = this.workspace.reflowBlockMaxWidth;
+   var nbSurroundAncestors = -1;
+   var currentChild = this;
+   var count = 0;
+   while(currentChild)
+   {
+      nbSurroundAncestors++;
+      currentChild = currentChild.getSurroundParent();
+   }
+
+   maxWidth -= nbSurroundAncestors * Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH;
+   return maxWidth;
+}
 
 /**
  * For a block with output,
@@ -916,9 +977,12 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
     return;
   }
   // Blocks with outputs must have single row to be padded.
-  if (inputRows.length > 1) {
-    return;
-  }
+  //Maxim: What?? Why? This just makes things break! This code checks if extra padding is needed
+  //when the height of the content is greater than the height of the generic height...which it is ESPECIALLY
+  //when a block grows to multiple rows! 
+  // if (inputRows.length > 1) {
+  // return;
+  // }
   var row = inputRows[0];
   var shape = this.getOutputShape();
   // Reset any padding: it's about to be set.
