@@ -59,7 +59,7 @@ Blockly.FieldNumber = function(opt_value, opt_min, opt_max, opt_precision,
   }
   var numRestrictor = this.getNumRestrictor(opt_min, opt_max, opt_precision);
   opt_value = (opt_value && !isNaN(opt_value)) ? String(opt_value) : '0';
-  if(opt_validator === undefined && opt_max !== undefined)
+  if(opt_validator === undefined && (opt_max !== undefined || opt_min !== undefined))
   {
     opt_validator = 
       function(newValue){
@@ -152,7 +152,6 @@ Blockly.FieldNumber.prototype.getNumRestrictor = function(opt_min, opt_max,
   if (this.negativeAllowed_) {
     pattern += "|[-]";
   }
-  pattern += "|[0-9]|[1-8][0-9]|9[0-9]|100";
   return new RegExp(pattern);
 };
 
