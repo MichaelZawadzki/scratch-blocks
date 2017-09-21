@@ -53,8 +53,23 @@ goog.require('goog.userAgent');
  */
 Blockly.FieldNumber = function(opt_value, opt_min, opt_max, opt_precision,
     opt_validator) {
+  if(opt_max === undefined)
+  {
+    opt_max = Blockly.FieldNumber.APP_SPECIFIC_MAX;
+  }
   var numRestrictor = this.getNumRestrictor(opt_min, opt_max, opt_precision);
   opt_value = (opt_value && !isNaN(opt_value)) ? String(opt_value) : '0';
+  if(opt_validator === undefined && opt_max !== undefined)
+  {
+    opt_validator = 
+      function(newValue){
+        if((!opt_min || newValue >= opt_min) && (!opt_max) || newValue <= opt_max)
+        {
+          return newValue;
+        }
+        return null;
+      };
+  }
   Blockly.FieldNumber.superClass_.constructor.call(
       this, opt_value, opt_validator, numRestrictor);
   this.addArgType('number');
@@ -67,6 +82,14 @@ goog.inherits(Blockly.FieldNumber, Blockly.FieldTextInput);
  * @const
  */
 Blockly.FieldNumber.DROPDOWN_WIDTH = 168;
+
+
+/**
+ * Overridden maximum value for field numbers set frm outside scratch-blocks
+ * @type {number}
+ * @const
+ */
+Blockly.FieldNumber.APP_SPECIFIC_MAX;
 
 /**
  * Extra padding to add between the block and the num-pad drop-down, in px.
@@ -129,6 +152,7 @@ Blockly.FieldNumber.prototype.getNumRestrictor = function(opt_min, opt_max,
   if (this.negativeAllowed_) {
     pattern += "|[-]";
   }
+  pattern += "|[0-9]|[1-8][0-9]|9[0-9]|100";
   return new RegExp(pattern);
 };
 
