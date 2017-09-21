@@ -359,8 +359,10 @@ Blockly.inject.bindDocumentEvents_ = function() {
     Blockly.bindEventWithChecks_(document, 'keydown', null, Blockly.onKeyDown_);
     // longStop needs to run to stop the context menu from showing up.  It
     // should run regardless of what other touch event handlers have run.
+ 
     Blockly.bindEvent_(document, 'touchend', null, Blockly.longStop_);
     Blockly.bindEvent_(document, 'touchcancel', null, Blockly.longStop_);
+
     // Some iPad versions don't fire resize after portrait to landscape change.
     if (goog.userAgent.IPAD) {
       Blockly.bindEventWithChecks_(window, 'orientationchange', document,
@@ -399,6 +401,7 @@ Blockly.inject.loadSounds_ = function(pathToMedia, workspace) {
     audioMgr.preload();
   };
 
+// OB: Temp
   // opt_noCaptureIdentifier is true because this is an action to take on a
   // click, not a drag.
   // Android ignores any sound not loaded as a result of a user action.

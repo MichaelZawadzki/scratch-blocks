@@ -61,8 +61,6 @@ if (goog.events.BrowserFeature.TOUCH_ENABLED) {
  */
 Blockly.longPid_ = 0;
 
-Blockly.Touch.isMultiTouch_ = false;
-
 /**
  * Context menus on touch devices are activated using a long-press.
  * Unfortunately the contextmenu touch event is currently (2015) only suported
@@ -152,27 +150,31 @@ Blockly.Touch.getTouchIdentifierFromEvent = function(e) {
  * @return {boolean} Whether the identifier on the event matches the current
  *     saved identifier.
  */
+ // OB: Now dealing with multi touch, so don't check the touch identifier.
+ // What are the possible problems with this?!?
 Blockly.Touch.checkTouchIdentifier = function(e) {
-  var identifier = Blockly.Touch.getTouchIdentifierFromEvent(e);
+  // var identifier = Blockly.Touch.getTouchIdentifierFromEvent(e);
 
-  // if (Blockly.touchIdentifier_ )is insufficient because android touch
-  // identifiers may be zero.
-  if (Blockly.Touch.touchIdentifier_ != undefined &&
-      Blockly.Touch.touchIdentifier_ != null) {
-    // We're already tracking some touch/mouse event.  Is this from the same
-    // source?
-    return Blockly.Touch.touchIdentifier_ == identifier;
-  }
-  if (e.type == 'mousedown' || e.type == 'touchstart') {
-    // No identifier set yet, and this is the start of a drag.  Set it and
-    // return.
-    Blockly.Touch.touchIdentifier_ = identifier;
-    return true;
-  }
-  // There was no identifier yet, but this wasn't a start event so we're going
-  // to ignore it.  This probably means that another drag finished while this
-  // pointer was down.
-  return false;
+  // // if (Blockly.touchIdentifier_ )is insufficient because android touch
+  // // identifiers may be zero.
+  // if (Blockly.Touch.touchIdentifier_ != undefined &&
+  //     Blockly.Touch.touchIdentifier_ != null) {
+  //   // We're already tracking some touch/mouse event.  Is this from the same
+  //   // source?
+  //   return Blockly.Touch.touchIdentifier_ == identifier;
+  // }
+  // if (e.type == 'mousedown' || e.type == 'touchstart') {
+  //   // No identifier set yet, and this is the start of a drag.  Set it and
+  //   // return.
+  //   Blockly.Touch.touchIdentifier_ = identifier;
+  //   return true;
+  // }
+  // // There was no identifier yet, but this wasn't a start event so we're going
+  // // to ignore it.  This probably means that another drag finished while this
+  // // pointer was down.
+  // return false;
+
+  return true;
 };
 
 /**
@@ -208,7 +210,6 @@ Blockly.Touch.isMouseOrTouchEvent = function(e) {
  *     event will have exactly one changed touch.
  */
 Blockly.Touch.splitEventByTouches = function(e) {
-
   var events = [];
   if (e.changedTouches) {
     for (var i = 0; i < e.changedTouches.length; i++) {
@@ -227,19 +228,16 @@ Blockly.Touch.splitEventByTouches = function(e) {
   return events;
 };
 
-Blockly.Touch.setIsMultiTouch = function(_isMulti) {
-  Blockly.Touch.isMultiTouch_ = _isMulti;
-}
-
 Blockly.Touch.setClientFromMultiTouch = function(e) {
-  if (goog.string.startsWith(e.type, 'touch') && e.changedTouches) {
+  var touchesToUse = e.touches; // e.changedTouches; //
+  if (goog.string.startsWith(e.type, 'touch') && touchesToUse) {
     // Map the touch event's properties to the event.
-    var numTouches = e.changedTouches.length;
+    var numTouches = touchesToUse.length;
     e.clientX = 0;
     e.clientY = 0;
     for(var i = 0; i < numTouches; i++)
     {
-      var touchPoint = e.changedTouches[i];
+      var touchPoint = touchesToUse[i];
       e.clientX += touchPoint.clientX;
       e.clientY += touchPoint.clientY;
     }

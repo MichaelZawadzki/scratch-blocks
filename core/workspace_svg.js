@@ -1213,9 +1213,10 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
  * @private
  */
 Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
+  var isMultiTouch = (e.isMultiTouch === true);
   var gesture = this.getGesture(e);
   if (gesture) {
-    gesture.handleWsStart(e, this);
+    gesture.handleWsStart(e, this, isMultiTouch);
   }
 };
 
@@ -2035,16 +2036,16 @@ Blockly.WorkspaceSvg.prototype.getGesture = function(e) {
 
   var gesture = this.currentGesture_;
   if (gesture) {
-    if (isStart && gesture.hasStarted()) {
-      console.warn('tried to start the same gesture twice');
+    if (isStart && gesture.hasStarted() && gesture.isEnding_ === false) {
+      // OB: We can now have a 'start' gesture already there, since we deal with mutli touch
+      // console.warn('tried to start the same gesture twice');
       // That's funny.  We must have missed a mouse up.
       // Cancel it, rather than try to retrieve all of the state we need.
-      gesture.cancel();
-      return null;
+      // gesture.cancel();
+      // return null;
     }
     return gesture;
   }
-
   // No gesture existed on this workspace, but this looks like the start of a
   // new gesture.
   if (isStart) {
@@ -2070,6 +2071,7 @@ Blockly.WorkspaceSvg.prototype.clearGesture = function() {
 Blockly.WorkspaceSvg.prototype.cancelCurrentGesture = function() {
   if (this.currentGesture_) {
     this.currentGesture_.cancel();
+    this.currentGesture_ = null;
   }
 };
 
