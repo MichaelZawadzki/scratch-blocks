@@ -723,15 +723,20 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   var currentRowTotalWidth = 0;
   // Previously created row, for special-casing row heights on C- and E- shaped blocks.
   var previousRow;
+  this.isReflowed = false; 
   for (var i = 0, input; input = inputList[i]; i++) {
     if (!input.isVisible()) {
       continue;
     }
     var row;
+    if((this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.calculateBlockMaxWidth()))
+    {
+      this.isReflowed = true; 
+    }
     if (!lastType ||
         lastType == Blockly.NEXT_STATEMENT ||
         input.type == Blockly.NEXT_STATEMENT || 
-        (this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.calculateBlockMaxWidth()))
+        this.isReflowed)
     { 
       // Create new row.
       currentRowTotalWidth = 0;
@@ -1340,8 +1345,15 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
           ' 0 0 1 0 ' + this.edgeShapeWidth_ * 2);
     } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
       // Draw an half-hexagon.
-      steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
+      if(this.isReflowed)
+      {
+        steps.push('v' + this.edgeShapeWidth_/2 +  'l ' + this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 +
+        ' l ' + -this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 + 'v' + this.edgeShapeWidth_/2);
+      }else
+      {
+        steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
           ' l ' + -this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_);
+      }
     }
   }
   if (!inputRows.length) {
@@ -1475,8 +1487,14 @@ Blockly.BlockSvg.prototype.renderDrawLeft_ = function(steps, connectionsXY) {
       steps.push('a ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ + ' 0 0 1 0 -' + this.edgeShapeWidth_*2);
     } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
       // Draw a half-hexagon.
-      steps.push('l ' + -this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_ +
+      if(this.isReflowed)
+      {
+        steps.push('v' + -this.edgeShapeWidth_/2 +  'l ' + -this.edgeShapeWidth_/2 + ' ' + -this.edgeShapeWidth_/2 +
+        ' l ' + this.edgeShapeWidth_/2 + ' ' + -this.edgeShapeWidth_/2 + 'v' + -this.edgeShapeWidth_/2);
+      }else{
+        steps.push('l ' + -this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_ +
         ' l ' + this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_);
+      }
     }
   }
   steps.push('z');
