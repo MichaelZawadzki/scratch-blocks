@@ -63,6 +63,10 @@ Blockly.Generator.prototype.INFINITE_LOOP_TRAP = null;
  */
 Blockly.Generator.prototype.STATEMENT_PREFIX = null;
 
+Blockly.Generator.prototype.BLOCK_HOOK_BEFORE = null;
+Blockly.Generator.prototype.BLOCK_HOOK_AFTER  = null;
+
+
 /**
  * The method of indenting.  Defaults to two spaces, but language generators
  * may override this to increase indent or change to tabs.
@@ -192,10 +196,19 @@ Blockly.Generator.prototype.blockToCode = function(block) {
     return [this.scrub_(block, code[0]), code[1]];
   } else if (goog.isString(code)) {
     var id = block.id.replace(/\$/g, '$$$$');  // Issue 251.
-    if (this.STATEMENT_PREFIX) {
-      code = this.STATEMENT_PREFIX.replace(/%1/g, '\'' + id + '\'') +
-          code;
+    
+    if (this.BLOCK_HOOK_BEFORE) {
+      code = this.BLOCK_HOOK_BEFORE.replace(/%1/g, '\'' + id + '\'') + code;
     }
+
+    if (this.STATEMENT_PREFIX) {
+      code = this.STATEMENT_PREFIX.replace(/%1/g, '\'' + id + '\'') + code;
+    }
+
+    if (this.BLOCK_HOOK_AFTER) {
+      code = code + this.BLOCK_HOOK_AFTER.replace(/%1/g, '\'' + id + '\'');
+    }
+
     return this.scrub_(block, code);
   } else if (code === null) {
     // Block has handled code generation itself.
