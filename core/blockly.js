@@ -390,6 +390,8 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
   var handled = false;
   var wrapFunc = function(e) {
     // OB: First check if there are multiple touches; if so, flag this touch event as 'multi touch'
+    // OB2: We probably want to move multi touch detection away from here, and instead be when
+    // we detect if a gesture already exists
     if(e.touches && e.touches.length > 1)
     {
       e.isMultiTouch = true;
