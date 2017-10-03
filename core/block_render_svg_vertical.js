@@ -145,6 +145,19 @@ Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH = 4 * Blockly.BlockSvg.GRID_UNIT;
 Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE = 2 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
+ * Width of a dummy input block (used to display text acting like a reflowable block)
+ * @const
+ */
+Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 30 * Blockly.BlockSvg.GRID_UNIT;
+
+/**
+ * Height of a dummy input block (used to display text acting like a reflowable block)
+ * @const
+ */
+Blockly.BlockSvg.DUMMY_INPUT_HEIGHT = 2 * Blockly.BlockSvg.GRID_UNIT;
+
+
+/**
  * Height of the top hat.
  * @const
  */
@@ -720,16 +733,22 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   var hasDummy = false;
   var lastType = undefined;
 
-  var currentRowTotalWidth = 0;
+  var rowTotalWidth = 0;
   // Previously created row, for special-casing row heights on C- and E- shaped blocks.
   var previousRow;
   this.isReflowed = false; 
+  //We need to precalculate the input width of the ENTIRE list of inputs first, NOT row by row because if the row is reflowed some elements are a different width!
+  for (var i = 0, input; input = inputList[i]; i++) {
+    rowTotalWidth += this.precalculateInputWidth_(input);
+  }
+
+
   for (var i = 0, input; input = inputList[i]; i++) {
     if (!input.isVisible()) {
       continue;
     }
     var row;
-    if((this.canReflow() && currentRowTotalWidth + this.precalculateInputWidth_(input) > this.calculateBlockMaxWidth()))
+    if((this.canReflow() && rowTotalWidth > this.calculateBlockMaxWidth()))
     {
       this.isReflowed = true; 
     }
@@ -739,7 +758,6 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
         this.isReflowed)
     { 
       // Create new row.
-      currentRowTotalWidth = 0;
       lastType = input.type;
       row = [];
       if (input.type != Blockly.NEXT_STATEMENT) {
@@ -761,7 +779,9 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
     if (inputList.length === 1 && this.isShadow() && this.outputConnection) {
       // "Lone" field blocks are smaller.
       input.renderHeight = Blockly.BlockSvg.MIN_BLOCK_Y_SINGLE_FIELD_OUTPUT;
-    } else if (this.outputConnection) {
+    } else if (input.name == "DUMMY_REFLOW_INPUT"){
+      input.renderHeight = Blockly.BlockSvg.DUMMY_INPUT_HEIGHT;
+    }else if (this.outputConnection) {
       // All other reporters.
       input.renderHeight = Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER;
     } else if (row.type == Blockly.NEXT_STATEMENT) {
@@ -777,19 +797,23 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
 
     // Empty input shape widths.
     if (input.type == Blockly.INPUT_VALUE &&
-        (!input.connection || !input.connection.isConnected())) {
-      switch (input.connection.getOutputShape()) {
-        case Blockly.OUTPUT_SHAPE_SQUARE:
-          input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
-          break;
-        case Blockly.OUTPUT_SHAPE_ROUND:
-          input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
-          break;
-        case Blockly.OUTPUT_SHAPE_HEXAGONAL:
-          input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
-          break;
-        default:
-          input.renderWidth = 0;
+       (!input.connection || !input.connection.isConnected())) {
+      if (input.name == "DUMMY_REFLOW_INPUT"){
+        input.renderWidth = Blockly.BlockSvg.DUMMY_INPUT_WIDTH;
+      }else{
+        switch (input.connection.getOutputShape()) {
+          case Blockly.OUTPUT_SHAPE_SQUARE:
+            input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+            break;
+          case Blockly.OUTPUT_SHAPE_ROUND:
+            input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+            break;
+          case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+            input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+            break;
+          default:
+            input.renderWidth = 0;
+        }
       }
     } else {
       input.renderWidth = 0;
@@ -815,7 +839,10 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
         var bBox = linkedBlock.getHeightWidth();
         paddedHeight = bBox.height;
         paddedWidth = bBox.width;
-      } else {
+      } else if(input.name == "DUMMY_REFLOW_INPUT"){
+        paddedWidth = Blockly.BlockSvg.DUMMY_INPUT_WIDTH;
+        paddedHeight = Blockly.BlockSvg.DUMMY_INPUT_HEIGHT;
+      }else{
         // No block connected - use the size of the rendered empty input shape.
         paddedHeight = Blockly.BlockSvg.INPUT_SHAPE_HEIGHT;
       }
@@ -866,7 +893,6 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
       }
     }
     previousRow = row;
-    currentRowTotalWidth += input.renderWidth;
   }
   // Compute padding for output blocks.
   // Data is attached to the row.
@@ -920,18 +946,22 @@ Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
   var rowWidth = 0;
    if (input.type == Blockly.INPUT_VALUE &&
         (!input.connection || !input.connection.isConnected())) {
-      switch (input.connection.getOutputShape()) {
-        case Blockly.OUTPUT_SHAPE_SQUARE:
-          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
-          break;
-        case Blockly.OUTPUT_SHAPE_ROUND:
-          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
-          break;
-        case Blockly.OUTPUT_SHAPE_HEXAGONAL:
-          rowWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
-          break;
-        default:
-          rowWidth = 0;
+      if(input.name == "DUMMY_REFLOW_INPUT"){
+        rowWidth = Blockly.BlockSvg.DUMMY_INPUT_WIDTH;
+      }else{
+        switch (input.connection.getOutputShape()) {
+          case Blockly.OUTPUT_SHAPE_SQUARE:
+            rowWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+            break;
+          case Blockly.OUTPUT_SHAPE_ROUND:
+            rowWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+            break;
+          case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+            rowWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+            break;
+          default:
+            rowWidth = 0;
+        }
       }
     } else {
       rowWidth = 0;
@@ -1373,7 +1403,7 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
  */
 Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
   var inputShape = this.inputShapes_[input.name];
-  if (!inputShape) {
+  if (!inputShape || input.name == "DUMMY_REFLOW_INPUT") {
     // No input shape for this input - e.g., the block is an insertion marker.
     return;
   }
