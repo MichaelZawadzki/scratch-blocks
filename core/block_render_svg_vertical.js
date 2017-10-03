@@ -145,6 +145,19 @@ Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH = 4 * Blockly.BlockSvg.GRID_UNIT;
 Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE = 2 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
+ * Width of a dummy input block (used to display text acting like a reflowable block)
+ * @const
+ */
+Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 0 * Blockly.BlockSvg.GRID_UNIT;
+
+/**
+ * Height of a dummy input block (used to display text acting like a reflowable block)
+ * @const
+ */
+Blockly.BlockSvg.DUMMY_INPUT_HEIGHT = 1 * Blockly.BlockSvg.GRID_UNIT;
+
+
+/**
  * Height of the top hat.
  * @const
  */
@@ -479,7 +492,8 @@ Blockly.BlockSvg.prototype.updateColour = function() {
     // Special case: if we contain a colour field, set to a special stroke colour.
     if (this.inputList[0] &&
         this.inputList[0].fieldRow[0] &&
-        this.inputList[0].fieldRow[0] instanceof Blockly.FieldColour) {
+        (this.inputList[0].fieldRow[0] instanceof Blockly.FieldColour ||
+        this.inputList[0].fieldRow[0] instanceof Blockly.FieldColourSlider)) {
       strokeColour = Blockly.Colours.colourPickerStroke;
     }
   }
@@ -720,71 +734,42 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   var hasDummy = false;
   var lastType = undefined;
 
+  var rowTotalWidth = 0;
   // Previously created row, for special-casing row heights on C- and E- shaped blocks.
   var previousRow;
+  this.isReflowed = false; 
+  //We need to precalculate the input width of the ENTIRE list of inputs first, NOT row by row because if the row is reflowed some elements are a different width!
+  for (var i = 0, input; input = inputList[i]; i++) {
+    rowTotalWidth += this.precalculateInputWidth_(input);
+  }
+
+
   for (var i = 0, input; input = inputList[i]; i++) {
     if (!input.isVisible()) {
       continue;
     }
     var row;
+    if((this.canReflow() && rowTotalWidth > this.calculateBlockMaxWidth()))
+    {
+      this.isReflowed = true; 
+    }
     if (!lastType ||
         lastType == Blockly.NEXT_STATEMENT ||
-        input.type == Blockly.NEXT_STATEMENT) {
-      // Create new row.
+        input.type == Blockly.NEXT_STATEMENT || 
+        this.isReflowed)
+    { 
+      //new row
       lastType = input.type;
-      row = [];
-      if (input.type != Blockly.NEXT_STATEMENT) {
-        row.type = Blockly.BlockSvg.INLINE;
-      } else {
-        row.type = input.type;
-      }
-      row.height = 0;
-      // Default padding for a block: same as separators between fields/inputs.
-      row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
-      row.paddingEnd = Blockly.BlockSvg.SEP_SPACE_X;
+      row = this.createRowForInput_(input);
       inputRows.push(row);
     } else {
       row = inputRows[inputRows.length - 1];
     }
     row.push(input);
 
-    // Compute minimum height for this input.
-    if (inputList.length === 1 && this.isShadow() && this.outputConnection) {
-      // "Lone" field blocks are smaller.
-      input.renderHeight = Blockly.BlockSvg.MIN_BLOCK_Y_SINGLE_FIELD_OUTPUT;
-    } else if (this.outputConnection) {
-      // All other reporters.
-      input.renderHeight = Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER;
-    } else if (row.type == Blockly.NEXT_STATEMENT) {
-      // Statement input.
-      input.renderHeight = Blockly.BlockSvg.MIN_STATEMENT_INPUT_HEIGHT;
-    } else if (previousRow && previousRow.type == Blockly.NEXT_STATEMENT) {
-      // Extra row for below statement input.
-      input.renderHeight = Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y;
-    } else {
-      // All other blocks.
-      input.renderHeight = Blockly.BlockSvg.MIN_BLOCK_Y;
-    }
-
-    // Empty input shape widths.
-    if (input.type == Blockly.INPUT_VALUE &&
-        (!input.connection || !input.connection.isConnected())) {
-      switch (input.connection.getOutputShape()) {
-        case Blockly.OUTPUT_SHAPE_SQUARE:
-          input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
-          break;
-        case Blockly.OUTPUT_SHAPE_ROUND:
-          input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
-          break;
-        case Blockly.OUTPUT_SHAPE_HEXAGONAL:
-          input.renderWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
-          break;
-        default:
-          input.renderWidth = 0;
-      }
-    } else {
-      input.renderWidth = 0;
-    }
+    // Compute minimum dimensions for this input.
+    input.renderHeight = this.computeInputHeight_(input, row, previousRow);
+    input.renderWidth = this.computeInputWidth_(input);
 
     // If the input is a statement input, determine if a notch
     // should be drawn at the inner bottom of the C.
@@ -806,7 +791,10 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
         var bBox = linkedBlock.getHeightWidth();
         paddedHeight = bBox.height;
         paddedWidth = bBox.width;
-      } else {
+      } else if(input.name == "DUMMY_REFLOW_INPUT"){
+        paddedWidth = Blockly.BlockSvg.DUMMY_INPUT_WIDTH;
+        paddedHeight = Blockly.BlockSvg.DUMMY_INPUT_HEIGHT;
+      }else{
         // No block connected - use the size of the rendered empty input shape.
         paddedHeight = Blockly.BlockSvg.INPUT_SHAPE_HEIGHT;
       }
@@ -865,36 +853,14 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   // This is the width of a block where statements are nested.
   inputRows.statementEdge = Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH +
       fieldStatementWidth;
+
   // Compute the preferred right edge.
-  if (this.previousConnection || this.nextConnection) {
-    // Blocks with notches
-    inputRows.rightEdge = Math.max(inputRows.rightEdge,
-      Blockly.BlockSvg.MIN_BLOCK_X);
-  } else if (this.outputConnection) {
-    if (this.isShadow()) {
-      // Single-fields
-      inputRows.rightEdge = Math.max(inputRows.rightEdge,
-        Blockly.BlockSvg.MIN_BLOCK_X_SHADOW_OUTPUT);
-    } else {
-      // Reporters
-      inputRows.rightEdge = Math.max(inputRows.rightEdge,
-        Blockly.BlockSvg.MIN_BLOCK_X_OUTPUT);
-    }
-  }
-  if (hasStatement) {
-    // Statement blocks (C- or E- shaped) have a longer minimum width.
-    inputRows.rightEdge = Math.max(inputRows.rightEdge,
-      Blockly.BlockSvg.MIN_BLOCK_X_WITH_STATEMENT);
-  }
+  inputRows.rightEdge = this.computeRightEdge_(inputRows.rightEdge,
+      hasStatement);
 
   // Bottom edge is sum of row heights
   for (var i = 0; i < inputRows.length; i++) {
     inputRows.bottomEdge += inputRows[i].height;
-  }
-
-  // Ensure insertion markers are at least insertionMarkerMinWidth_ wide.
-  if (this.insertionMarkerMinWidth_ > 0) {
-    inputRows.rightEdge = Math.max(inputRows.rightEdge, this.insertionMarkerMinWidth_);
   }
 
   inputRows.hasValue = hasValue;
@@ -902,6 +868,182 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   inputRows.hasDummy = hasDummy;
   return inputRows;
 };
+
+/**
+ * Compute the minimum width of this input based on the connection type and
+ * outputs.
+ * @param {!Blockly.Input} input The input to measure.
+ * @return {number} the computed width of this input.
+ * @private
+ */
+Blockly.BlockSvg.prototype.computeInputWidth_ = function(input) {
+  // Empty input shape widths.
+  if (input.type == Blockly.INPUT_VALUE &&
+      (!input.connection || !input.connection.isConnected())) {
+    if (input.name == "DUMMY_REFLOW_INPUT"){
+      return Blockly.BlockSvg.DUMMY_INPUT_WIDTH;
+    }
+    switch (input.connection.getOutputShape()) {
+      case Blockly.OUTPUT_SHAPE_SQUARE:
+        return Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+      case Blockly.OUTPUT_SHAPE_ROUND:
+        return Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+      case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+        return Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+      default:
+        return 0;
+    }
+  } else {
+    return 0;
+  }
+};
+
+/**
+ * Compute the minimum height of this input.
+ * @param {!Blockly.Input} input The input to measure.
+ * @param {!Object} row The row of the block that is currently being measured.
+ * @param {!Object} previousRow The previous row of the block, which was just
+ *     measured.
+ * @return {number} the computed height of this input.
+ * @private
+ */
+Blockly.BlockSvg.prototype.computeInputHeight_ = function(input, row,
+    previousRow) {
+  if (this.inputList.length === 1 && this.isShadow() && this.outputConnection) {
+    // "Lone" field blocks are smaller.
+    return Blockly.BlockSvg.MIN_BLOCK_Y_SINGLE_FIELD_OUTPUT;
+  }  else if (input.name == "DUMMY_REFLOW_INPUT"){
+    return Blockly.BlockSvg.DUMMY_INPUT_HEIGHT;
+  }
+  else if (this.outputConnection) {
+    // All other reporters.
+    return Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER;
+  } else if (row.type == Blockly.NEXT_STATEMENT) {
+    // Statement input.
+    return Blockly.BlockSvg.MIN_STATEMENT_INPUT_HEIGHT;
+  } else if (previousRow && previousRow.type == Blockly.NEXT_STATEMENT) {
+    // Extra row for below statement input.
+    return Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y;
+  } else {
+    // All other blocks.
+    return Blockly.BlockSvg.MIN_BLOCK_Y;
+  }
+};
+
+/**
+ * Create a row for an input and associated fields.
+ * @param {!Blockly.Input} input The input that the row is based on.
+ * @return {!Object} The new row, with the correct type and default sizing info.
+ */
+Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
+  // Create new row.
+  var row = [];
+  if (input.type != Blockly.NEXT_STATEMENT) {
+    row.type = Blockly.BlockSvg.INLINE;
+  } else {
+    row.type = input.type;
+  }
+  row.height = 0;
+  // Default padding for a block: same as separators between fields/inputs.
+  row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
+  row.paddingEnd = Blockly.BlockSvg.SEP_SPACE_X;
+  return row;
+};
+
+/**
+ * Compute the preferred right edge of the block.
+ * @param {number} curEdge The previously calculated right edge.
+ * @param {boolean} hasStatement Whether this block has a statement input.
+ * @return {number} The preferred right edge of the block.
+ */
+Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
+  var edge = curEdge;
+  if (this.previousConnection || this.nextConnection) {
+    // Blocks with notches
+    edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X);
+  } else if (this.outputConnection) {
+    if (this.isShadow()) {
+      // Single-fields
+      edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X_SHADOW_OUTPUT);
+    } else {
+      // Reporters
+      edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X_OUTPUT);
+    }
+  }
+  if (hasStatement) {
+    // Statement blocks (C- or E- shaped) have a longer minimum width.
+    edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X_WITH_STATEMENT);
+  }
+
+  // Ensure insertion markers are at least insertionMarkerMinWidth_ wide.
+  if (this.insertionMarkerMinWidth_ > 0) {
+    edge = Math.max(edge, this.insertionMarkerMinWidth_);
+  }
+  return edge;
+
+
+};
+
+
+//MAXIM : this is NOT currently calculating the width of the text in the fields...
+//we should investigate this when we need to reflow other blocks that contain more text than just "="
+Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
+{
+  var rowWidth = 0;
+   if (input.type == Blockly.INPUT_VALUE &&
+        (!input.connection || !input.connection.isConnected())) {
+      if(input.name == "DUMMY_REFLOW_INPUT"){
+        rowWidth = Blockly.BlockSvg.DUMMY_INPUT_WIDTH;
+      }else{
+        switch (input.connection.getOutputShape()) {
+          case Blockly.OUTPUT_SHAPE_SQUARE:
+            rowWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+            break;
+          case Blockly.OUTPUT_SHAPE_ROUND:
+            rowWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+            break;
+          case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+            rowWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+            break;
+          default:
+            rowWidth = 0;
+        }
+      }
+    } else {
+      rowWidth = 0;
+    }
+
+    // Expand input size.
+    if (input.connection) {
+      var linkedBlock = input.connection.targetBlock();
+      var paddedHeight = 0;
+      var paddedWidth = 0;
+      if (linkedBlock) {
+        // A block is connected to the input - use its size.
+        var bBox = linkedBlock.getHeightWidth();
+        paddedWidth = bBox.width;
+      }
+      rowWidth = Math.max(rowWidth, paddedWidth);
+    }
+
+    return rowWidth;
+}
+
+Blockly.BlockSvg.prototype.calculateBlockMaxWidth = function()
+{
+   var maxWidth = this.workspace.reflowBlockMaxWidth;
+   var nbSurroundAncestors = -1;
+   var currentChild = this;
+   var count = 0;
+   while(currentChild)
+   {
+      nbSurroundAncestors++;
+      currentChild = currentChild.getSurroundParent();
+   }
+
+   maxWidth -= nbSurroundAncestors * Blockly.BlockSvg.STATEMENT_INPUT_EDGE_WIDTH;
+   return maxWidth;
+}
 
 /**
  * For a block with output,
@@ -916,9 +1058,12 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
     return;
   }
   // Blocks with outputs must have single row to be padded.
-  if (inputRows.length > 1) {
-    return;
-  }
+  //Maxim: What?? Why? This just makes things break! This code checks if extra padding is needed
+  //when the height of the content is greater than the height of the generic height...which it is ESPECIALLY
+  //when a block grows to multiple rows! 
+  // if (inputRows.length > 1) {
+  // return;
+  // }
   var row = inputRows[0];
   var shape = this.getOutputShape();
   // Reset any padding: it's about to be set.
@@ -1276,8 +1421,15 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
           ' 0 0 1 0 ' + this.edgeShapeWidth_ * 2);
     } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
       // Draw an half-hexagon.
-      steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
+      if(this.isReflowed)
+      {
+        steps.push('v' + this.edgeShapeWidth_/2 +  'l ' + this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 +
+        ' l ' + -this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 + 'v' + this.edgeShapeWidth_/2);
+      }else
+      {
+        steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
           ' l ' + -this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_);
+      }
     }
   }
   if (!inputRows.length) {
@@ -1297,7 +1449,7 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
  */
 Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
   var inputShape = this.inputShapes_[input.name];
-  if (!inputShape) {
+  if (!inputShape || input.name == "DUMMY_REFLOW_INPUT") {
     // No input shape for this input - e.g., the block is an insertion marker.
     return;
   }
@@ -1411,8 +1563,14 @@ Blockly.BlockSvg.prototype.renderDrawLeft_ = function(steps, connectionsXY) {
       steps.push('a ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ + ' 0 0 1 0 -' + this.edgeShapeWidth_*2);
     } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
       // Draw a half-hexagon.
-      steps.push('l ' + -this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_ +
+      if(this.isReflowed)
+      {
+        steps.push('v' + -this.edgeShapeWidth_/2 +  'l ' + -this.edgeShapeWidth_/2 + ' ' + -this.edgeShapeWidth_/2 +
+        ' l ' + this.edgeShapeWidth_/2 + ' ' + -this.edgeShapeWidth_/2 + 'v' + -this.edgeShapeWidth_/2);
+      }else{
+        steps.push('l ' + -this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_ +
         ' l ' + this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_);
+      }
     }
   }
   steps.push('z');

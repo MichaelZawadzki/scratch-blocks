@@ -93,6 +93,8 @@ Blockly.Workspace = function(opt_options) {
 
   // MMZ-TODO: Add these predefiend variables using createVariable on the Map
   //this.variableList = Blockly.Variables.getPredefiendVars();
+
+  this.reflowBlockMaxWidth = 350;//450;
 };
 
 /**
@@ -640,6 +642,11 @@ Blockly.Workspace.WorkspaceDB_ = Object.create(null);
  */
 Blockly.Workspace.getById = function(id) {
   return Blockly.Workspace.WorkspaceDB_[id] || null;
+};
+
+Blockly.Workspace.setReflowBlockMaxWidth = function(value)
+{
+   this.reflowBlockMaxWidth = value;
 };
 
 // Export symbols that would otherwise be renamed by Closure compiler.

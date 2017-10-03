@@ -157,6 +157,7 @@ Blockly.Options = function(options) {
   this.disableBlocksContextMenu = options['disableBlocksContextMenu'];
   this.preventWorkspaceDragging = options['preventWorkspaceDragging'];
   this.multiTouchScroll = options['multiTouchScroll'];
+  this.dragSingleBlock = options['dragSingleBlock'];
 
   // OB: Special option: new font. Directly set the CSS constant
   Blockly.Css.font = options['font'];
