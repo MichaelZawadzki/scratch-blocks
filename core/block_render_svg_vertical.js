@@ -148,13 +148,13 @@ Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE = 2 * Blockly.BlockSvg.GRID_UNIT;
  * Width of a dummy input block (used to display text acting like a reflowable block)
  * @const
  */
-Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 30 * Blockly.BlockSvg.GRID_UNIT;
+Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 0 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Height of a dummy input block (used to display text acting like a reflowable block)
  * @const
  */
-Blockly.BlockSvg.DUMMY_INPUT_HEIGHT = 2 * Blockly.BlockSvg.GRID_UNIT;
+Blockly.BlockSvg.DUMMY_INPUT_HEIGHT = 1 * Blockly.BlockSvg.GRID_UNIT;
 
 
 /**
@@ -941,6 +941,8 @@ Blockly.BlockSvg.prototype.renderCompute_ = function(iconWidth) {
   return inputRows;
 };
 
+
+//MAXIM : I dont think this is calculating the width of the text in the fields...we should investigate this when we need to reflow other blocks that contain more text than just "="
 Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
 {
   var rowWidth = 0;
