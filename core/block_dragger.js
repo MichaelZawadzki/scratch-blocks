@@ -161,14 +161,17 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
   this.initialDragParent_ = this.draggingBlock_.parentBlock_;
-  if (this.draggingBlock_.getParent()) {
-    this.draggingBlock_.unplug();
+  
+  var reconnectStack = (this.workspace_.options.dragSingleBlock === true);
+  if (this.draggingBlock_.getParent() || reconnectStack) {
+    this.draggingBlock_.unplug(reconnectStack);
     var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
     var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
 
     this.draggingBlock_.translate(newLoc.x, newLoc.y);
     this.draggingBlock_.disconnectUiEffect();
   }
+
   this.draggingBlock_.setDragging(true);
   // For future consideration: we may be able to put moveToDragSurface inside
   // the block dragger, which would also let the block not track the block drag
