@@ -985,7 +985,8 @@ Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
 };
 
 
-//MAXIM : I dont think this is calculating the width of the text in the fields...we should investigate this when we need to reflow other blocks that contain more text than just "="
+//MAXIM : this is NOT currently calculating the width of the text in the fields...
+//we should investigate this when we need to reflow other blocks that contain more text than just "="
 Blockly.BlockSvg.prototype.precalculateInputWidth_ = function(input)
 {
   var rowWidth = 0;
