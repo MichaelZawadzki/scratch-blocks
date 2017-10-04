@@ -184,7 +184,7 @@ Blockly.Blocks['operator_equals'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "%1 = %2",
+      "message0": "%1  =%3  %2",
       "args0": [
         {
           "type": "input_value",
@@ -193,7 +193,12 @@ Blockly.Blocks['operator_equals'] = {
         {
           "type": "input_value",
           "name": "OPERAND2"
+        },
+        {
+          "type": "input_value",
+          "name": "DUMMY_REFLOW_INPUT",
         }
+       
       ],
       "category": Blockly.Categories.operators,
       "extensions": ["colours_operators", "output_boolean"]

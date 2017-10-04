@@ -379,6 +379,41 @@ Blockly.Block.prototype.unplug = function(opt_healStack) {
       }
     }
   }
+
+  // OB: Try to disconnect C-blocks stack
+/*
+  var childrenBlocks = this.getChildren(); // this.getDescendants(false); //
+  console.log("Children:");
+  console.log(childrenBlocks);
+
+  for(var i = 0; i < childrenBlocks.length; i++) {
+    console.log("\ttype: " + childrenBlocks[i].type);
+    console.log("\t\tprev connection? " + (childrenBlocks[i].previousConnection != null));
+    console.log("\t\tnext connection? " + (childrenBlocks[i].nextConnection != null));
+  }
+
+  if(childrenBlocks && childrenBlocks.length > 0) {
+    var child = null;
+    for(var i = 0; i < childrenBlocks.length; i++) {
+      child = childrenBlocks[i];
+      // Child has previous connection, means its connected to C-block
+      if(child.previousConnection && child.previousConnection.isConnected()) {
+        child.previousConnection.disconnect();
+    
+        var lastInStack = child;
+        while(lastInStack.getNextBlock()) {
+          lastInStack = lastInStack.getNextBlock();
+        }
+        // Follow this stack until last block to disconnect last 'next' connection
+        if(lastInStack) {
+          if(lastInStack.nextConnection && lastInStack.nextConnection.isConnected()) {
+            lastInStack.nextConnection.disconnect();
+          }
+        }
+      }
+    }
+  }
+*/
 };
 
 /**

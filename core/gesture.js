@@ -208,7 +208,15 @@ Blockly.Gesture = function(e, creatorWorkspace) {
    * @type {integer}
    * @private
    */
-  this.myID = Blockly.Gesture.ID++;
+  this.myID_ = Blockly.Gesture.ID++;
+
+  /**
+   * IDs of the touches relevant for this gesture.
+   * Used to track gestures and multitouch, to prevent additional touches to mess with current gesture
+   * @type {Array.<!Array>}
+   * @private
+   */
+  this.touchIDs_ = [];
 };
 
 /**
@@ -230,12 +238,12 @@ Blockly.Gesture.prototype.dispose = function() {
     this.onUpWrapper_ = null;
   }
 
-
   this.startField_ = null;
   this.startBlock_ = null;
   this.targetBlock_ = null;
   this.startWorkspace_ = null;
   this.flyout_ = null;
+  this.touchIDs_ = [];
 
   if (this.blockDragger_) {
     this.blockDragger_.dispose();
@@ -253,6 +261,10 @@ Blockly.Gesture.prototype.dispose = function() {
  * @private
  */
 Blockly.Gesture.prototype.updateFromEvent_ = function(e) {
+  // Overwrite clientX/Y with gesture's touch info if needed
+  if(this.touchIDs_.length > 0) {
+    Blockly.Touch.setClientFromTouchIDs(e, this.touchIDs_);
+  }
   var currentXY = new goog.math.Coordinate(e.clientX, e.clientY);
   var changed = this.updateDragDelta_(currentXY);
   // Exceeded the drag radius for the first time.
@@ -440,6 +452,8 @@ Blockly.Gesture.prototype.doStart = function(e, multiTouch) {
     this.cancel();
     return;
   }
+
+  var wasStarted = this.hasStarted_;
   this.hasStarted_ = true;
 
   Blockly.BlockSvg.disconnectUiStop_();
@@ -467,15 +481,17 @@ Blockly.Gesture.prototype.doStart = function(e, multiTouch) {
     if (Blockly.selected) {
       Blockly.selected.unselect();
     }
-    
     return;
   }
 
-  if (goog.string.caseInsensitiveEquals(e.type, 'touchstart')) {
-    Blockly.longStart_(e, this);
-  }
+  // OB: We don't use context menu when doing long-press
+  // if (goog.string.caseInsensitiveEquals(e.type, 'touchstart')) {
+  //   Blockly.longStart_(e, this);
+  // }
 
-  this.mouseDownXY_ = new goog.math.Coordinate(e.clientX, e.clientY);
+  if(wasStarted === false) {
+    this.mouseDownXY_ = new goog.math.Coordinate(e.clientX, e.clientY);
+  }
 
   if(!this.onMoveWrapper_) {
     this.onMoveWrapper_ = Blockly.bindEventWithChecks_(
@@ -502,15 +518,53 @@ Blockly.Gesture.prototype.handleMove = function(e) {
     return;
   }
 
+  var wasDraggingWorkspace = this.isDraggingWorkspace_;
+  var wasDraggingBlock = this.isDraggingBlock_;
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
+    if(wasDraggingWorkspace === false) {
+      // Set touch ID to for block drag gesture
+      this.setWorkspaceDragTouchIDs(e);
+    }
     this.workspaceDragger_.drag(this.currentDragDeltaXY_);
   } else if (this.isDraggingBlock_) {
+    if(wasDraggingBlock === false) {
+      // Set touch IDs to for workspace drag gesture
+      this.setBlockDragTouchID(e);
+    }
     this.blockDragger_.dragBlock(this.mostRecentEvent_,
         this.currentDragDeltaXY_);
   }
   e.preventDefault();
   e.stopPropagation();
+};
+
+/**
+ * Set the touch ID to associate with the block drag.
+ * @param {!Event} e A mouse move or touch move event.
+ */
+Blockly.Gesture.prototype.setBlockDragTouchID = function(e) {
+  if(e.changedTouches && e.changedTouches.length === 1) {
+    this.touchIDs_ = [];
+    this.touchIDs_.push(e.changedTouches[0].identifier);
+  }
+  //console.log("-> Setting BLOCK drag touch:");
+  //console.log(this.touchIDs_[0]);
+};
+
+/**
+ * Set the touch IDs to associate with the workspace drag.
+ * @param {!Event} e A mouse move or touch move event.
+ */
+Blockly.Gesture.prototype.setWorkspaceDragTouchIDs = function(e) {
+  if(e.touches && e.touches.length === 2) {
+    this.touchIDs_ = [];
+    for(var i = 0; i < e.touches.length; i++) {
+      this.touchIDs_.push(e.touches[i].identifier);
+    }
+  }
+  //console.log("-> Setting WS drag touch:");
+  //console.log(this.touchIDs_);
 };
 
 /**
@@ -525,32 +579,75 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     console.log('Trying to end a gesture recursively.');
     return;
   }
-  this.isEnding_ = true;
 
-  // The ordering of these checks is important: drags have higher priority than
-  // clicks.  Fields have higher priority than blocks; blocks have higher
-  // priority than workspaces.
+  var shouldEndGesture = true;
   if (this.isDraggingBlock_) {
-    this.blockDragger_.endBlockDrag(e, this.currentDragDeltaXY_);
-  } else if (this.isDraggingWorkspace_) {
-    this.workspaceDragger_.endDrag(this.currentDragDeltaXY_);
-  } else if (this.isFieldClick_()) {
-    this.doFieldClick_();
-  } else if (this.isBlockClick_()) {
-    this.doBlockClick_();
-  } else if (this.isWorkspaceClick_()) {
-    this.doWorkspaceClick_();
+    shouldEndGesture = this.shouldEndBlockDrag(e);
   }
+  else if (this.isDraggingWorkspace_) {
+    shouldEndGesture = this.shouldEndWorkspaceDrag(e);
+  } 
+  this.isEnding_ = shouldEndGesture;
 
-  // OB: [CSI-265]: Unselect the current block every time mouse is up
-  if (Blockly.selected) {
-    Blockly.selected.unselect();
+  if(this.isEnding_ === true) {
+    // The ordering of these checks is important: drags have higher priority than
+    // clicks.  Fields have higher priority than blocks; blocks have higher
+    // priority than workspaces.
+    if (this.isDraggingBlock_) {
+        this.blockDragger_.endBlockDrag(e, this.currentDragDeltaXY_);
+    } else if (this.isDraggingWorkspace_) {
+        this.workspaceDragger_.endDrag(this.currentDragDeltaXY_);
+    } else if (this.isFieldClick_()) {
+      this.doFieldClick_();
+    } else if (this.isBlockClick_()) {
+      this.doBlockClick_();
+    } else if (this.isWorkspaceClick_()) {
+      this.doWorkspaceClick_();
+    }
+    // OB: [CSI-265]: Unselect the current block every time mouse is up
+    if (Blockly.selected) {
+      Blockly.selected.unselect();
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.dispose();
   }
+};
 
-  e.preventDefault();
-  e.stopPropagation();
+/**
+ * Checks to see if a block drag should end.
+ * Makes sure that the touch that was released is the touch associated with this gesture.
+ * @param {!Event} e A mouse up or touch up event.
+ */
+Blockly.Gesture.prototype.shouldEndBlockDrag = function(e) {
+  if(e.changedTouches) {
+    var endedTouch = e.changedTouches[0];
+    if(endedTouch.identifier !== this.touchIDs_[0]) {
+      //console.log("A touch that wasn't part of the BLOCK DRAG gesture is up");
+      return false;
+    }
+  }
+  return true;
+};
 
-  this.dispose();
+/**
+ * Checks to see if a workspace drag should end.
+ * Makes sure that one of the touches that was released is one of the touches associated with this gesture.
+ * @param {!Event} e A mouse up or touch up event.
+ */
+Blockly.Gesture.prototype.shouldEndWorkspaceDrag = function (e) {
+  if(e.changedTouches) {
+    for(var i = 0; i < this.touchIDs_.length; i++) {
+      if(Blockly.Touch.findTouchInChangedTouches(e, this.touchIDs_[i]) !== null) {
+        //console.log("A touch that part of the WS DRAG gesture is up, so END IT");
+        return true;
+      }
+    }
+    return false;
+  }
+  return true;
 };
 
 /**
@@ -584,12 +681,12 @@ Blockly.Gesture.prototype.cancel = function() {
  */
 Blockly.Gesture.prototype.handleRightClick = function(e) {
   if (this.targetBlock_) {
-    this.bringBlockToFront_();
+    //this.bringBlockToFront_();
     Blockly.hideChaff(this.flyout_);
-    this.targetBlock_.showContextMenu_(e);
+    //this.targetBlock_.showContextMenu_(e);
   } else if (this.startWorkspace_ && !this.flyout_) {
     Blockly.hideChaff();
-    this.startWorkspace_.showContextMenu_(e);
+    //this.startWorkspace_.showContextMenu_(e);
   }
 
   e.preventDefault();
@@ -610,10 +707,11 @@ Blockly.Gesture.prototype.handleWsStart = function(e, ws, multiTouch) {
   //    'Tried to call gesture.handleWsStart, but the gesture had already been ' +
   //    'started.');
 
-  // OB: If already dragging a block, ignore interactions that could be started by new touch
-  if(this.isDraggingBlock_ && multiTouch === true) {
-    return;
-  }
+  // OB: This is not needed anymore! Looks like using touch IDs in gestures takes care of this case
+  // // OB: If already dragging a block, ignore interactions that could be started by new touch
+  // if(this.isDraggingBlock_ && multiTouch === true) {
+  //   return;
+  // }
 
   this.setStartWorkspace_(ws);
   this.mostRecentEvent_ = e;
@@ -902,6 +1000,5 @@ Blockly.Gesture.prototype.duplicateOnDrag_ = function() {
   newBlock.select();
   this.targetBlock_ = newBlock;
 };
-
 
 Blockly.Gesture.ID = 0;
