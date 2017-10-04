@@ -393,37 +393,56 @@ Blockly.bindEventWithChecks_ = function(node, name, thisObject, func,
     // OB: First check if there are multiple touches; if so, flag this touch event as 'multi touch'
     // OB2: We probably want to move multi touch detection away from here, and instead be when
     // we detect if a gesture already exists
-    if(e.touches && e.touches.length > 1)
-    {
+
+    e.isMultiTouch = false;
+    if(e.touches && e.touches.length > 1) {
       e.isMultiTouch = true;
-      Blockly.Touch.setClientFromMultiTouch(e);
-      if (thisObject) {
-        func.call(thisObject, e);
-      } else {
-        func(e);
-      }
-      handled = true;
     }
-    else
-    {
-      var captureIdentifier = !opt_noCaptureIdentifier;
-      // Handle each touch point separately.  If the event was a mouse event, this
-      // will hand back an array with one element, which we're fine handling.
-      var events = Blockly.Touch.splitEventByTouches(e);
-      for (var i = 0, event; event = events[i]; i++) {
-        if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(event)) {
-          continue;
-        }
-        event.isMultiTouch = false;
-        Blockly.Touch.setClientFromTouch(event);
-        if (thisObject) {
-          func.call(thisObject, event);
-        } else {
-          func(event);
-        }
-        handled = true;
-      }
+
+    var captureIdentifier = !opt_noCaptureIdentifier;
+    if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(e)) {
+      return;
     }
+
+    Blockly.Touch.setClientFromTouches(e);
+    if (thisObject) {
+      func.call(thisObject, e);
+    } else {
+      func(e);
+    }
+    handled = true;
+
+    // if(e.touches && e.touches.length > 1)
+    // {
+    //   e.isMultiTouch = true;
+    //   Blockly.Touch.setClientFromMultiTouch(e);
+    //   if (thisObject) {
+    //     func.call(thisObject, e);
+    //   } else {
+    //     func(e);
+    //   }
+    //   handled = true;
+    // }
+    // else
+    // {
+    //   var captureIdentifier = !opt_noCaptureIdentifier;
+    //   // Handle each touch point separately.  If the event was a mouse event, this
+    //   // will hand back an array with one element, which we're fine handling.
+    //   var events = Blockly.Touch.splitEventByTouches(e);
+    //   for (var i = 0, event; event = events[i]; i++) {
+    //     if (captureIdentifier && !Blockly.Touch.shouldHandleEvent(event)) {
+    //       continue;
+    //     }
+    //     event.isMultiTouch = false;
+    //     Blockly.Touch.setClientFromTouch(event);
+    //     if (thisObject) {
+    //       func.call(thisObject, event);
+    //     } else {
+    //       func(event);
+    //     }
+    //     handled = true;
+    //   }
+    // }
   };
 
   node.addEventListener(name, wrapFunc, false);
