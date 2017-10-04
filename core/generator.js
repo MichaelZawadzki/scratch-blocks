@@ -75,7 +75,7 @@ Blockly.Generator.prototype.BLOCK_HOOK_BEFORE = null;
 /**
  * Arbitrary code to inject after every block's generated code
  * Any instances of '%1' will be replaced by the block ID of the statement.
- * E.g. 'beforeBlock(%1);\n'
+ * E.g. 'afterBlock(%1);\n'
  * @type {?string}
  * @author MMZ @ Amplify
  */
