@@ -63,9 +63,23 @@ Blockly.Generator.prototype.INFINITE_LOOP_TRAP = null;
  */
 Blockly.Generator.prototype.STATEMENT_PREFIX = null;
 
+/**
+ * Arbitrary code to inject before every block's generated code
+ * Any instances of '%1' will be replaced by the block ID of the statement.
+ * E.g. 'beforeBlock(%1);\n'
+ * @type {?string}
+ * @author MMZ @ Amplify
+ */
 Blockly.Generator.prototype.BLOCK_HOOK_BEFORE = null;
-Blockly.Generator.prototype.BLOCK_HOOK_AFTER  = null;
 
+/**
+ * Arbitrary code to inject after every block's generated code
+ * Any instances of '%1' will be replaced by the block ID of the statement.
+ * E.g. 'beforeBlock(%1);\n'
+ * @type {?string}
+ * @author MMZ @ Amplify
+ */
+Blockly.Generator.prototype.BLOCK_HOOK_AFTER  = null;
 
 /**
  * The method of indenting.  Defaults to two spaces, but language generators
