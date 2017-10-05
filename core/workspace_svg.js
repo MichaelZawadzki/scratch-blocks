@@ -988,8 +988,12 @@ Blockly.WorkspaceSvg.prototype.glowBlockBG = function(id, isGlowingBlock) {
     if (!block) {
       throw 'Tried to glow block bg that does not exist.';
     }
+    block.setGlowBlockBG(isGlowingBlock);
+  }else if(isGlowingBlock == false)
+  {
+    this.workspaceHighlightLayer.UpdateHighlightRect(false);
   }
-  block.setGlowBlockBG(isGlowingBlock);
+ 
 };
 
 /**
