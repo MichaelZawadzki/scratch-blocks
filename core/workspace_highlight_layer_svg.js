@@ -225,6 +225,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.UpdateHighlightRect = function(visi
     this.highlightRect_.setAttribute('visibility', 'visible');
   }else{
     this.highlightRect_.setAttribute('visibility', 'hidden');
+    return;
   }
   this.highlightRect_.setAttribute('x', x);
   this.highlightRect_.setAttribute('y', y);
