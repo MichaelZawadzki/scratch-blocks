@@ -197,6 +197,7 @@ Blockly.Blocks['operator_equals'] = {
         {
           "type": "input_value",
           "name": "DUMMY_REFLOW_INPUT",
+          "check": "DUMMY_NO_INPUT",
         }
        
       ],
