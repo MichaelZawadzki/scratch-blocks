@@ -380,14 +380,12 @@ Blockly.Block.prototype.unplug = function(opt_healStack) {
         previousTarget.connect(nextTarget);
       }
     }
-  }
+  };
 
   // Move sub-stack blocks from C-blocks so that they connect to previous/next blocks
-  if(this.workspace.options.dragSingleBlock && opt_healStack)
-  {
+  if(this.workspace.options.dragSingleBlock && opt_healStack) {
     var subStackBlocks = this.getSubstackBlocks();
     if(subStackBlocks) {
-
       var numSubStacks = subStackBlocks.length;
       for(var i = 0; i < numSubStacks; i++) {
         var curSubStack = subStackBlocks[i];
