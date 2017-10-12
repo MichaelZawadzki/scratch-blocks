@@ -557,14 +557,13 @@ Blockly.Gesture.prototype.setBlockDragTouchID = function(e) {
  * @param {!Event} e A mouse move or touch move event.
  */
 Blockly.Gesture.prototype.setWorkspaceDragTouchIDs = function(e) {
-  if(e.touches && e.touches.length === 2) {
+  if(e.touches && e.touches.length > 1) {
     this.touchIDs_ = [];
-    for(var i = 0; i < e.touches.length; i++) {
+    // Get only the first 2 touches for drag
+    for(var i = 0; i < 2; i++) {
       this.touchIDs_.push(e.touches[i].identifier);
     }
   }
-  //console.log("-> Setting WS drag touch:");
-  //console.log(this.touchIDs_);
 };
 
 /**
