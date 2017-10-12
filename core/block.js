@@ -355,13 +355,15 @@ Blockly.Block.prototype.dispose = function(healStack) {
  *   stack.  Defaults to false.
  */
 Blockly.Block.prototype.unplug = function(opt_healStack) {
+  var previousTarget = null;
+  var nextTarget = null;
   if (this.outputConnection) {
     if (this.outputConnection.isConnected()) {
       // Disconnect from any superior block.
       this.outputConnection.disconnect();
     }
   } else if (this.previousConnection) {
-    var previousTarget = null;
+    //var previousTarget = null;
     if (this.previousConnection.isConnected()) {
       // Remember the connection that any next statements need to connect to.
       previousTarget = this.previousConnection.targetConnection;
@@ -371,49 +373,129 @@ Blockly.Block.prototype.unplug = function(opt_healStack) {
     var nextBlock = this.getNextBlock();
     if (opt_healStack && nextBlock) {
       // Disconnect the next statement.
-      var nextTarget = this.nextConnection.targetConnection;
+      nextTarget = this.nextConnection.targetConnection;
       nextTarget.disconnect();
       if (previousTarget && previousTarget.checkType_(nextTarget)) {
         // Attach the next statement to the previous statement.
         previousTarget.connect(nextTarget);
       }
     }
-  }
+  };
 
-  // OB: Try to disconnect C-blocks stack
-/*
-  var childrenBlocks = this.getChildren(); // this.getDescendants(false); //
-  console.log("Children:");
-  console.log(childrenBlocks);
+  // Move sub-stack blocks from C-blocks so that they connect to previous/next blocks
+  if(this.workspace.options.dragSingleBlock && opt_healStack) {
+    var subStackBlocks = this.getSubstackBlocks();
+    if(subStackBlocks) {
+      var numSubStacks = subStackBlocks.length;
+      for(var i = 0; i < numSubStacks; i++) {
+        var curSubStack = subStackBlocks[i];
+        var prevSubStack = (i > 0 ? subStackBlocks[i - 1] : null);
+        var nextSubStack = (i < numSubStacks - 1 ? subStackBlocks[i + 1] : null);
 
-  for(var i = 0; i < childrenBlocks.length; i++) {
-    console.log("\ttype: " + childrenBlocks[i].type);
-    console.log("\t\tprev connection? " + (childrenBlocks[i].previousConnection != null));
-    console.log("\t\tnext connection? " + (childrenBlocks[i].nextConnection != null));
-  }
-
-  if(childrenBlocks && childrenBlocks.length > 0) {
-    var child = null;
-    for(var i = 0; i < childrenBlocks.length; i++) {
-      child = childrenBlocks[i];
-      // Child has previous connection, means its connected to C-block
-      if(child.previousConnection && child.previousConnection.isConnected()) {
-        child.previousConnection.disconnect();
-    
-        var lastInStack = child;
-        while(lastInStack.getNextBlock()) {
-          lastInStack = lastInStack.getNextBlock();
+        var firstInStack = curSubStack.first;
+        var lastInStack = curSubStack.last;
+        var prevConnect = (i === 0 ? previousTarget : prevSubStack.last.nextConnection);
+        if(firstInStack) {
+          firstInStack.changePreviousConnection(prevConnect);
         }
-        // Follow this stack until last block to disconnect last 'next' connection
+
+        var nextConnect = (i === numSubStacks - 1 ? nextTarget : nextSubStack.first.previousConnection);
         if(lastInStack) {
-          if(lastInStack.nextConnection && lastInStack.nextConnection.isConnected()) {
-            lastInStack.nextConnection.disconnect();
-          }
+          lastInStack.changeNextConnection(nextConnect);
         }
       }
     }
   }
-*/
+};
+
+/**
+ * Go through all the sub-stacks of a block, and find the first and last blocks of these sub-stacks.
+ * @return {!Array.<!Blockly.Block>} Array of first/last blocks of the sub-stacks.
+ * @private
+ */
+Blockly.Block.prototype.getSubstackBlocks = function() {
+  var subStackBlocks = [];
+  var subBlocks = []; //this.getChildren(true);
+
+  // Find blocks that start sub-stacks
+  var inputList = this.inputList;
+  for (var i = 0, input; input = inputList[i]; i++) {
+    if (input.connection && input.connection.type === Blockly.NEXT_STATEMENT) {
+      if(input.connection.targetConnection) {
+        subBlocks.push(input.connection.targetConnection.getSourceBlock());
+      }
+    }
+  }
+
+  if(subBlocks && subBlocks.length > 0) {
+    var firstInStack = null;
+    var lastInStack = null;
+    var child = null;
+    // Got through all STATEMENT blocks to find the first and last blocks of a substack
+    for(var i = 0; i < subBlocks.length; i++) {
+      child = subBlocks[i];
+      // A block is a statement if it has a previous/next connection that is actually connected
+      // OB: Is there a better way to get this? If we don't check this, it will get us blocks like 'X in "repeat X times" ' block.
+      var isPrevConnected = (child.previousConnection && child.previousConnection.isConnected());
+      var isNextConnected = (child.nextConnection && child.nextConnection.isConnected());
+      // Make sure block is a statement and it is surrounded by C-block
+      if(child.getSurroundParent() === this && (isPrevConnected || isNextConnected)) {
+        firstInStack = child;
+        // Find last block in sub-stack by following 'next' connections
+        lastInStack = child;
+        var nextBlock = null;
+        do {
+          nextBlock = lastInStack.getNextBlock();
+          if(nextBlock) {
+            lastInStack = nextBlock;
+          }
+        } while (nextBlock != null && nextBlock != this);
+        // Set first and last blocks of current sub-stack
+        subStackBlocks.push( { first: firstInStack, last: lastInStack} );
+      }
+    }
+  }
+  return subStackBlocks;
+};
+
+/**
+ * Change the previous connection of a block to a new one.
+ * Will do the disconnect of the block's previous connection,
+ * and of the new previous block if it is connected, and will then connect the two.
+ * @param {Blockly.Connection} The new previous connection to connect to.
+ */
+Blockly.Block.prototype.changePreviousConnection = function(newPrevConnection) {
+  if(this.previousConnection) {
+    if(this.previousConnection.isConnected()) {
+      this.previousConnection.disconnect();
+    }
+    if(newPrevConnection) {
+      if(newPrevConnection.isConnected()) {
+        newPrevConnection.disconnect();
+      }
+      newPrevConnection.connect(this.previousConnection);
+    }
+  }
+};
+
+/**
+ * Change the next connection of a block to a new one.
+ * Will do the disconnect of the block's next connection,
+ * and of the new next block if it is connected, and will then connect the two.
+ * @param {Blockly.Connection} The new next connection to connect to.
+ */
+Blockly.Block.prototype.changeNextConnection = function(newNextConnection) {
+  if(this.nextConnection) {
+    if(this.nextConnection.isConnected()) {
+      this.nextConnection.disconnect();
+    }
+    if(newNextConnection) {
+      if(newNextConnection.isConnected()) {
+        newNextConnection.disconnect();
+      }
+      newNextConnection.connect(this.nextConnection);
+    }
+  }
 };
 
 /**
@@ -439,6 +521,7 @@ Blockly.Block.prototype.getConnections_ = function() {
   }
   return myConnections;
 };
+
 
 /**
  * Walks down a stack of blocks and finds the last next connection on the stack.
