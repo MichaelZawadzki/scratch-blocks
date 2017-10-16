@@ -393,6 +393,12 @@ Blockly.Css.CONTENT = [
     // 'stroke: #fc3;',
     // 'stroke-width: 3px;',
   '}',
+  
+  '.blocklyChosen {',
+    'stroke: #fc3;',
+    //'stroke: #2092e5;',
+    'stroke-width: 4px;',
+  '}',
 
   '.blocklySelected>.blocklyPathLight {',
     'display: none;',

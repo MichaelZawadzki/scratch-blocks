@@ -225,6 +225,8 @@ Blockly.BlockSvg.prototype.select = function() {
   Blockly.Events.fire(event);
   Blockly.selected = this;
   this.addSelect();
+
+  this.setChosen(true);
 };
 
 /**
@@ -239,6 +241,8 @@ Blockly.BlockSvg.prototype.unselect = function() {
   Blockly.Events.fire(event);
   Blockly.selected = null;
   this.removeSelect();
+
+  this.setChosen(false);
 };
 
 /**
@@ -289,6 +293,15 @@ Blockly.BlockSvg.prototype.setGlowStack = function(isGlowingStack) {
     svg.setAttribute('filter', 'url(#blocklyStackGlowFilter)');
   } else if (!this.isGlowingStack_ && svg.hasAttribute('filter')) {
     svg.removeAttribute('filter');
+  }
+};
+
+Blockly.BlockSvg.prototype.setChosen = function(isChosen) {
+  this.isChosen_ = isChosen;
+  if(this.isChosen_) {
+    this.addChosen();
+  } else {
+    this.removeChosen();
   }
 };
 
@@ -1344,6 +1357,25 @@ Blockly.BlockSvg.prototype.addSelect = function() {
 Blockly.BlockSvg.prototype.removeSelect = function() {
   Blockly.utils.removeClass(/** @type {!Element} */ (this.svgGroup_),
                        'blocklySelected');
+};
+/**
+ * Select this block.  Highlight it visually.
+ */
+Blockly.BlockSvg.prototype.addChosen = function() {
+  // Blockly.utils.addClass(/** @type {!Element} */ (this.svgGroup_),
+  //                   'blocklyChosen');
+  Blockly.utils.addClass(/** @type {!Element} */ (this.svgPath_),
+                    'blocklyChosen');
+};
+
+/**
+ * Unselect this block.  Remove its highlighting.
+ */
+Blockly.BlockSvg.prototype.removeChosen = function() {
+  // Blockly.utils.removeClass(/** @type {!Element} */ (this.svgGroup_),
+  //                      'blocklyChosen');
+  Blockly.utils.removeClass(/** @type {!Element} */ (this.svgPath_),
+                      'blocklyChosen');
 };
 
 /**

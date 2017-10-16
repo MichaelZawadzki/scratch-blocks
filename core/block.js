@@ -174,6 +174,13 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   /** @type {boolean} */
   this.isConnectedToHatBlock_ = false;
 
+  /**
+   * OB: To indicate if the block was selected by the user for use in drag and drop or copy operations
+   * Needs a different name than "selected", to prevent confusion with 'Blockly.selected'
+   * @type {boolean}
+   */
+  this.isChosen_ = false;
+
   // Copy the type-specific functions and data from the prototype.
   if (prototypeName) {
     /** @type {string} */
