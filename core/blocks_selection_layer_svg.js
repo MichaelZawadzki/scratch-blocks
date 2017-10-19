@@ -100,13 +100,15 @@ Blockly.BlocksSelectionLayerSvg.prototype.createSVGRect_ = function() {
       'y': 0,
       'width': 0,
       'height': 0,
-      'fill' : '#ff0000', //'#e1f2ff',
-      'stroke' : '#ff0000', //'#e1f2ff',
-      'fill-opacity' : '0.2',
+      'fill' : '#e4f3fd',
+      'stroke' : '#a0d6fb',
+      'fill-opacity' : '0.4',
       'class': 'blocksSelectionRect',
       'visibility' : 'hidden',
     }, this.SVG_);
     this.selectionRect_ = rect;
+
+    this.hideRect();
 };
 
 Blockly.BlocksSelectionLayerSvg.prototype.setRectVisible = function(visible) {
@@ -114,23 +116,55 @@ Blockly.BlocksSelectionLayerSvg.prototype.setRectVisible = function(visible) {
     this.selectionRect_.setAttribute('visibility', visibility);
 };
 
+/**
+ * Shows the selection rectangle.
+ * @param {!element} x, the x position.
+ * @param {!element} y, the y position
+ */
 Blockly.BlocksSelectionLayerSvg.prototype.showRect = function(x, y) {
   if (this.SVG_) {
-    this.selectionRect_.setAttribute('x', x);
-    this.selectionRect_.setAttribute('y', y);
+    var containerRect = this.container_.getBoundingClientRect();
+    this.SVG_.setAttribute('width', containerRect.width);
+    this.SVG_.setAttribute('height', containerRect.height);
+    this.setPosition(x, y);    
     this.setRectVisible(true);
+
   }
 };
 
-
+/**
+ * Hides the selection rectangle.
+ */
+Blockly.BlocksSelectionLayerSvg.prototype.hideRect = function() {
+  if (this.SVG_) {
+    this.SVG_.setAttribute('width', 0);
+    this.SVG_.setAttribute('height', 0);
+    this.setPosition(0, 0);
+    this.resize(0, 0);
+    this.setRectVisible(false);
+  }
+};
 
 /**
- * Respond to workspace being resized.
- * @param {!element} width, width of the workspace.
- * @param {!element} height, height of the workspace.
+ * Sets the selection layer position
+ * @param {!element} x, x position.
+ * @param {!element} y, y position.
+ */
+Blockly.BlocksSelectionLayerSvg.prototype.setPosition = function(x, y) {
+  if (this.selectionRect_) {
+    // Update x and y.
+    this.selectionRect_.setAttribute('x', x);
+    this.selectionRect_.setAttribute('y', y);
+  }
+};
+
+/**
+ * Respond to the selection being resized.
+ * @param {!element} width, width of the selection.
+ * @param {!element} height, height of the selection.
  */
 Blockly.BlocksSelectionLayerSvg.prototype.resize = function(width, height) {
-  if (this.SVG_) {
+  if (this.selectionRect_) {
     // Update width and height.
     this.selectionRect_.setAttribute('width', width);
     this.selectionRect_.setAttribute('height', height);
@@ -141,12 +175,7 @@ Blockly.BlocksSelectionLayerSvg.prototype.resize = function(width, height) {
  * Translate the layer so that it matches the workspace.
  */
 Blockly.BlocksSelectionLayerSvg.prototype.translateLayer = function(x, y, scale) {
-
-console.log("Translate:");
-console.log("\t" + x + " " + y);
-console.log("\t" + scale);
-
-  if (this.SVG_) {
+  if (this.selectionRect_) {
     var translateX = x;
     var translateY = y;
     var translation = 'translate(' + translateX + ',' + translateY + ') ';

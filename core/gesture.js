@@ -143,7 +143,7 @@ Blockly.Gesture = function(e, creatorWorkspace) {
      * @type {boolean}
      * @private
      */
-    this.isSelectingBlocks = false;
+    this.isSelectingBlocks_ = false;
 
   /**
    * The event that most recently updated this gesture.
@@ -268,6 +268,10 @@ Blockly.Gesture.prototype.dispose = function() {
   if (this.workspaceDragger_) {
     this.workspaceDragger_.dispose();
     this.workspaceDragger_ = null;
+  }
+  if (this.blocksSelection_) {
+    this.blocksSelection_.dispose();
+    this.blocksSelection_ = null;
   }
 };
 
@@ -442,7 +446,7 @@ Blockly.Gesture.prototype.updateIsSelectingBlocks_ = function() {
 };
 
 Blockly.Gesture.prototype.startSelectingBlocks_ = function(e) {
-  this.isSelectingBlocks = true;
+  this.isSelectingBlocks_ = true;
   this.blocksSelection_ = new Blockly.BlocksSelection(this.startWorkspace_);
   this.blocksSelection_.startSelection(this.mostRecentEvent_, this.mouseDownXY_);
   this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
@@ -548,8 +552,6 @@ Blockly.Gesture.prototype.doStart = function(e, multiTouch) {
 
   if(wasStarted === false) {
     this.mouseDownXY_ = new goog.math.Coordinate(e.clientX, e.clientY);
-
-    console.log("MOUSE DOWN AT : " + this.mouseDownXY_.x + " " + this.mouseDownXY_.y)
   }
 
   if(!this.onMoveWrapper_) {
@@ -579,6 +581,7 @@ Blockly.Gesture.prototype.handleMove = function(e) {
 
   var wasDraggingWorkspace = this.isDraggingWorkspace_;
   var wasDraggingBlock = this.isDraggingBlock_;
+  var wasSelectingBlocks = this.isSelectingBlocks_;
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
     if(wasDraggingWorkspace === false) {
@@ -594,8 +597,10 @@ Blockly.Gesture.prototype.handleMove = function(e) {
     this.blockDragger_.dragBlock(this.mostRecentEvent_,
         this.currentDragDeltaXY_);
   }
-  else if (this.isSelectingBlocks) {
-
+  else if (this.isSelectingBlocks_) {
+    //if(wasSelectingBlocks === false) {
+    // OB: Register touch IDs
+    //}
     this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
   }
   e.preventDefault();
@@ -648,7 +653,10 @@ Blockly.Gesture.prototype.handleUp = function(e) {
   }
   else if (this.isDraggingWorkspace_) {
     shouldEndGesture = this.shouldEndWorkspaceDrag(e);
-  } 
+  }
+  else if (this.isSelectingBlocks_) {
+    shouldEndGesture = this.shouldEndSelectingBlocks(e);
+  }
   this.isEnding_ = shouldEndGesture;
 
   if(this.isEnding_ === true) {
@@ -659,6 +667,8 @@ Blockly.Gesture.prototype.handleUp = function(e) {
         this.blockDragger_.endBlockDrag(e, this.currentDragDeltaXY_);
     } else if (this.isDraggingWorkspace_) {
         this.workspaceDragger_.endDrag(this.currentDragDeltaXY_);
+    } else if(this.isSelectingBlocks_) {
+      this.blocksSelection_.endSelection(this.currentDragDeltaXY_);
     } else if (this.isFieldClick_()) {
       this.doFieldClick_();
     } else if (this.isBlockClick_()) {
@@ -709,6 +719,10 @@ Blockly.Gesture.prototype.shouldEndWorkspaceDrag = function (e) {
     }
     return false;
   }
+  return true;
+};
+
+Blockly.Gesture.prototype.shouldEndSelectingBlocks = function (e) {
   return true;
 };
 

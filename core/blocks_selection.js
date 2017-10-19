@@ -19,8 +19,8 @@
  */
 
 /**
- * @fileoverview Methods for dragging a workspace visually.
- * @author fenichel@google.com (Rachel Fenichel)
+ * @fileoverview Methods for drawing a selection rectangle on the workspace
+ * @author obrassard@amplify.com
  */
 'use strict';
 
@@ -46,27 +46,26 @@ Blockly.BlocksSelection = function(workspace) {
    */
   this.workspace_ = workspace;
 
-  /**
-   * The workspace's metrics object at the beginning of the drag.  Contains size
-   * and position metrics of a workspace.
-   * Coordinate system: pixel coordinates.
-   * @type {!Object}
-   * @private
-   */
-  this.startDragMetrics_ = workspace.getMetrics();
+  // /**
+  //  * The workspace's metrics object at the beginning of the drag.  Contains size
+  //  * and position metrics of a workspace.
+  //  * Coordinate system: pixel coordinates.
+  //  * @type {!Object}
+  //  * @private
+  //  */
+  // this.startDragMetrics_ = workspace.getMetrics();
 
   /**
-   * The scroll position of the workspace at the beginning of the drag.
-   * Coordinate system: pixel coordinates.
-   * @type {!goog.math.Coordinate}
-   * @private
+   * Where the selection was started.
+   * @type {!goog.math.Coordinate} the XY coordinate.
    */
-  this.startScrollXY_ = new goog.math.Coordinate(workspace.scrollX,
-        workspace.scrollY);
-
   this.startSelectXY_ = null;
 
-    console.log("**** Block selection created");
+  /**
+   * The current XY position of the selection tool (aka touch/mouse).
+   * @type {!goog.math.Coordinate} the XY coordinate.
+   */
+  this.currentSelectXY_ = null;
 };
 
 /**
@@ -74,89 +73,71 @@ Blockly.BlocksSelection = function(workspace) {
  * @package
  */
 Blockly.BlocksSelection.prototype.dispose = function() {
+  this.workspace_.blocksSelectionLayer.hideRect();
   this.workspace_ = null;
+  this.currentSelectXY_ = null;
 };
 
 /**
- * Start dragging the workspace.
+ * Start the selection rect.
  * @package
  */
 Blockly.BlocksSelection.prototype.startSelection = function(e, mouseDownXY) {
   this.startSelectXY_ = mouseDownXY;
-
-
   if(this.workspace_ && this.workspace_.blocksSelectionLayer) {
-    var workspaceXY = this.workspace_.getOriginOffsetInPixels();
-    console.log("WS x-y : " + workspaceXY.x + " " + workspaceXY.y);
-
+    // Finds the position of the injection div on the page
     var boundingRect = this.workspace_.getInjectionDiv().getBoundingClientRect();
-    console.log("Rect:");
-    console.log(boundingRect);
-
-    var selectX = this.startSelectXY_.x - boundingRect.x - workspaceXY.x; //this.startSelectXY_.x - workspaceXY.x - 60/0.75; // uh? // depends on scale?!
-    var selectY = this.startSelectXY_.y - boundingRect.y - workspaceXY.y; //this.startSelectXY_.y - workspaceXY.y - 15; // uh?
-
-    this.workspace_.blocksSelectionLayer.showRect(selectX, selectY);
-
-    console.log(e);
-    console.log("Start selection @ " + selectX + " " + selectY);
+    // Get x/y of bounding rect;
+    // On iPad (safari?), rect is left/top instead of x/y
+    var boundingX = boundingRect.x ? boundingRect.x : boundingRect.left;
+    var boundingY = boundingRect.y ? boundingRect.y : boundingRect.top;
+    // Finds the workspace x/y offests relative to injection div
+    var workspaceXY = this.workspace_.getOriginOffsetInPixels();
+    var selectX = (this.startSelectXY_.x - boundingX - workspaceXY.x);
+    var selectY = (this.startSelectXY_.y - boundingY - workspaceXY.y);
+    this.currentSelectXY_ = new goog.math.Coordinate(selectX, selectY);
+    //console.log("Set rect @ " + this.currentSelectXY_.x + " " + this.currentSelectXY_.y);
+    this.workspace_.blocksSelectionLayer.showRect(this.currentSelectXY_.x, this.currentSelectXY_.y);
   }
 };
 
 /**
- * Finish dragging the workspace and put everything back where it belongs.
+ * Finish the selection.
  * @param {!goog.math.Coordinate} currentDragDeltaXY How far the pointer has
- *     moved from the position at the start of the drag, in pixel coordinates.
+ *     moved from the position at the start of the selection, in pixel coordinates.
  * @package
  */
 Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
   // Make sure everything is up to date.
+  this.updateSelection(currentDragDeltaXY);
 };
 
 /**
- * Move the workspace based on the most recent mouse movements.
+ * Resize the selection rectangle based on how much the mouse has moved
+ * compared to the initial touch.
  * @param {!goog.math.Coordinate} currentDragDeltaXY How far the pointer has
- *     moved from the position at the start of the drag, in pixel coordinates.
+ *     moved from the position at the start of the selection, in pixel coordinates.
  * @package
  */
 Blockly.BlocksSelection.prototype.updateSelection = function(currentDragDeltaXY) {
-  var metrics = this.startDragMetrics_;
-
-  // var newXY = goog.math.Coordinate.sum(this.startScrollXY_, currentDragDeltaXY);
-
-  // // Bound the new XY based on workspace bounds.
-  // var x = Math.min(newXY.x, -metrics.contentLeft);
-  // var y = Math.min(newXY.y, -metrics.contentTop);
-  // x = Math.max(x, metrics.viewWidth - metrics.contentLeft -
-  //              metrics.contentWidth);
-  // y = Math.max(y, metrics.viewHeight - metrics.contentTop -
-  //              metrics.contentHeight);
-
-  // x = -x - metrics.contentLeft;
-  // y = -y - metrics.contentTop;
-
-  // this.updateScroll_(x, y);
-
+  //var metrics = this.startDragMetrics_;
   if(this.workspace_ && this.workspace_.blocksSelectionLayer) {
-    this.workspace_.blocksSelectionLayer.resize(currentDragDeltaXY.x, currentDragDeltaXY.y);
+    var selectWidth = currentDragDeltaXY.x;
+    var selectHeight = currentDragDeltaXY.y;
+    var currentX = this.currentSelectXY_.x;
+    var currentY = this.currentSelectXY_.y;
+    if(selectWidth < 0) {
+      currentX = this.currentSelectXY_.x + selectWidth;
+      selectWidth = -selectWidth;
+    }
+    if(selectHeight < 0) {
+      currentY = this.currentSelectXY_.y + selectHeight;
+      selectHeight = -selectHeight;
+    }
+
+    this.workspace_.blocksSelectionLayer.resize(selectWidth, selectHeight);
+    if(currentX !== this.currentSelectXY_.x || currentY !== this.currentSelectXY_.y) {
+      this.workspace_.blocksSelectionLayer.setPosition(currentX, currentY);
+    }
   }
-
-  console.log("\tdelta: " + currentDragDeltaXY.x + " " + currentDragDeltaXY.y);
 };
-
-// /**
-//  * Move the scrollbars to drag the workspace.
-//  * x and y are in pixels.
-//  * @param {number} x The new x position to move the scrollbar to.
-//  * @param {number} y The new y position to move the scrollbar to.
-//  * @private
-//  */
-// Blockly.BlocksSelection.prototype.updateScroll_ = function(x, y) {
-  
-//   // [Amplify MMZ] - Option to disable hozizontal scrolling
-//   if (this.workspace_.options.hideHorizontalScrollbar === true) {
-//     x = undefined;
-//   }
-
-//   this.workspace_.scrollbar.set(x, y);
-// };
