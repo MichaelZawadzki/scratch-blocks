@@ -221,6 +221,16 @@ Blockly.Css.CONTENT = [
     'right: 0;',
     'bottom: 0;',
   '}',
+  
+  '.blocklyBlocksSelectionLayer {',
+    'position: absolute;',
+    'overflow: visible;',
+    'top: 0;',
+    'left: 0;',
+    'right: 0;',
+    'bottom: 0;',
+    //'z-index: 50;', /* Display above the toolbox */
+  '}',
 
   '.blocklyBlockDragSurface {',
     'display: none;',

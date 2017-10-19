@@ -38,6 +38,8 @@ goog.require('Blockly.WorkspaceDragSurfaceSvg');
 // CD (July. 25th 2017)
 // custom highlighting layer.
 goog.require('Blockly.WorkspaceHighlightLayerSvg');
+// OB: For blocks selection
+goog.require('Blockly.BlocksSelectionLayerSvg');
 
 goog.require('goog.dom');
 goog.require('goog.ui.Component');
@@ -70,13 +72,14 @@ Blockly.inject = function(container, opt_options) {
   var svg = Blockly.createDom_(subContainer, options);
 
   // Create surfaces for dragging things. These are optimizations
-  // so that the broowser does not repaint during the drag.
+  // so that the browser does not repaint during the drag.
   var blockDragSurface = new Blockly.BlockDragSurfaceSvg(subContainer);
   var workspaceDragSurface = new Blockly.WorkspaceDragSurfaceSvg(subContainer);
   var workspaceHighlightLayer = new Blockly.WorkspaceHighlightLayerSvg(svg);
+  var blocksSelectionLayer = new Blockly.BlocksSelectionLayerSvg(subContainer);
 
   var workspace = Blockly.createMainWorkspace_(svg, options, blockDragSurface,
-      workspaceDragSurface, workspaceHighlightLayer);
+      workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer);
   Blockly.init_(workspace);
   Blockly.mainWorkspace = workspace;
 
@@ -209,9 +212,9 @@ Blockly.createDom_ = function(container, options) {
  * @return {!Blockly.Workspace} Newly created main workspace.
  * @private
  */
-Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer) {
+Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer) {
   options.parentWorkspace = null;
-  var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer);
+  var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer);
   mainWorkspace.scale = options.zoomOptions.startScale;
   svg.appendChild(mainWorkspace.createDom('blocklyMainBackground'));
 

@@ -64,7 +64,7 @@ goog.require('goog.userAgent');
  * @extends {Blockly.Workspace}
  * @constructor
  */
-Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface, opt_wsHighlightLayer) {
+Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface, opt_wsHighlightLayer, opt_blocksSelectLayer) {
   Blockly.WorkspaceSvg.superClass_.constructor.call(this, options);
   this.getMetrics =
       options.getMetrics || Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_;
@@ -83,6 +83,10 @@ Blockly.WorkspaceSvg = function(options, opt_blockDragSurface, opt_wsDragSurface
 
   if (opt_wsHighlightLayer) {
     this.workspaceHighlightLayer = opt_wsHighlightLayer;
+  }
+
+  if(opt_blocksSelectLayer) {
+    this.blocksSelectionLayer = opt_blocksSelectLayer;
   }
   
   this.useWorkspaceDragSurface_ =
@@ -738,6 +742,10 @@ Blockly.WorkspaceSvg.prototype.translate = function(x, y) {
 
   if (this.workspaceHighlightLayer) {
     this.workspaceHighlightLayer.translateLayer(x, y, this.scale);
+  }
+
+  if (this.blocksSelectionLayer) {
+    this.blocksSelectionLayer.translateLayer(x, y, this.scale);
   }
 };
 

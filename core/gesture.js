@@ -28,6 +28,7 @@
 goog.provide('Blockly.Gesture');
 
 goog.require('Blockly.BlockDragger');
+goog.require('Blockly.BlocksSelection');
 goog.require('Blockly.constants');
 goog.require('Blockly.Events');
 goog.require('Blockly.FlyoutDragger');
@@ -136,6 +137,13 @@ Blockly.Gesture = function(e, creatorWorkspace) {
    * @private
    */
   this.isDraggingBlock_ = false;
+  
+    /**
+     * Whether the block selection box is active
+     * @type {boolean}
+     * @private
+     */
+    this.isSelectingBlocks_ = false;
 
   /**
    * The event that most recently updated this gesture.
@@ -174,6 +182,14 @@ Blockly.Gesture = function(e, creatorWorkspace) {
    * @private
    */
   this.workspaceDragger_ = null;
+
+  /**
+   * The object tracking a workspace selection, or null if none
+   * is in progress.
+   * @type {Blockly.BlocksSelection}
+   * @private
+   */
+  this.blocksSelection_ = null;
 
   /**
    * The flyout a gesture started in, if any.
@@ -252,6 +268,10 @@ Blockly.Gesture.prototype.dispose = function() {
   if (this.workspaceDragger_) {
     this.workspaceDragger_.dispose();
     this.workspaceDragger_ = null;
+  }
+  if (this.blocksSelection_) {
+    this.blocksSelection_.dispose();
+    this.blocksSelection_ = null;
   }
 };
 
@@ -395,6 +415,43 @@ Blockly.Gesture.prototype.updateIsDraggingWorkspace_ = function(isMultiTouchDrag
   }
 };
 
+Blockly.Gesture.prototype.updateIsSelectingBlocks_ = function() {
+  // var wsMovable = this.flyout_ ? this.flyout_.isScrollable() :
+  //     this.startWorkspace_ && this.startWorkspace_.isDraggable();
+
+  // if (!wsMovable) {
+  //   return;
+  // }
+
+  // var workspace = Blockly.getMainWorkspace();
+  // var allowDragWorkspace =
+  //   (isMultiTouchDrag === true && workspace.options.multiTouchScroll === true) || 
+  //   (isMultiTouchDrag !== true && workspace.options.multiTouchScroll !== true);
+
+  // if(allowDragWorkspace)
+  // {
+  //   if (this.flyout_) {
+  //     this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
+  //   }
+  //   else {
+  //    this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
+  //   }
+  // }
+
+  // if(this.workspaceDragger_) {
+  //   this.isDraggingWorkspace_ = true;
+  //   this.workspaceDragger_.startDrag();
+  // }
+  this.startSelectingBlocks_();
+};
+
+Blockly.Gesture.prototype.startSelectingBlocks_ = function(e) {
+  this.isSelectingBlocks_ = true;
+  this.blocksSelection_ = new Blockly.BlocksSelection(this.startWorkspace_);
+  this.blocksSelection_.startSelection(this.mostRecentEvent_, this.mouseDownXY_);
+  this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
+};
+
 /**
  * Update this gesture to record whether anything is being dragged.
  * This function should be called on a mouse/touch move event the first time the
@@ -419,6 +476,10 @@ Blockly.Gesture.prototype.updateIsDragging_ = function(multiTouch) {
   // Finally check if it's a single touch workspace drag.
   if(multiTouch !== true) {
     this.updateIsDraggingWorkspace_(false);
+
+    if(this.isDraggingWorkspace_ === false) {
+      this.updateIsSelectingBlocks_();
+    }
   }
 };
 
@@ -520,6 +581,7 @@ Blockly.Gesture.prototype.handleMove = function(e) {
 
   var wasDraggingWorkspace = this.isDraggingWorkspace_;
   var wasDraggingBlock = this.isDraggingBlock_;
+  var wasSelectingBlocks = this.isSelectingBlocks_;
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
     if(wasDraggingWorkspace === false) {
@@ -534,6 +596,12 @@ Blockly.Gesture.prototype.handleMove = function(e) {
     }
     this.blockDragger_.dragBlock(this.mostRecentEvent_,
         this.currentDragDeltaXY_);
+  }
+  else if (this.isSelectingBlocks_) {
+    //if(wasSelectingBlocks === false) {
+    // OB: Register touch IDs
+    //}
+    this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
   }
   e.preventDefault();
   e.stopPropagation();
@@ -585,7 +653,10 @@ Blockly.Gesture.prototype.handleUp = function(e) {
   }
   else if (this.isDraggingWorkspace_) {
     shouldEndGesture = this.shouldEndWorkspaceDrag(e);
-  } 
+  }
+  else if (this.isSelectingBlocks_) {
+    shouldEndGesture = this.shouldEndSelectingBlocks(e);
+  }
   this.isEnding_ = shouldEndGesture;
 
   if(this.isEnding_ === true) {
@@ -596,6 +667,8 @@ Blockly.Gesture.prototype.handleUp = function(e) {
         this.blockDragger_.endBlockDrag(e, this.currentDragDeltaXY_);
     } else if (this.isDraggingWorkspace_) {
         this.workspaceDragger_.endDrag(this.currentDragDeltaXY_);
+    } else if(this.isSelectingBlocks_) {
+      this.blocksSelection_.endSelection(this.currentDragDeltaXY_);
     } else if (this.isFieldClick_()) {
       this.doFieldClick_();
     } else if (this.isBlockClick_()) {
@@ -646,6 +719,10 @@ Blockly.Gesture.prototype.shouldEndWorkspaceDrag = function (e) {
     }
     return false;
   }
+  return true;
+};
+
+Blockly.Gesture.prototype.shouldEndSelectingBlocks = function (e) {
   return true;
 };
 
