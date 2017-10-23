@@ -239,6 +239,10 @@ Blockly.VerticalFlyout.prototype.setMetrics_ = function(xyRatio) {
 
   this.clipRect_.setAttribute('height', Math.max(0, metrics.viewHeight) + 'px');
   this.clipRect_.setAttribute('width', metrics.viewWidth + 'px');
+
+  if (this.categoryScrollPositions) {
+    this.selectCategoryByScrollPosition(-this.workspace_.scrollY);
+  }
 };
 
 /**
@@ -372,7 +376,7 @@ Blockly.VerticalFlyout.prototype.wheel_ = function(e) {
       delta *= 10;
     }
     var metrics = this.getMetrics_();
-    var pos = -this.workspace_.scrollY + delta;
+    var pos = (metrics.viewTop - metrics.contentTop) + delta;
     var limit = metrics.contentHeight - metrics.viewHeight;
     pos = Math.min(pos, limit);
     pos = Math.max(pos, 0);
@@ -380,8 +384,6 @@ Blockly.VerticalFlyout.prototype.wheel_ = function(e) {
     // When the flyout moves from a wheel event, hide WidgetDiv and DropDownDiv.
     Blockly.WidgetDiv.hide(true);
     Blockly.DropDownDiv.hideWithoutAnimation();
-
-    this.selectCategoryByScrollPosition(pos);
   }
 
   // Don't scroll the page.

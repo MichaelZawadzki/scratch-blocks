@@ -248,21 +248,38 @@ Blockly.Procedures.flyoutCategory = function(workspace) {
 };
 
 /**
- * Find all the callers of a named procedure.
- * @param {string} name Name of procedure.
- * @param {!Blockly.Workspace} workspace The workspace to find callers in.
+ * Find all callers of a named procedure.
+ * @param {string} name Name of procedure (procCode in scratch-blocks).
+ * @param {!Blockly.Workspace} ws The workspace to find callers in.
+ * @param {!Blockly.Block} definitionRoot The root of the stack where the
+ *     procedure is defined.
+ * @param {boolean} allowRecursive True if the search should include recursive
+ *     procedure calls.  False if the search should ignore the stack starting
+ *     with definitionRoot.
  * @return {!Array.<!Blockly.Block>} Array of caller blocks.
+ * @package
  */
-Blockly.Procedures.getCallers = function(name, workspace) {
+Blockly.Procedures.getCallers = function(name, ws, definitionRoot,
+    allowRecursive) {
+  var allBlocks = [];
+  var topBlocks = ws.getTopBlocks();
+
+  // Start by deciding which stacks to investigate.
+  for (var i = 0; i < topBlocks.length; i++) {
+    var block = topBlocks[i];
+    if (block.id == definitionRoot.id && !allowRecursive) {
+      continue;
+    }
+    allBlocks.push.apply(allBlocks, block.getDescendants());
+  }
+
   var callers = [];
-  var blocks = workspace.getAllBlocks();
-  // Iterate through every block and check the name.
-  for (var i = 0; i < blocks.length; i++) {
-    if (blocks[i].getProcedureCall) {
-      var procName = blocks[i].getProcedureCall();
-      // Procedure name may be null if the block is only half-built.
-      if (procName && Blockly.Names.equals(procName, name)) {
-        callers.push(blocks[i]);
+  for (var i = 0; i < allBlocks.length; i++) {
+    var block = allBlocks[i];
+    if (block.type == 'procedures_callnoreturn') {
+      var procCode = block.getProcCode();
+      if (procCode && procCode == name) {
+        callers.push(block);
       }
     }
   }
@@ -275,6 +292,7 @@ Blockly.Procedures.getCallers = function(name, workspace) {
  * @param {!Blockly.Block} defBlock Procedure definition block.
  */
 Blockly.Procedures.mutateCallers = function(defBlock) {
+  // TODO(#1143) Update this for scratch procedures.
   var oldRecordUndo = Blockly.Events.recordUndo;
   var name = defBlock.getProcedureDef()[0];
   var xmlElement = defBlock.mutationToDom(true);
@@ -315,4 +333,104 @@ Blockly.Procedures.getDefinition = function(name, workspace) {
     }
   }
   return null;
+};
+
+/**
+ * Callback to open the modal for editing custom procedures.
+ * TODO(#603): Implement.
+ * @param {!Blockly.Block} block The block that was right-clicked.
+ * @private
+ */
+Blockly.Procedures.editProcedureCallback_ = function(block) {
+  if (block.type == 'procedures_defnoreturn') {
+    var input = block.getInput('custom_block');
+    if (!input) {
+      alert('Bad input'); // TODO: Decide what to do about this.
+      return;
+    }
+    var conn = input.connection;
+    if (!conn) {
+      alert('Bad connection'); // TODO: Decide what to do about this.
+      return;
+    }
+    var innerBlock = conn.targetBlock();
+    if (!innerBlock || !innerBlock.type == 'procedures_callnoreturn_internal') {
+      alert('Bad inner block'); // TODO: Decide what to do about this.
+      return;
+    }
+    block = innerBlock;
+  }
+  alert('TODO(#603): implement function editing (procCode was "' +
+      block.procCode_ + '")');
+};
+
+/**
+ * Make a context menu option for editing a custom procedure.
+ * This appears in the context menu for procedure definitions and procedure
+ * calls.
+ * @param {!Blockly.BlockSvg} block The block where the right-click originated.
+ * @return {!Object} A menu option, containing text, enabled, and a callback.
+ * @package
+ */
+Blockly.Procedures.makeEditOption = function(block) {
+  var editOption = {
+    enabled: true,
+    text: Blockly.Msg.EDIT_PROCEDURE,
+    callback: function() {
+      Blockly.Procedures.editProcedureCallback_(block);
+    }
+  };
+  return editOption;
+};
+
+/**
+ * Callback to show the procedure definition corresponding to a custom command
+ * block.
+ * TODO(#1136): Implement.
+ * @param {!Blockly.Block} block The block that was right-clicked.
+ * @private
+ */
+Blockly.Procedures.showProcedureDefCallback_ = function(block) {
+  alert('TODO(#1136): implement showing procedure definition (procCode was "' +
+      block.procCode_ + '")');
+};
+
+/**
+ * Make a context menu option for showing the definition for a custom procedure,
+ * based on a right-click on a custom command block.
+ * @param {!Blockly.BlockSvg} block The block where the right-click originated.
+ * @return {!Object} A menu option, containing text, enabled, and a callback.
+ * @package
+ */
+Blockly.Procedures.makeShowDefinitionOption = function(block) {
+  var option = {
+    enabled: true,
+    text: Blockly.Msg.SHOW_PROCEDURE_DEFINITION,
+    callback: function() {
+      Blockly.Procedures.showProcedureDefCallback_(block);
+    }
+  };
+  return option;
+};
+
+/**
+ * Callback to try to delete a custom block definitions.
+ * @param {string} procCode The identifier of the procedure to delete.
+ * @param {!Blockly.Block} definitionRoot The root block of the stack that
+ *     defines the custom procedure.
+ * @return {boolean} True if the custom procedure was deleted, false otherwise.
+ * @package
+ */
+Blockly.Procedures.deleteProcedureDefCallback = function(procCode,
+    definitionRoot) {
+  var callers = Blockly.Procedures.getCallers(procCode,
+      definitionRoot.workspace, definitionRoot, false /* allowRecursive */);
+  if (callers.length > 0) {
+    return false;
+  }
+  // Delete the whole stack.
+  Blockly.Events.setGroup(true);
+  definitionRoot.dispose();
+  Blockly.Events.setGroup(false);
+  return true;
 };

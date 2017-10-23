@@ -28,6 +28,7 @@ goog.provide('Blockly.BlockSvg.render');
 
 goog.require('Blockly.BlockSvg');
 goog.require('Blockly.Colours');
+goog.require('Blockly.utils');
 
 
 // UI constants for rendering blocks.
@@ -482,11 +483,53 @@ Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING = {
 };
 
 /**
+ * Corner radius of the hat on the define block.
+ * @const
+ */
+Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS = 5 * Blockly.BlockSvg.GRID_UNIT;
+
+/**
+ * SVG path for drawing the rounded top-left corner.
+ * @const
+ */
+Blockly.BlockSvg.TOP_LEFT_CORNER_DEFINE_HAT =
+    'a ' + Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS + ',' +
+    Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS + ' 0 0,1 ' +
+    Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS + ',-' +
+    Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS;
+
+/**
+ * SVG path for drawing the rounded top-left corner.
+ * @const
+ */
+Blockly.BlockSvg.TOP_RIGHT_CORNER_DEFINE_HAT =
+    'a ' + Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS + ',' +
+    Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS + ' 0 0,1 ' +
+    Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS + ',' +
+    Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS;
+
+/**
+ * Padding on the right side of the internal block on the define block.
+ * @const
+ */
+Blockly.BlockSvg.DEFINE_BLOCK_PADDING_RIGHT = 2 * Blockly.BlockSvg.GRID_UNIT;
+
+/**
+ * The type of all define blocks, which have custom rendering.
+ * @cost
+ */
+Blockly.BlockSvg.DEFINE_BLOCK_TYPE = 'procedures_defnoreturn';
+
+/**
  * Change the colour of a block.
  */
 Blockly.BlockSvg.prototype.updateColour = function() {
+
   var strokeColour = this.getColourTertiary(this.useAltColours_);
-  if (this.isShadow() && this.parentBlock_) {
+  var renderShadowed =
+      this.isShadow() && !Blockly.utils.isShadowArgumentReporter(this);
+
+  if (renderShadowed && this.parentBlock_) {
     // Pull shadow block stroke colour from parent block's tertiary if possible.
     strokeColour = this.parentBlock_.getColourTertiary(this.parentBlock_.useAltColours_);
     // Special case: if we contain a colour field, set to a special stroke colour.
@@ -503,10 +546,12 @@ Blockly.BlockSvg.prototype.updateColour = function() {
 
   // Render block fill
 
+
   var fillColour = (this.isGlowingBlock_) ? Blockly.Colours.execute_color : this.getColour(this.useAltColours_);
 
   // TODO: MMZ Use getColourSecondary() for isShadow() blocks?
   //var fillColour = (this.isGlowingBlock_ || this.isShadow()) ? this.getColourSecondary() : this.getColour();
+
 
   this.svgPath_.setAttribute('fill', fillColour);
 
@@ -619,6 +664,7 @@ Blockly.BlockSvg.prototype.render = function(opt_bubble) {
 
   var inputRows = this.renderCompute_(cursorX);
   this.renderDraw_(cursorX, inputRows);
+  this.renderMoveConnections_();
 
   this.renderClassify_();
 
@@ -909,7 +955,8 @@ Blockly.BlockSvg.prototype.computeInputWidth_ = function(input) {
  */
 Blockly.BlockSvg.prototype.computeInputHeight_ = function(input, row,
     previousRow) {
-  if (this.inputList.length === 1 && this.isShadow() && this.outputConnection) {
+  if (this.inputList.length === 1 && this.outputConnection &&
+      (this.isShadow() &&  !Blockly.utils.isShadowArgumentReporter(this))) {
     // "Lone" field blocks are smaller.
     return Blockly.BlockSvg.MIN_BLOCK_Y_SINGLE_FIELD_OUTPUT;
   }  else if (input.name == "DUMMY_REFLOW_INPUT"){
@@ -962,7 +1009,7 @@ Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
     // Blocks with notches
     edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X);
   } else if (this.outputConnection) {
-    if (this.isShadow()) {
+    if (this.isShadow() && !Blockly.utils.isShadowArgumentReporter(this)) {
       // Single-fields
       edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X_SHADOW_OUTPUT);
     } else {
@@ -1054,7 +1101,8 @@ Blockly.BlockSvg.prototype.calculateBlockMaxWidth = function()
  */
 Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
   // Only apply to blocks with outputs and not single fields (shadows).
-  if (!this.getOutputShape() || !this.outputConnection || this.isShadow()) {
+  if (!this.getOutputShape() || !this.outputConnection ||
+      (this.isShadow() && !Blockly.utils.isShadowArgumentReporter(this))) {
     return;
   }
   // Blocks with outputs must have single row to be padded.
@@ -1162,19 +1210,14 @@ Blockly.BlockSvg.prototype.renderDraw_ = function(iconWidth, inputRows) {
       this.squareTopLeftCorner_ = true;
     }
   }
-  // Fetch the block's coordinates on the surface for use in anchoring
-  // the connections.
-  var connectionsXY = this.getRelativeToSurfaceXY();
 
   // Assemble the block's path.
   var steps = [];
 
-  this.renderDrawTop_(steps, connectionsXY,
-      inputRows.rightEdge);
-  var cursorY = this.renderDrawRight_(steps,
-      connectionsXY, inputRows, iconWidth);
-  this.renderDrawBottom_(steps, connectionsXY, cursorY);
-  this.renderDrawLeft_(steps, connectionsXY);
+  this.renderDrawTop_(steps, inputRows.rightEdge);
+  var cursorY = this.renderDrawRight_(steps, inputRows, iconWidth);
+  this.renderDrawBottom_(steps, cursorY);
+  this.renderDrawLeft_(steps);
 
   var pathString = steps.join(' ');
   this.svgPath_.setAttribute('d', pathString);
@@ -1239,49 +1282,48 @@ Blockly.BlockSvg.prototype.renderClassify_ = function() {
 /**
  * Render the top edge of the block.
  * @param {!Array.<string>} steps Path of block outline.
- * @param {!Object} connectionsXY Location of block.
  * @param {number} rightEdge Minimum width of block.
  * @private
  */
-Blockly.BlockSvg.prototype.renderDrawTop_ =
-    function(steps, connectionsXY, rightEdge) {
+Blockly.BlockSvg.prototype.renderDrawTop_ = function(steps, rightEdge) {
   /* eslint-disable indent */
-  // Position the cursor at the top-left starting point.
-  if (this.squareTopLeftCorner_) {
-    steps.push('m 0,0');
-    if (this.startHat_) {
-      steps.push(Blockly.BlockSvg.START_HAT_PATH);
-    }
-    // Skip space for the output shape
-    if (this.edgeShapeWidth_) {
-      steps.push('m ' + this.edgeShapeWidth_ + ',0');
-    }
+  if (this.type == Blockly.BlockSvg.DEFINE_BLOCK_TYPE) {
+    steps.push('m 0, 0');
+    steps.push(Blockly.BlockSvg.TOP_LEFT_CORNER_DEFINE_HAT);
   } else {
-    steps.push(Blockly.BlockSvg.TOP_LEFT_CORNER_START);
-    // Top-left rounded corner.
-    steps.push(Blockly.BlockSvg.TOP_LEFT_CORNER);
-  }
+    // Position the cursor at the top-left starting point.
+    if (this.squareTopLeftCorner_) {
+      steps.push('m 0,0');
+      if (this.startHat_) {
+        steps.push(Blockly.BlockSvg.START_HAT_PATH);
+      }
+      // Skip space for the output shape
+      if (this.edgeShapeWidth_) {
+        steps.push('m ' + this.edgeShapeWidth_ + ',0');
+      }
+    } else {
+      steps.push(Blockly.BlockSvg.TOP_LEFT_CORNER_START);
+      // Top-left rounded corner.
+      steps.push(Blockly.BlockSvg.TOP_LEFT_CORNER);
+    }
 
-  // Top edge.
-  if (this.previousConnection) {
-    // Space before the notch
-    steps.push('H', Blockly.BlockSvg.NOTCH_START_PADDING);
-    steps.push(Blockly.BlockSvg.NOTCH_PATH_LEFT);
-    // Create previous block connection.
-    var connectionX = connectionsXY.x + (this.RTL ?
-        -Blockly.BlockSvg.NOTCH_WIDTH : Blockly.BlockSvg.NOTCH_WIDTH);
-    var connectionY = connectionsXY.y;
-    this.previousConnection.moveTo(connectionX, connectionY);
-    // This connection will be tightened when the parent renders.
+    // Top edge.
+    if (this.previousConnection) {
+      // Space before the notch
+      steps.push('H', Blockly.BlockSvg.NOTCH_START_PADDING);
+      steps.push(Blockly.BlockSvg.NOTCH_PATH_LEFT);
+      // Create previous block connection.
+      var connectionX = (this.RTL ?
+          -Blockly.BlockSvg.NOTCH_WIDTH : Blockly.BlockSvg.NOTCH_WIDTH);
+      this.previousConnection.setOffsetInBlock(connectionX, 0);
+    }
   }
-
   this.width = rightEdge;
 };  /* eslint-enable indent */
 
 /**
  * Render the right edge of the block.
  * @param {!Array.<string>} steps Path of block outline.
- * @param {!Object} connectionsXY Location of block.
  * @param {!Array.<!Array.<!Object>>} inputRows 2D array of objects, each
  *     containing position information.
  * @param {number} iconWidth Offset of first row due to icons.
@@ -1289,7 +1331,7 @@ Blockly.BlockSvg.prototype.renderDrawTop_ =
  * @private
  */
 Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
-    connectionsXY, inputRows, iconWidth) {
+    inputRows, iconWidth) {
   var cursorX = 0;
   var cursorY = 0;
   var connectionX, connectionY;
@@ -1302,24 +1344,14 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
     if (row.type == Blockly.BlockSvg.INLINE) {
       // Inline inputs.
       for (var x = 0, input; input = row[x]; x++) {
-        var fieldX = cursorX;
-        var fieldY = cursorY;
         // Align fields vertically within the row.
         // Moves the field to half of the row's height.
         // In renderFields_, the field is further centered
         // by its own rendered height.
-        fieldY += row.height / 2;
+        var fieldY = cursorY + row.height / 2;
 
-        // Align inline field rows (left/right/centre).
-        if (input.align === Blockly.ALIGN_RIGHT) {
-          fieldX += inputRows.rightEdge - input.fieldWidth -
-            (2 * Blockly.BlockSvg.SEP_SPACE_X);
-        } else if (input.align === Blockly.ALIGN_CENTRE) {
-          fieldX = Math.max(
-            inputRows.rightEdge / 2 - input.fieldWidth / 2,
-            fieldX
-          );
-        }
+        var fieldX = Blockly.BlockSvg.getAlignedCursor_(cursorX, input,
+            inputRows.rightEdge);
 
         cursorX = this.renderFields_(input.fieldRow, fieldX, fieldY);
         if (input.type == Blockly.INPUT_VALUE) {
@@ -1329,18 +1361,11 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
           if (this.previousConnection) {
             cursorX = Math.max(cursorX, Blockly.BlockSvg.INPUT_AND_FIELD_MIN_X);
           }
-          if (this.RTL) {
-            connectionX = connectionsXY.x - cursorX;
-          } else {
-            connectionX = connectionsXY.x + cursorX;
-          }
+          connectionX = this.RTL ? -cursorX : cursorX;
           // Attempt to center the connection vertically.
           var connectionYOffset = row.height / 2;
-          connectionY = connectionsXY.y + cursorY + connectionYOffset;
-          input.connection.moveTo(connectionX, connectionY);
-          if (input.connection.isConnected()) {
-            input.connection.tighten_();
-          }
+          connectionY = cursorY + connectionYOffset;
+          input.connection.setOffsetInBlock(connectionX, connectionY);
           this.renderInputShape_(input, cursorX, cursorY + connectionYOffset);
           cursorX += input.renderWidth + Blockly.BlockSvg.SEP_SPACE_X;
         }
@@ -1371,39 +1396,31 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
       // Nested statement.
       var input = row[0];
       var fieldX = cursorX;
+      // Align fields vertically within the row.
+      // In renderFields_, the field is further centered by its own height.
       var fieldY = cursorY;
+      fieldY += Blockly.BlockSvg.MIN_STATEMENT_INPUT_HEIGHT;
       this.renderFields_(input.fieldRow, fieldX, fieldY);
-
-      steps.push(Blockly.BlockSvg.BOTTOM_RIGHT_CORNER);
       // Move to the start of the notch.
       cursorX = inputRows.statementEdge + Blockly.BlockSvg.NOTCH_WIDTH;
-      steps.push('H', cursorX + Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE +
-        2 * Blockly.BlockSvg.CORNER_RADIUS);
-      steps.push(Blockly.BlockSvg.NOTCH_PATH_RIGHT);
-      steps.push('h', '-' + Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE);
-      steps.push(Blockly.BlockSvg.INNER_TOP_LEFT_CORNER);
 
-      steps.push('v', row.height - 2 * Blockly.BlockSvg.CORNER_RADIUS);
-
-      steps.push(Blockly.BlockSvg.INNER_BOTTOM_LEFT_CORNER);
-      // Bottom notch
-      if (row.statementNotchAtBottom) {
-        steps.push('h ', Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE);
-        steps.push(Blockly.BlockSvg.NOTCH_PATH_LEFT);
+      if (this.type == Blockly.BlockSvg.DEFINE_BLOCK_TYPE) {
+        this.renderDefineBlock_(steps, inputRows, input, row);
+      } else {
+        Blockly.BlockSvg.drawStatementInputFromTopRight_(steps, cursorX,
+            inputRows.rightEdge, row);
       }
-      steps.push('H', inputRows.rightEdge - Blockly.BlockSvg.CORNER_RADIUS);
 
       // Create statement connection.
-      connectionX = connectionsXY.x + (this.RTL ? -cursorX : cursorX);
-      connectionY = connectionsXY.y + cursorY;
-      input.connection.moveTo(connectionX, connectionY);
+      connectionX = this.RTL ? -cursorX : cursorX;
+      input.connection.setOffsetInBlock(connectionX, cursorY);
       if (input.connection.isConnected()) {
-        input.connection.tighten_();
         this.width = Math.max(this.width, inputRows.statementEdge +
           input.connection.targetBlock().getHeightWidth().width);
       }
-      if (y == inputRows.length - 1 ||
-          inputRows[y + 1].type == Blockly.NEXT_STATEMENT) {
+      if (this.type != Blockly.BlockSvg.DEFINE_BLOCK_TYPE &&
+        (y == inputRows.length - 1 ||
+          inputRows[y + 1].type == Blockly.NEXT_STATEMENT)) {
         // If the final input is a statement stack, add a small row underneath.
         // Consecutive statement stacks are also separated by a small divider.
         steps.push(Blockly.BlockSvg.TOP_RIGHT_CORNER);
@@ -1413,25 +1430,9 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
     }
     cursorY += row.height;
   }
-  if (this.edgeShape_) {
-    // Draw the right-side edge shape.
-    if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_ROUND) {
-      // Draw a rounded arc.
-      steps.push('a ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
-          ' 0 0 1 0 ' + this.edgeShapeWidth_ * 2);
-    } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
-      // Draw an half-hexagon.
-      if(this.isReflowed)
-      {
-        steps.push('v' + this.edgeShapeWidth_/2 +  'l ' + this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 +
-        ' l ' + -this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 + 'v' + this.edgeShapeWidth_/2);
-      }else
-      {
-        steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
-          ' l ' + -this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_);
-      }
-    }
-  }
+
+  this.drawEdgeShapeRight_(steps);
+
   if (!inputRows.length) {
     cursorY = Blockly.BlockSvg.MIN_BLOCK_Y;
     steps.push('V', cursorY);
@@ -1453,44 +1454,24 @@ Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
     // No input shape for this input - e.g., the block is an insertion marker.
     return;
   }
-  var inputShapeWidth = 0;
   // Input shapes are only visibly rendered on non-connected slots.
   if (input.connection.targetConnection) {
     inputShape.setAttribute('style', 'visibility: hidden');
   } else {
     var inputShapeX = 0, inputShapeY = 0;
-    // If the input connection is not connected, draw a hole shape.
-    var inputShapePath = null;
-    var inputShapeArgType = null;
-    switch (input.connection.getOutputShape()) {
-      case Blockly.OUTPUT_SHAPE_HEXAGONAL:
-        inputShapePath = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL;
-        inputShapeWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
-        inputShapeArgType = 'boolean';
-        break;
-      case Blockly.OUTPUT_SHAPE_ROUND:
-        inputShapePath = Blockly.BlockSvg.INPUT_SHAPE_ROUND;
-        inputShapeWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
-        inputShapeArgType = 'round';
-        break;
-      case Blockly.OUTPUT_SHAPE_SQUARE:
-      default:
-        inputShapePath = Blockly.BlockSvg.INPUT_SHAPE_SQUARE;
-        inputShapeWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
-        inputShapeArgType = 'square';
-        break;
-    }
+    var inputShapeInfo =
+        Blockly.BlockSvg.getInputShapeInfo_(input.connection.getOutputShape());
     if (this.RTL) {
-      inputShapeX = -x - inputShapeWidth;
+      inputShapeX = -x - inputShapeInfo.width;
     } else {
       inputShapeX = x;
     }
     inputShapeY = y - (Blockly.BlockSvg.INPUT_SHAPE_HEIGHT / 2);
-    inputShape.setAttribute('d', inputShapePath);
+    inputShape.setAttribute('d', inputShapeInfo.path);
     inputShape.setAttribute('transform',
       'translate(' + inputShapeX + ',' + inputShapeY + ')'
     );
-    inputShape.setAttribute('data-argument-type', inputShapeArgType);
+    inputShape.setAttribute('data-argument-type', inputShapeInfo.argType);
     inputShape.setAttribute('style', 'visibility: visible');
   }
 };
@@ -1498,12 +1479,10 @@ Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
 /**
  * Render the bottom edge of the block.
  * @param {!Array.<string>} steps Path of block outline.
- * @param {!Object} connectionsXY Location of block.
  * @param {number} cursorY Height of block.
  * @private
  */
-Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, connectionsXY,
-    cursorY) {
+Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, cursorY) {
   this.height = cursorY;
   if (!this.edgeShape_) {
     steps.push(Blockly.BlockSvg.BOTTOM_RIGHT_CORNER);
@@ -1518,17 +1497,9 @@ Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, connectionsXY,
     steps.push('H', notchStart, ' ');
     steps.push(Blockly.BlockSvg.NOTCH_PATH_RIGHT);
     // Create next block connection.
-    var connectionX;
-    if (this.RTL) {
-      connectionX = connectionsXY.x - Blockly.BlockSvg.NOTCH_WIDTH;
-    } else {
-      connectionX = connectionsXY.x + Blockly.BlockSvg.NOTCH_WIDTH;
-    }
-    var connectionY = connectionsXY.y + cursorY;
-    this.nextConnection.moveTo(connectionX, connectionY);
-    if (this.nextConnection.isConnected()) {
-      this.nextConnection.tighten_();
-    }
+    var connectionX = this.RTL ? -Blockly.BlockSvg.NOTCH_WIDTH :
+        Blockly.BlockSvg.NOTCH_WIDTH;
+    this.nextConnection.setOffsetInBlock(connectionX, cursorY);
     // Include height of notch in block height.
     this.height += Blockly.BlockSvg.NOTCH_HEIGHT;
   }
@@ -1545,16 +1516,13 @@ Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, connectionsXY,
 /**
  * Render the left edge of the block.
  * @param {!Array.<string>} steps Path of block outline.
- * @param {!Object} connectionsXY Location of block.
  * @param {number} cursorY Height of block.
  * @private
  */
-Blockly.BlockSvg.prototype.renderDrawLeft_ = function(steps, connectionsXY) {
+Blockly.BlockSvg.prototype.renderDrawLeft_ = function(steps) {
   if (this.outputConnection) {
-    // Create output connection.
     // Scratch-style reporters have output connection y at half block height.
-    this.outputConnection.moveTo(connectionsXY.x, connectionsXY.y + this.height / 2);
-    // This connection will be tightened when the parent renders.
+    this.outputConnection.setOffsetInBlock(0, this.height / 2);
   }
   if (this.edgeShape_) {
     // Draw the left-side edge shape.
@@ -1574,6 +1542,33 @@ Blockly.BlockSvg.prototype.renderDrawLeft_ = function(steps, connectionsXY) {
     }
   }
   steps.push('z');
+};
+
+/**
+ * Draw the edge shape (rounded or hexagonal) on the right side of a block with
+ * an output.
+ * @param {!Array.<string>} steps Path of block outline.
+ * @private
+ */
+Blockly.BlockSvg.prototype.drawEdgeShapeRight_ = function(steps) {
+  if (this.edgeShape_) {
+    // Draw the right-side edge shape.
+    if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_ROUND) {
+      // Draw a rounded arc.
+      steps.push('a ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
+          ' 0 0 1 0 ' + this.edgeShapeWidth_ * 2);
+    } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
+      if(this.isReflowed)
+      {
+        steps.push('v' + this.edgeShapeWidth_/2 +  'l ' + this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 +
+        ' l ' + -this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 + 'v' + this.edgeShapeWidth_/2);
+      }else{
+        // Draw an half-hexagon.
+        steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +
+           ' l ' + -this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_);
+      }
+    }
+  }
 };
 
 /**
@@ -1600,3 +1595,190 @@ Blockly.BlockSvg.prototype.positionNewBlock =
     newBlock.moveBy(dx, dy);
   }
 };  /* eslint-enable indent */
+
+/**
+ * Draw the outline of a statement input, starting at the top right corner.
+ * @param {!Array.<string>} steps Path of block outline.
+ * @param {number} cursorX The x position of the start of the notch at the top
+ *     of the input.
+ * @param {number} rightEdge The far right edge of the block, which determines
+ *     how wide the statement input is.
+ * @param {!Array.<!Object>} row An object containing information about the
+ *     current row, including its height and whether it should have a notch at
+ *     the bottom.
+ * @private
+ */
+Blockly.BlockSvg.drawStatementInputFromTopRight_ = function(steps, cursorX,
+    rightEdge, row) {
+  Blockly.BlockSvg.drawStatementInputTop_(steps, cursorX);
+  steps.push('v', row.height - 2 * Blockly.BlockSvg.CORNER_RADIUS);
+  Blockly.BlockSvg.drawStatementInputBottom_(steps, rightEdge, row);
+};
+
+/**
+ * Draw the top of the outline of a statement input, starting at the top right
+ * corner.
+ * @param {!Array.<string>} steps Path of block outline.
+ * @param {number} cursorX The x position of the start of the notch at the top
+ *     of the input.
+ * @private
+ */
+Blockly.BlockSvg.drawStatementInputTop_ = function(steps, cursorX) {
+  steps.push(Blockly.BlockSvg.BOTTOM_RIGHT_CORNER);
+  steps.push('H', cursorX + Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE +
+    2 * Blockly.BlockSvg.CORNER_RADIUS);
+  steps.push(Blockly.BlockSvg.NOTCH_PATH_RIGHT);
+  steps.push('h', '-' + Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE);
+  steps.push(Blockly.BlockSvg.INNER_TOP_LEFT_CORNER);
+};
+
+/**
+ * Draw the bottom of the outline of a statement input, starting at the inner
+ * left corner.
+ * @param {!Array.<string>} steps Path of block outline.
+ * @param {number} rightEdge The far right edge of the block, which determines
+ *     how wide the statement input is.
+ * @param {!Array.<!Object>} row An object containing information about the
+ *     current row, including its height and whether it should have a notch at
+ *     the bottom.
+ * @private
+ */
+Blockly.BlockSvg.drawStatementInputBottom_ = function(steps, rightEdge, row) {
+  steps.push(Blockly.BlockSvg.INNER_BOTTOM_LEFT_CORNER);
+  if (row.statementNotchAtBottom) {
+    steps.push('h ', Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE);
+    steps.push(Blockly.BlockSvg.NOTCH_PATH_LEFT);
+  }
+  steps.push('H', rightEdge - Blockly.BlockSvg.CORNER_RADIUS);
+};
+
+/**
+ * Render part of the hat and the right side of the define block to fully wrap
+ * the connected statement block.
+ * Scratch-specific.
+ * @param {!Array.<string>} steps Path of block outline.
+ * @param {!Array.<!Array.<!Object>>} inputRows 2D array of objects, each
+ *     containing position information.
+ * @param {!Blockly.Input} input The input that is currently being rendered.
+ * @param {!Array.<!Object>} row An object containing information about the
+ *     current row, including its height and whether it should have a notch at
+ *     the bottom.
+ * @private
+ */
+Blockly.BlockSvg.prototype.renderDefineBlock_ = function(steps, inputRows,
+    input, row) {
+  // Figure out where the right side of the block is.
+  var rightSide = inputRows.rightEdge;
+  if (input.connection && input.connection.targetBlock()) {
+    rightSide = inputRows.statementEdge +
+        input.connection.targetBlock().getHeightWidth().width +
+        Blockly.BlockSvg.DEFINE_BLOCK_PADDING_RIGHT;
+  } else {
+    rightSide = Blockly.BlockSvg.MIN_BLOCK_X_WITH_STATEMENT;
+  }
+  rightSide -= Blockly.BlockSvg.DEFINE_HAT_CORNER_RADIUS;
+
+  // Draw the top and the right corner of the hat.
+  steps.push('H', rightSide);
+  steps.push(Blockly.BlockSvg.TOP_RIGHT_CORNER_DEFINE_HAT);
+  row.height += 3 * Blockly.BlockSvg.GRID_UNIT;
+  // Draw the right side of the block around the statement input.
+  steps.push('v', row.height);
+  // row.height will be used to update the cursor in the calling function.
+  row.height += Blockly.BlockSvg.GRID_UNIT;
+
+};
+
+/**
+ * Get some information about the input shape to draw, based on the type of the
+ * connection.
+ * @param {number} shape An enum representing the shape of the connection we're
+ *     drawing around.
+ * @return {!Object} An object containing an SVG path, a string representation
+ *     of the argument type, and a width.
+ * @private
+ */
+Blockly.BlockSvg.getInputShapeInfo_ = function(shape) {
+  var inputShapePath = null;
+  var inputShapeArgType = null;
+  var inputShapeWidth = 0;
+
+  switch (shape) {
+    case Blockly.OUTPUT_SHAPE_HEXAGONAL:
+      inputShapePath = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL;
+      inputShapeWidth = Blockly.BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH;
+      inputShapeArgType = 'boolean';
+      break;
+    case Blockly.OUTPUT_SHAPE_ROUND:
+      inputShapePath = Blockly.BlockSvg.INPUT_SHAPE_ROUND;
+      inputShapeWidth = Blockly.BlockSvg.INPUT_SHAPE_ROUND_WIDTH;
+      inputShapeArgType = 'round';
+      break;
+    case Blockly.OUTPUT_SHAPE_SQUARE:
+    default:  // If the input connection is not connected, draw a hole shape.
+      inputShapePath = Blockly.BlockSvg.INPUT_SHAPE_SQUARE;
+      inputShapeWidth = Blockly.BlockSvg.INPUT_SHAPE_SQUARE_WIDTH;
+      inputShapeArgType = 'square';
+      break;
+  }
+  return {
+    path: inputShapePath,
+    argType: inputShapeArgType,
+    width: inputShapeWidth
+  };
+};
+
+/**
+ * Get the correct cursor position for the given input, based on alignment,
+ * the total size of the block, and the size of the input.
+ * @param {number} cursorX The minimum x value of the cursor.
+ * @param {!Blockly.Input} input The input to align the fields for.
+ * @param {number} rightEdge The maximum width of the block.  Right-aligned
+ *     fields are positioned based on this number.
+ * @return {number} The new cursor position.
+ * @private
+ */
+Blockly.BlockSvg.getAlignedCursor_ = function(cursorX, input, rightEdge) {
+  // Align inline field rows (left/right/centre).
+  if (input.align === Blockly.ALIGN_RIGHT) {
+    cursorX += rightEdge - input.fieldWidth -
+      (2 * Blockly.BlockSvg.SEP_SPACE_X);
+  } else if (input.align === Blockly.ALIGN_CENTRE) {
+    cursorX = Math.max(cursorX, rightEdge / 2 - input.fieldWidth / 2);
+  }
+  return cursorX;
+};
+
+/**
+ * Update all of the connections on this block with the new locaitons calculated
+ * in renderCompute, and move all of the connected blocks based on the new
+ * connection locations.
+ * @private
+ */
+Blockly.BlockSvg.prototype.renderMoveConnections_ = function() {
+  var blockTL = this.getRelativeToSurfaceXY();
+  // Don't tighten previous or output connections because they are inferior.
+  if (this.previousConnection) {
+    this.previousConnection.moveToOffset(blockTL);
+  }
+  if (this.outputConnection) {
+    this.outputConnection.moveToOffset(blockTL);
+  }
+
+  for (var i = 0; i < this.inputList.length; i++) {
+    var conn = this.inputList[i].connection;
+    if (conn) {
+      conn.moveToOffset(blockTL);
+      if (conn.isConnected()) {
+        conn.tighten_();
+      }
+    }
+  }
+
+  if (this.nextConnection) {
+    this.nextConnection.moveToOffset(blockTL);
+    if (this.nextConnection.isConnected()) {
+      this.nextConnection.tighten_();
+    }
+  }
+};
