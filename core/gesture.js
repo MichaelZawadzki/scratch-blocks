@@ -416,32 +416,6 @@ Blockly.Gesture.prototype.updateIsDraggingWorkspace_ = function(isMultiTouchDrag
 };
 
 Blockly.Gesture.prototype.updateIsSelectingBlocks_ = function() {
-  // var wsMovable = this.flyout_ ? this.flyout_.isScrollable() :
-  //     this.startWorkspace_ && this.startWorkspace_.isDraggable();
-
-  // if (!wsMovable) {
-  //   return;
-  // }
-
-  // var workspace = Blockly.getMainWorkspace();
-  // var allowDragWorkspace =
-  //   (isMultiTouchDrag === true && workspace.options.multiTouchScroll === true) || 
-  //   (isMultiTouchDrag !== true && workspace.options.multiTouchScroll !== true);
-
-  // if(allowDragWorkspace)
-  // {
-  //   if (this.flyout_) {
-  //     this.workspaceDragger_ = new Blockly.FlyoutDragger(this.flyout_);
-  //   }
-  //   else {
-  //    this.workspaceDragger_ = new Blockly.WorkspaceDragger(this.startWorkspace_);
-  //   }
-  // }
-
-  // if(this.workspaceDragger_) {
-  //   this.isDraggingWorkspace_ = true;
-  //   this.workspaceDragger_.startDrag();
-  // }
   this.startSelectingBlocks_();
 };
 
