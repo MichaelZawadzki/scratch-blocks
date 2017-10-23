@@ -31,6 +31,7 @@ goog.require('Blockly.Colours');
 goog.require('Blockly.Comment');
 goog.require('Blockly.Connection');
 goog.require('Blockly.Extensions');
+goog.require('Blockly.FieldLabelSerializable');
 goog.require('Blockly.FieldVariableGetter');
 goog.require('Blockly.Input');
 goog.require('Blockly.Mutator');
@@ -1670,6 +1671,9 @@ Blockly.Block.prototype.interpolate_ = function(message, args, lastDummyAlign) {
             case 'field_label':
               field = Blockly.Block.newFieldLabelFromJson_(element);
               break;
+            case 'field_label_serializable':
+              field = Blockly.Block.newFieldLabelSerializableFromJson_(element);
+              break;
             case 'field_input':
               field = Blockly.Block.newFieldTextInputFromJson_(element);
               break;
@@ -1780,6 +1784,18 @@ Blockly.Block.newFieldImageFromJson_ = function(options) {
 Blockly.Block.newFieldLabelFromJson_ = function(options) {
   var text = Blockly.utils.replaceMessageReferences(options['text']);
   return new Blockly.FieldLabel(text, options['class']);
+};
+
+/**
+ * Helper function to construct a FieldLabelSerializable from a JSON arg object,
+ * dereferencing any string table references.
+ * @param {!Object} options A JSON object with options (text, and class).
+ * @returns {!Blockly.FieldLabelSerializable} The new label.
+ * @private
+ */
+Blockly.Block.newFieldLabelSerializableFromJson_ = function(options) {
+  var text = Blockly.utils.replaceMessageReferences(options['text']);
+  return new Blockly.FieldLabelSerializable(text, options['class']);
 };
 
 /**

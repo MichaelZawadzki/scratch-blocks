@@ -40,11 +40,12 @@ goog.require('goog.asserts');
 goog.require('goog.math.Coordinate');
 
 
-/**
- * NB: In this file "start" refers to touchstart, mousedown, and pointerstart
+/*
+ * Note: In this file "start" refers to touchstart, mousedown, and pointerstart
  * events.  "End" refers to touchend, mouseup, and pointerend events.
- * TODO: Consider touchcancel/pointercancel.
  */
+// TODO: Consider touchcancel/pointercancel.
+
 
 /**
  * Class for one gesture.
@@ -233,6 +234,14 @@ Blockly.Gesture = function(e, creatorWorkspace) {
    * @private
    */
   this.touchIDs_ = [];
+/**
+   * True if dragging from the target block should duplicate the target block
+   * and drag the duplicate instead.  This has a lot of side effects.
+   * @type {boolean}
+   * @private
+   */
+  this.shouldDuplicateOnDrag_ = false;
+
 };
 
 /**
@@ -367,7 +376,7 @@ Blockly.Gesture.prototype.updateIsDraggingBlock_ = function() {
 
   if (this.flyout_) {
     this.isDraggingBlock_ = this.updateIsDraggingFromFlyout_();
-  } else if (this.targetBlock_.isMovable()){
+  } else if (this.targetBlock_.isMovable() || this.shouldDuplicateOnDrag_){
     this.isDraggingBlock_ = true;
   }
 
@@ -488,6 +497,9 @@ Blockly.Gesture.prototype.updateIsDragging_ = function(multiTouch) {
  * @private
  */
 Blockly.Gesture.prototype.startDraggingBlock_ = function() {
+  if (this.shouldDuplicateOnDrag_) {
+    this.duplicateOnDrag_();
+  }
   this.blockDragger_ = new Blockly.BlockDragger(this.targetBlock_,
       this.startWorkspace_);
   this.blockDragger_.startBlockDrag(this.currentDragDeltaXY_);
@@ -917,6 +929,7 @@ Blockly.Gesture.prototype.setStartField = function(field) {
 Blockly.Gesture.prototype.setStartBlock = function(block) {
   if (!this.startBlock_) {
     this.startBlock_ = block;
+    this.shouldDuplicateOnDrag_ = Blockly.utils.isShadowArgumentReporter(block);
     if (block.isInFlyout && block != block.getRootBlock()) {
       this.setTargetBlock_(block.getRootBlock());
     } else {
@@ -933,7 +946,7 @@ Blockly.Gesture.prototype.setStartBlock = function(block) {
  * @private
  */
 Blockly.Gesture.prototype.setTargetBlock_ = function(block) {
-  if (block.isShadow()) {
+  if (block.isShadow() && !this.shouldDuplicateOnDrag_) {
     this.setTargetBlock_(block.getParent());
   } else {
     this.targetBlock_ = block;
@@ -1050,6 +1063,7 @@ Blockly.Gesture.prototype.forceStartBlockDrag = function(fakeEvent, block) {
 /**
  * Duplicate the target block and start dragging the duplicated block.
  * This should be done once we are sure that it is a block drag, and no earlier.
+ * Specifically for argument reporters in custom block defintions.
  * @private
  */
 Blockly.Gesture.prototype.duplicateOnDrag_ = function() {
@@ -1057,11 +1071,15 @@ Blockly.Gesture.prototype.duplicateOnDrag_ = function() {
   try {
     // Note: targetBlock_ should have no children.  If it has children we would
     // need to update shadow block IDs to avoid problems in the VM.
+    // Resizes will be reenabled at the end of the drag.
+    this.startWorkspace_.setResizesEnabled(false);
     var xmlBlock = Blockly.Xml.blockToDom(this.targetBlock_);
     newBlock = Blockly.Xml.domToBlock(xmlBlock, this.startWorkspace_);
+
     // Move the duplicate to original position.
     var xy = this.targetBlock_.getRelativeToSurfaceXY();
     newBlock.moveBy(xy.x, xy.y);
+    newBlock.setShadow(false);
   } finally {
     Blockly.Events.enable();
   }
