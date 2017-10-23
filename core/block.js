@@ -115,6 +115,12 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
    * @private
    */
   this.alwaysAvailable_ = false;
+  
+    /**
+     * @type {boolean}
+     * @private
+     */
+    this.canChoose_ = true;
 
   /**
    * @type {boolean}
@@ -786,6 +792,24 @@ Blockly.Block.prototype.isAlwaysAvailable = function() {
  */
 Blockly.Block.prototype.setAlwaysAvailable = function(alwaysAvailable) {
   this.alwaysAvailable_ = alwaysAvailable;
+};
+
+
+
+/**
+ * OB: Get whether this block can be chosen on the workspace
+ * @return {boolean} True if always available.
+ */
+Blockly.Block.prototype.canChoose = function() {
+  return this.canChoose_ && !this.isShadow_ &&
+      !(this.workspace && this.workspace.options.readOnly);
+};
+/**
+ * OB: Set whether this block can be chosen or not
+ * @param {boolean} movable True if you can choose it.
+ */
+Blockly.Block.prototype.setCanChoose = function(canChoose) {
+  this.canChoose_ = canChoose;
 };
 
 

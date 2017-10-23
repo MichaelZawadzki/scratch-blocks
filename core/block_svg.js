@@ -297,6 +297,9 @@ Blockly.BlockSvg.prototype.setGlowStack = function(isGlowingStack) {
 };
 
 Blockly.BlockSvg.prototype.setChosen = function(isChosen) {
+  if(!this.canChoose()) {
+    return;
+  }
   this.isChosen_ = isChosen;
   if(this.isChosen_) {
     this.addChosen();
