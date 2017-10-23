@@ -192,7 +192,6 @@ Blockly.BlocksSelection.prototype.updateRectSize = function (newW, newH) {
 
 Blockly.BlocksSelection.prototype.getSelectionIntersection = function() {
   this.getSelectionIntersection_boundingBox();
-  //this.getSelectionIntersection_lib();
 };
 
 Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = function() {
@@ -216,87 +215,6 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = functio
       }
     }
   }
-};
-
-// Experimental function here!
-Blockly.BlocksSelection.prototype.getSelectionIntersection_lib = function() {
-
-  console.log("----- Find intersecting blocks ------");
-  console.log("Selection rect:");
-  console.log(this.rect);
-
-  var wsScale = this.workspace_.scale;
-  
-    var baseSvg = this.workspace_.blocksSelectionLayer.SVG_;
-  
-    var divXY = Blockly.utils.getInjectionDivXY_(this.workspace_.blocksSelectionLayer.selectionRect_);
-    console.log("Div xy: "+ divXY.x + " " + divXY.y);
-    console.log("Blocks:");
-    var allBlocks = this.workspace_.getAllBlocks();
-    var currentBlock = null;
-    for(var i = 0; i < allBlocks.length; i++) {
-      currentBlock = allBlocks[i];
-      if(currentBlock) {
-        //console.log("\t" + currentBlock.type);
-        //var blockXY = currentBlock.getRelativeToSurfaceXY();
-        var blockBoundingRect = currentBlock.getBoundingRectangle();
-        //console.log(blockBoundingRect);
-  /*
-        console.log(this.rect);
-        console.log(currentBlock.svgPath_);
-        var rectangle = new Rectangle(this.workspace_.blocksSelectionLayer.selectionRect_);
-        var path = new Path(currentBlock.svgPath_);
-        var intersections = Intersection.intersectShapes(rectangle, path);
-        console.log("Intersections: ");
-        console.log(intersections);
-  */
-  
-        var selectionRect = this.rect;
-        var blockRect =
-        {
-          x:      blockBoundingRect.topLeft.x * wsScale, 
-          y:      blockBoundingRect.topLeft.y * wsScale, 
-          width:  (blockBoundingRect.bottomRight.x - blockBoundingRect.topLeft.x) * wsScale,
-          height: (blockBoundingRect.bottomRight.y - blockBoundingRect.topLeft.y) * wsScale,
-        };
-  
-        //console.log("\tblock rect:");
-        //console.log(blockRect);
-  
-        //var isIntersect = Blockly.BlocksSelection.isIntersecting(selectionRect, blockRect);
-        //console.log("\t\t---> Intersecting? " + isIntersect);
-  
-        var rect = baseSvg.createSVGRect();
-        rect.x = divXY.x; //this.rect.x;
-        rect.y = divXY.y; //this.rect.y;
-        rect.width = this.rect.width; // = 133.3
-        rect.height = this.rect.height; // = 40
-  
-        //console.log(rect);
-        //console.log(currentBlock.svgPath_);
-  
-        var blockXY = currentBlock.getRelativeToSurfaceXY();
-        //console.log("Block xy: " + blockXY.x + " " + blockXY.y);
-  
-        var intersects = baseSvg.checkIntersection(currentBlock.svgPath_, rect);
-        //console.log("Intersect? " + intersects);
-        var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
-        //console.log("Enclosed? " + enclosed);
-  
-        //var retVal = svg.checkIntersection(rect, this.workspace_.blocksSelectionLayer.selectionRect_);
-        // topLeft x/y
-        // bottomRight x/y
-  
-        //console.log("");
-  
-        if(intersects) {
-          this.addToChosenBlocks(currentBlock);
-        }
-  
-      }
-    }
-    //var position = block.getSvgRoot().getBoundingClientRect();
-    //var newXY = this.getRelativeToSurfaceXY();
 };
 
 // x,y,width,height format
