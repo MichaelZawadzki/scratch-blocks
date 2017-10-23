@@ -708,11 +708,15 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   if (editable) {
     block.setEditable(editable == 'true');
   }
-
-
+  // OB
   var alwaysAvailable = xmlBlock.getAttribute('alwaysavailable')
   if (alwaysAvailable) {
     block.setAlwaysAvailable(alwaysAvailable == 'true');
+  } 
+  // OB: Blocks can be chosen by default
+  var canChoose = xmlBlock.getAttribute('canChoose')
+  if (canChoose) {
+    block.setCanChoose(canChoose == 'true');
   } 
 
 
