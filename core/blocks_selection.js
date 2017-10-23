@@ -75,7 +75,9 @@ Blockly.BlocksSelection = function(workspace) {
  * @package
  */
 Blockly.BlocksSelection.prototype.dispose = function() {
-  this.workspace_.blocksSelectionLayer.hideRect();
+  if(this.workspace_ && this.workspace_.blocksSelectionLayer) {
+    this.workspace_.blocksSelectionLayer.hideRect();
+  }
   this.workspace_ = null;
   this.startSelectXY_ = null;
   this.currentSelectXY_ = null;
@@ -107,6 +109,8 @@ Blockly.BlocksSelection.prototype.startSelection = function(e, mouseDownXY) {
 
     //console.log("Set rect @ " + this.currentSelectXY_.x + " " + this.currentSelectXY_.y);
     this.workspace_.blocksSelectionLayer.showRect(this.currentSelectXY_.x, this.currentSelectXY_.y);
+
+    this.clearChosenBlocks();
   }
 };
 
@@ -117,10 +121,12 @@ Blockly.BlocksSelection.prototype.startSelection = function(e, mouseDownXY) {
  * @package
  */
 Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
-  // Make sure everything is up to date.
-  this.updateSelection(currentDragDeltaXY);
-  // Find blocks that are intersecting the selection rect
-  this.getSelectionIntersection();
+  if(this.workspace_ && this.workspace_.blocksSelectionLayer) {
+    // Make sure everything is up to date.
+    this.updateSelection(currentDragDeltaXY);
+    // Find blocks that are intersecting the selection rect
+    this.getSelectionIntersection();
+  }
 };
 
 /**
@@ -185,85 +191,112 @@ Blockly.BlocksSelection.prototype.updateRectSize = function (newW, newH) {
 };
 
 Blockly.BlocksSelection.prototype.getSelectionIntersection = function() {
-  
-  console.log("----- Find intersecting blocks ------");
-  console.log("Selection rect:");
-  console.log(this.rect);
+  this.getSelectionIntersection_boundingBox();
+  //this.getSelectionIntersection_lib();
+};
 
-  var wsScale = this.workspace_.scale;
-
+Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = function() {
   var baseSvg = this.workspace_.blocksSelectionLayer.SVG_;
-
   var divXY = Blockly.utils.getInjectionDivXY_(this.workspace_.blocksSelectionLayer.selectionRect_);
-  console.log("Div xy: "+ divXY.x + " " + divXY.y);
-
-  console.log("Blocks:");
   var allBlocks = this.workspace_.getAllBlocks();
   var currentBlock = null;
   for(var i = 0; i < allBlocks.length; i++) {
     currentBlock = allBlocks[i];
     if(currentBlock) {
-      console.log("\t" + currentBlock.type);
-      //var blockXY = currentBlock.getRelativeToSurfaceXY();
-      var blockBoundingRect = currentBlock.getBoundingRectangle();
-      //console.log(blockBoundingRect);
-/*
-      console.log(this.rect);
-      console.log(currentBlock.svgPath_);
-      var rectangle = new Rectangle(this.workspace_.blocksSelectionLayer.selectionRect_);
-      var path = new Path(currentBlock.svgPath_);
-      var intersections = Intersection.intersectShapes(rectangle, path);
-      console.log("Intersections: ");
-      console.log(intersections);
-*/
-
-
-
-
-
-      var selectionRect = this.rect;
-      var blockRect =
-      {
-        x:      blockBoundingRect.topLeft.x * wsScale, 
-        y:      blockBoundingRect.topLeft.y * wsScale, 
-        width:  (blockBoundingRect.bottomRight.x - blockBoundingRect.topLeft.x) * wsScale,
-        height: (blockBoundingRect.bottomRight.y - blockBoundingRect.topLeft.y) * wsScale,
-      };
-
-      //console.log("\tblock rect:");
-      //console.log(blockRect);
-
-      //var isIntersect = Blockly.BlocksSelection.isIntersecting(selectionRect, blockRect);
-      //console.log("\t\t---> Intersecting? " + isIntersect);
-
       var rect = baseSvg.createSVGRect();
-      rect.x = divXY.x; //this.rect.x;
-      rect.y = divXY.y; //this.rect.y;
-      rect.width = this.rect.width; // = 133.3
-      rect.height = this.rect.height; // = 40
-
-      console.log(rect);
-      console.log(currentBlock.svgPath_);
-
-      var blockXY = currentBlock.getRelativeToSurfaceXY();
-      console.log("Block xy: " + blockXY.x + " " + blockXY.y);
+      rect.x = divXY.x;
+      rect.y = divXY.y;
+      rect.width = this.rect.width;
+      rect.height = this.rect.height;
 
       var intersects = baseSvg.checkIntersection(currentBlock.svgPath_, rect);
-      console.log("Intersect? " + intersects);
-      var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
-      console.log("Enclosed? " + enclosed);
-
-      //var retVal = svg.checkIntersection(rect, this.workspace_.blocksSelectionLayer.selectionRect_);
-      // topLeft x/y
-      // bottomRight x/y
-
-      console.log("");
-
+      //var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
+      if(intersects) {
+        this.addToChosenBlocks(currentBlock);
+      }
     }
   }
-  //var position = block.getSvgRoot().getBoundingClientRect();
-  //var newXY = this.getRelativeToSurfaceXY();
+};
 
+// Experimental function here!
+Blockly.BlocksSelection.prototype.getSelectionIntersection_lib = function() {
+
+  console.log("----- Find intersecting blocks ------");
+  console.log("Selection rect:");
+  console.log(this.rect);
+
+  var wsScale = this.workspace_.scale;
+  
+    var baseSvg = this.workspace_.blocksSelectionLayer.SVG_;
+  
+    var divXY = Blockly.utils.getInjectionDivXY_(this.workspace_.blocksSelectionLayer.selectionRect_);
+    console.log("Div xy: "+ divXY.x + " " + divXY.y);
+    console.log("Blocks:");
+    var allBlocks = this.workspace_.getAllBlocks();
+    var currentBlock = null;
+    for(var i = 0; i < allBlocks.length; i++) {
+      currentBlock = allBlocks[i];
+      if(currentBlock) {
+        //console.log("\t" + currentBlock.type);
+        //var blockXY = currentBlock.getRelativeToSurfaceXY();
+        var blockBoundingRect = currentBlock.getBoundingRectangle();
+        //console.log(blockBoundingRect);
+  /*
+        console.log(this.rect);
+        console.log(currentBlock.svgPath_);
+        var rectangle = new Rectangle(this.workspace_.blocksSelectionLayer.selectionRect_);
+        var path = new Path(currentBlock.svgPath_);
+        var intersections = Intersection.intersectShapes(rectangle, path);
+        console.log("Intersections: ");
+        console.log(intersections);
+  */
+  
+        var selectionRect = this.rect;
+        var blockRect =
+        {
+          x:      blockBoundingRect.topLeft.x * wsScale, 
+          y:      blockBoundingRect.topLeft.y * wsScale, 
+          width:  (blockBoundingRect.bottomRight.x - blockBoundingRect.topLeft.x) * wsScale,
+          height: (blockBoundingRect.bottomRight.y - blockBoundingRect.topLeft.y) * wsScale,
+        };
+  
+        //console.log("\tblock rect:");
+        //console.log(blockRect);
+  
+        //var isIntersect = Blockly.BlocksSelection.isIntersecting(selectionRect, blockRect);
+        //console.log("\t\t---> Intersecting? " + isIntersect);
+  
+        var rect = baseSvg.createSVGRect();
+        rect.x = divXY.x; //this.rect.x;
+        rect.y = divXY.y; //this.rect.y;
+        rect.width = this.rect.width; // = 133.3
+        rect.height = this.rect.height; // = 40
+  
+        //console.log(rect);
+        //console.log(currentBlock.svgPath_);
+  
+        var blockXY = currentBlock.getRelativeToSurfaceXY();
+        //console.log("Block xy: " + blockXY.x + " " + blockXY.y);
+  
+        var intersects = baseSvg.checkIntersection(currentBlock.svgPath_, rect);
+        //console.log("Intersect? " + intersects);
+        var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
+        //console.log("Enclosed? " + enclosed);
+  
+        //var retVal = svg.checkIntersection(rect, this.workspace_.blocksSelectionLayer.selectionRect_);
+        // topLeft x/y
+        // bottomRight x/y
+  
+        //console.log("");
+  
+        if(intersects) {
+          this.addToChosenBlocks(currentBlock);
+        }
+  
+      }
+    }
+    //var position = block.getSvgRoot().getBoundingClientRect();
+    //var newXY = this.getRelativeToSurfaceXY();
 };
 
 // x,y,width,height format
@@ -273,4 +306,39 @@ Blockly.BlocksSelection.isIntersecting = function (rectA, rectB) {
     || rectB.y > (rectA.y + rectA.height)
     || (rectB.y + rectB.height) < rectA.y
     );
+};
+
+/**
+ * OB: Array of selected blocks
+ * @type {!Array.<!Blockly.Block>}
+ */
+Blockly.BlocksSelection.blocks = null;
+
+/**
+ * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
+ */
+Blockly.BlocksSelection.prototype.clearChosenBlocks = function () {
+  //console.trace();
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      if(Blockly.BlocksSelection.blocks[i]) {
+        Blockly.BlocksSelection.blocks[i].setChosen(false);
+      }
+    }
+  }
+  Blockly.BlocksSelection.blocks = null;
+};
+
+/**
+ * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
+ * @param {!Blockly.Block} block The block to add and update.
+ */
+Blockly.BlocksSelection.prototype.addToChosenBlocks = function (block) {
+  if(!Blockly.BlocksSelection.blocks) {
+    Blockly.BlocksSelection.blocks = [];
+  }
+  if(block) {
+    block.setChosen(true);
+    Blockly.BlocksSelection.blocks.push(block);
+  }
 };

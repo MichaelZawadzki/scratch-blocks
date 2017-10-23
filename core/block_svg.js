@@ -225,8 +225,6 @@ Blockly.BlockSvg.prototype.select = function() {
   Blockly.Events.fire(event);
   Blockly.selected = this;
   this.addSelect();
-
-  this.setChosen(true);
 };
 
 /**
@@ -241,8 +239,6 @@ Blockly.BlockSvg.prototype.unselect = function() {
   Blockly.Events.fire(event);
   Blockly.selected = null;
   this.removeSelect();
-
-  this.setChosen(false);
 };
 
 /**

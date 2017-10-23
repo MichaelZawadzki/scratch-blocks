@@ -762,6 +762,12 @@ Blockly.Gesture.prototype.handleWsStart = function(e, ws, multiTouch) {
   // if(this.isDraggingBlock_ && multiTouch === true) {
   //   return;
   // }
+  
+  // OB: 'handleWsStart' is called even if touch is started on a block;
+  // Only clear selected blocks if the workspace start was NOT called after starting on block
+  if(!this.targetBlock_) {
+    Blockly.BlocksSelection.prototype.clearChosenBlocks();
+  }
 
   this.setStartWorkspace_(ws);
   this.mostRecentEvent_ = e;
@@ -778,6 +784,9 @@ Blockly.Gesture.prototype.handleFlyoutStart = function(e, flyout) {
   goog.asserts.assert(!this.hasStarted_,
      'Tried to call gesture.handleFlyoutStart, but the gesture had already been ' +
      'started.');
+
+  Blockly.BlocksSelection.prototype.clearChosenBlocks();
+
   this.setStartFlyout_(flyout);
   this.handleWsStart(e, flyout.getWorkspace());
 };
@@ -792,8 +801,25 @@ Blockly.Gesture.prototype.handleBlockStart = function(e, block) {
   goog.asserts.assert(!this.hasStarted_,
      'Tried to call gesture.handleBlockStart, but the gesture had already been ' +
      'started.');
+/*
+     console.log("--- Handle Block Start ---");
+     console.log("block: " + block.type);
+     console.log("is chosen?: " + block.isChosen_);
+     console.trace();
+*/
   this.setStartBlock(block);
+
+
+  if(block && block == this.targetBlock_ && block.isChosen_ !== true) {
+    Blockly.BlocksSelection.prototype.clearChosenBlocks();
+  }
+
   this.mostRecentEvent_ = e;
+
+
+  //console.log("Target block: " + this.targetBlock_.type);
+  //e.stopPropagation();
+
 };
 
 /* Begin functions defining what actions to take to execute clicks on each type
