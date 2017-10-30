@@ -226,6 +226,10 @@ Blockly.BlockSvg.prototype.select = function() {
   Blockly.Events.fire(event);
   Blockly.selected = this;
   this.addSelect();
+
+  if(this.workspace.blocksSelectionLayer) {
+    Blockly.BlocksSelection.addToChosenBlocks(this);
+  }
 };
 
 /**
