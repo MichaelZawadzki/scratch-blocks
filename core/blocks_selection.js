@@ -29,7 +29,6 @@ goog.provide('Blockly.BlocksSelection');
 goog.require('goog.math.Coordinate');
 goog.require('goog.asserts');
 
-
 /**
  * Class for a workspace dragger.  It moves the workspace around when it is
  * being dragged by a mouse or touch.
@@ -68,6 +67,8 @@ Blockly.BlocksSelection = function(workspace) {
   this.currentSelectXY_ = null;
 
   this.rect = null;
+
+  Blockly.BlocksSelection.instance = this;
 };
 
 /**
@@ -82,6 +83,8 @@ Blockly.BlocksSelection.prototype.dispose = function() {
   this.startSelectXY_ = null;
   this.currentSelectXY_ = null;
   this.rect = null;
+
+  Blockly.BlocksSelection.blockSelectionInstance = null;
 };
 
 /**
@@ -110,7 +113,7 @@ Blockly.BlocksSelection.prototype.startSelection = function(e, mouseDownXY) {
     //console.log("Set rect @ " + this.currentSelectXY_.x + " " + this.currentSelectXY_.y);
     this.workspace_.blocksSelectionLayer.showRect(this.currentSelectXY_.x, this.currentSelectXY_.y);
 
-    this.clearChosenBlocks();
+    Blockly.BlocksSelection.clearChosenBlocks();
   }
 };
 
@@ -211,7 +214,7 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = functio
       var intersects = baseSvg.checkIntersection(currentBlock.svgPath_, rect);
       //var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
       if(intersects) {
-        this.addToChosenBlocks(currentBlock);
+        Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
       }
     }
   }
@@ -226,6 +229,7 @@ Blockly.BlocksSelection.isIntersecting = function (rectA, rectB) {
     );
 };
 
+
 /**
  * OB: Array of selected blocks
  * @type {!Array.<!Blockly.Block>}
@@ -235,8 +239,7 @@ Blockly.BlocksSelection.blocks = null;
 /**
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */
-Blockly.BlocksSelection.prototype.clearChosenBlocks = function () {
-  //console.trace();
+Blockly.BlocksSelection.clearChosenBlocks = function () {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       if(Blockly.BlocksSelection.blocks[i]) {
@@ -251,12 +254,61 @@ Blockly.BlocksSelection.prototype.clearChosenBlocks = function () {
  * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
  * @param {!Blockly.Block} block The block to add and update.
  */
-Blockly.BlocksSelection.prototype.addToChosenBlocks = function (block) {
+Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
   if(block) {
     block.setChosen(true);
-    Blockly.BlocksSelection.blocks.push(block);
+    if(Blockly.BlocksSelection.blocks.indexOf(block) < 0)
+      Blockly.BlocksSelection.blocks.push(block);
   }
+};
+
+/**
+ * Removes a block and its inputs from the list of chosen blocks.
+ * @param {!Blockly.Block} block The block to remove.
+ */
+Blockly.BlocksSelection.removeFromChosenBlocks = function (block) {
+  if(Blockly.BlocksSelection.blocks && block) {
+    // Remove block's input blocks
+    var input = null;
+    for(var i = 0; i < block.inputList.length; i++) {
+      input = block.inputList[i];
+      if(input && input.connection && input.connection.targetConnection && input.connection.targetConnection.sourceBlock_) {
+        //Blockly.BlocksSelection.removeBlock(input.connection.targetConnection.sourceBlock_);
+        Blockly.BlocksSelection.removeFromChosenBlocks(input.connection.targetConnection.sourceBlock_);
+      }
+    }
+    // Remove actual block
+    Blockly.BlocksSelection.removeBlock(block);
+  }
+};
+
+/**
+ * Removes just one specific block from the list of chosen blocks. Also unsets the chosen state of this blocks.
+ * @param {!Blockly.Block} block The block to remove and update.
+ */
+Blockly.BlocksSelection.removeBlock = function (block) {
+  if(Blockly.BlocksSelection.blocks && block) {
+    block.setChosen(false);
+    for (var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      if (Blockly.BlocksSelection.blocks[i] === block) {
+        Blockly.BlocksSelection.blocks.splice(i, 1);
+        break;
+      }
+    }
+  }
+};
+
+/**
+ * OB: Instance of block selection
+ */
+Blockly.BlocksSelection.blockSelectionInstance = null;
+
+/**
+ * OB: Return instance of block selection
+ */
+Blockly.BlocksSelection.getBlockSelectionInstance = function () {
+  return Blockly.BlocksSelection.blockSelectionInstance;
 };

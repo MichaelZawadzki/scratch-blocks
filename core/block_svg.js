@@ -226,6 +226,10 @@ Blockly.BlockSvg.prototype.select = function() {
   Blockly.Events.fire(event);
   Blockly.selected = this;
   this.addSelect();
+
+  if(this.workspace.blocksSelectionLayer) {
+    Blockly.BlocksSelection.addToChosenBlocks(this);
+  }
 };
 
 /**
@@ -1072,6 +1076,9 @@ Blockly.BlockSvg.prototype.dispose = function(healStack, animate) {
   if (Blockly.selected == this) {
     this.unselect();
     this.workspace.cancelCurrentGesture();
+  }
+  if(this.isChosen_) {
+    Blockly.BlocksSelection.removeFromChosenBlocks(this);
   }
   // If this block has a context menu open, close it.
   if (Blockly.ContextMenu.currentBlock == this) {
