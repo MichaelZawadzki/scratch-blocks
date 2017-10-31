@@ -1077,6 +1077,9 @@ Blockly.BlockSvg.prototype.dispose = function(healStack, animate) {
     this.unselect();
     this.workspace.cancelCurrentGesture();
   }
+  if(this.isChosen_) {
+    Blockly.BlocksSelection.removeFromChosenBlocks(this);
+  }
   // If this block has a context menu open, close it.
   if (Blockly.ContextMenu.currentBlock == this) {
     Blockly.ContextMenu.hide();
