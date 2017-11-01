@@ -575,13 +575,6 @@ AbsolutePathSegment.prototype.getLastPoint = function() {
     return this.points[this.points.length - 1];
 };
 AbsolutePathSegment.prototype.getIntersectionParams = function() {
-/*
-    console.log("--- AbsolutePathSegment ---");
-    console.log("\tPoints:");
-    console.log(this.points);
-    console.log("\tPrev:");
-    console.log(this.previous);
-*/
     if(this.previous) {
         return IntersectionParams.newLine(this.previous.getLastPoint(), this.points[0]);
     }

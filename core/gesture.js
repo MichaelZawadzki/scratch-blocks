@@ -778,7 +778,7 @@ Blockly.Gesture.prototype.handleWsStart = function(e, ws, multiTouch) {
   // OB: 'handleWsStart' is called even if touch is started on a block;
   // Only clear selected blocks if the workspace start was NOT called after starting on block
   if(!this.targetBlock_) {
-    Blockly.BlocksSelection.prototype.clearChosenBlocks();
+    Blockly.BlocksSelection.clearChosenBlocks();
   }
 
   this.setStartWorkspace_(ws);
@@ -797,7 +797,7 @@ Blockly.Gesture.prototype.handleFlyoutStart = function(e, flyout) {
      'Tried to call gesture.handleFlyoutStart, but the gesture had already been ' +
      'started.');
 
-  Blockly.BlocksSelection.prototype.clearChosenBlocks();
+  Blockly.BlocksSelection.clearChosenBlocks();
 
   this.setStartFlyout_(flyout);
   this.handleWsStart(e, flyout.getWorkspace());
@@ -823,7 +823,7 @@ Blockly.Gesture.prototype.handleBlockStart = function(e, block) {
 
 
   if(block && block == this.targetBlock_ && block.isChosen_ !== true) {
-    Blockly.BlocksSelection.prototype.clearChosenBlocks();
+    Blockly.BlocksSelection.clearChosenBlocks();
   }
 
   this.mostRecentEvent_ = e;
