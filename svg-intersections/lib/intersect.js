@@ -8,14 +8,14 @@
  *      @copyright 2015 Robert Benko (Quazistax) <quazistax@gmail.com>
  *      @license MIT
  */
-
+/*
 var Point2D = require('kld-affine').Point2D;
 var Vector2D = require('kld-affine').Vector2D;
 var Matrix2D = require('kld-affine').Matrix2D;
 var Polynomial = require('kld-polynomial').Polynomial;
 var IntersectionParams = require('./IntersectionParams');
 var Intersection = require('./Intersection');
-
+*/
 var IPTYPE = IntersectionParams.TYPE;
 
 
@@ -672,6 +672,8 @@ function intersect(shape1, shape2, m1, m2) {
                 params = params2.concat(params1);
             }
 
+            //console.log("Method:" + method);
+
             result = intersectionFunctions[method].apply(null, params);
 
             if (useCTM) {
@@ -687,15 +689,23 @@ function intersect(shape1, shape2, m1, m2) {
     return result;
 }
 
-intersect.plugin = function() {
-    for(var i = 0; i < arguments.length; i++) {
-        var arg = arguments[i];
-        for(var key in arg) {
-            if(arg.hasOwnProperty(key)) {
-                intersectionFunctions[key] = arg[key];
-            }
+// intersect.plugin = function() {
+//     for(var i = 0; i < arguments.length; i++) {
+//         var arg = arguments[i];
+//         for(var key in arg) {
+//             if(arg.hasOwnProperty(key)) {
+//                 intersectionFunctions[key] = arg[key];
+//             }
+//         }
+//     }
+// }
+intersect.plugin = function(arg) {
+    for(var key in arg) {
+        if(arg.hasOwnProperty(key)) {
+            intersectionFunctions[key] = arg[key];
         }
     }
 }
 
-module.exports = intersect;
+//module.exports = intersect;
+intersect.plugin(Bezier.BezierFunctions);

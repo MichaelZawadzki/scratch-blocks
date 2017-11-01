@@ -1,10 +1,10 @@
-var Intersection = require('../Intersection');
+//var Intersection = require('../Intersection');
 
-var affine = require('kld-affine');
-var Point2D = affine.Point2D;
-var Vector2D = affine.Vector2D;
+//var affine = require('kld-affine');
+//var Point2D = affine.Point2D;
+//var Vector2D = affine.Vector2D;
 
-var Polynomial = require('kld-polynomial').Polynomial;
+//var Polynomial = require('kld-polynomial').Polynomial;
 
 function removeMultipleRootsIn01(roots) {
     var ZEROepsilon = 1e-15;
@@ -19,7 +19,8 @@ function removeMultipleRootsIn01(roots) {
     }
 }
 
-module.exports = {};
+//module.exports = {};
+function Bezier() {};
 
 /**
  *  intersectBezier2Bezier2
@@ -32,7 +33,8 @@ module.exports = {};
  *  @param {Point2D} b3
  *  @returns {Intersection}
  */
-module.exports.intersectBezier2Bezier2 = function(a1, a2, a3, b1, b2, b3) {
+//module.exports.intersectBezier2Bezier2 = function(a1, a2, a3, b1, b2, b3) {
+Bezier.intersectBezier2Bezier2 = function(a1, a2, a3, b1, b2, b3) {
     var a, b;
     var c12, c11, c10;
     var c22, c21, c20;
@@ -141,7 +143,8 @@ module.exports.intersectBezier2Bezier2 = function(a1, a2, a3, b1, b2, b3) {
  *  @param {Point2D} b4
  *  @returns {Intersection}
  */
-module.exports.intersectBezier2Bezier3 = function(a1, a2, a3, b1, b2, b3, b4) {
+//module.exports.intersectBezier2Bezier3 = function(a1, a2, a3, b1, b2, b3, b4) {
+Bezier.intersectBezier2Bezier3 = function(a1, a2, a3, b1, b2, b3, b4) {
     var a, b,c, d;
     var c12, c11, c10;
     var c23, c22, c21, c20;
@@ -268,7 +271,8 @@ module.exports.intersectBezier2Bezier3 = function(a1, a2, a3, b1, b2, b3, b4) {
  *  @param {Number} ry
  *  @returns {Intersection}
  */
-module.exports.intersectBezier2Ellipse = function(p1, p2, p3, ec, rx, ry) {
+//module.exports.intersectBezier2Ellipse = function(p1, p2, p3, ec, rx, ry) {
+Bezier.intersectBezier2Ellipse = function(p1, p2, p3, ec, rx, ry) {
     var a, b;       // temporary variables
     var c2, c1, c0; // coefficients of quadratic
     var result = new Intersection();
@@ -315,7 +319,8 @@ module.exports.intersectBezier2Ellipse = function(p1, p2, p3, ec, rx, ry) {
  *  @param {Point2D} a2
  *  @returns {Intersection}
  */
-module.exports.intersectBezier2Line = function(p1, p2, p3, a1, a2) {
+//module.exports.intersectBezier2Line = function(p1, p2, p3, a1, a2) {
+Bezier.intersectBezier2Line = function(p1, p2, p3, a1, a2) {
     var a, b;             // temporary variables
     var c2, c1, c0;       // coefficients of quadratic
     var cl;               // c coefficient for normal form of line
@@ -396,7 +401,8 @@ module.exports.intersectBezier2Line = function(p1, p2, p3, a1, a2) {
  *  @param {Point2D} b4
  *  @returns {Intersection}
  */
-module.exports.intersectBezier3Bezier3 = function(a1, a2, a3, a4, b1, b2, b3, b4) {
+//module.exports.intersectBezier3Bezier3 = function(a1, a2, a3, a4, b1, b2, b3, b4) {
+Bezier.intersectBezier3Bezier3 = function(a1, a2, a3, a4, b1, b2, b3, b4) {
     var a, b, c, d;         // temporary variables
     var c13, c12, c11, c10; // coefficients of cubic
     var c23, c22, c21, c20; // coefficients of cubic
@@ -709,7 +715,8 @@ module.exports.intersectBezier3Bezier3 = function(a1, a2, a3, a4, b1, b2, b3, b4
  *  @param {Number} ry
  *  @returns {Intersection}
  */
-module.exports.intersectBezier3Ellipse = function(p1, p2, p3, p4, ec, rx, ry) {
+//module.exports.intersectBezier3Ellipse = function(p1, p2, p3, p4, ec, rx, ry) {
+Bezier.intersectBezier3Ellipse = function(p1, p2, p3, p4, ec, rx, ry) {
     var a, b, c, d;       // temporary variables
     var c3, c2, c1, c0;   // coefficients of cubic
     var result = new Intersection();
@@ -776,7 +783,8 @@ module.exports.intersectBezier3Ellipse = function(p1, p2, p3, p4, ec, rx, ry) {
  *  @param {Point2D} a2
  *  @returns {Intersection}
  */
-module.exports.intersectBezier3Line = function(p1, p2, p3, p4, a1, a2) {
+//module.exports.intersectBezier3Line = function(p1, p2, p3, p4, a1, a2) {
+Bezier.intersectBezier3Line = function(p1, p2, p3, p4, a1, a2) {
     var a, b, c, d;       // temporary variables
     var c3, c2, c1, c0;   // coefficients of cubic
     var cl;               // c coefficient for normal form of line
@@ -868,4 +876,13 @@ module.exports.intersectBezier3Line = function(p1, p2, p3, p4, a1, a2) {
 
     return result;
 };
+
+Bezier.BezierFunctions = [];
+Bezier.BezierFunctions['intersectBezier2Bezier2'] = Bezier.intersectBezier2Bezier2;
+Bezier.BezierFunctions['intersectBezier2Bezier3'] = Bezier.intersectBezier2Bezier3;
+Bezier.BezierFunctions['intersectBezier2Ellipse'] = Bezier.intersectBezier2Ellipse;
+Bezier.BezierFunctions['intersectBezier2Line'] = Bezier.intersectBezier2Line;
+Bezier.BezierFunctions['intersectBezier3Bezier3'] = Bezier.intersectBezier3Bezier3;
+Bezier.BezierFunctions['intersectBezier3Ellipse'] = Bezier.intersectBezier3Ellipse;
+Bezier.BezierFunctions['intersectBezier3Line'] = Bezier.intersectBezier3Line;
 

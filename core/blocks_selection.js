@@ -191,8 +191,36 @@ Blockly.BlocksSelection.prototype.updateRectSize = function (newW, newH) {
 };
 
 Blockly.BlocksSelection.prototype.getSelectionIntersection = function() {
-  this.getSelectionIntersection_boundingBox();
-  //this.getSelectionIntersection_lib();
+  var startTime = Date.now();
+
+  this.getSelectionEnclosure();
+  //this.getSelectionIntersection_boundingBox();
+  this.getSelectionIntersection_lib();
+
+  var deltaTime = Date.now() - startTime;
+  console.log("Selection time: " + deltaTime + " ms");
+};
+
+Blockly.BlocksSelection.prototype.getSelectionEnclosure = function() {
+  var baseSvg = this.workspace_.blocksSelectionLayer.SVG_;
+  var divXY = Blockly.utils.getInjectionDivXY_(this.workspace_.blocksSelectionLayer.selectionRect_);
+  var allBlocks = this.workspace_.getAllBlocks();
+  var currentBlock = null;
+  for(var i = 0; i < allBlocks.length; i++) {
+    currentBlock = allBlocks[i];
+    if(currentBlock && this.isInChosenBlocks(currentBlock) === false) {
+      var rect = baseSvg.createSVGRect();
+      rect.x = divXY.x;
+      rect.y = divXY.y;
+      rect.width = this.rect.width;
+      rect.height = this.rect.height;
+
+      var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
+      if(enclosed) {
+        this.addToChosenBlocks(currentBlock);
+      }
+    }
+  }
 };
 
 Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = function() {
@@ -210,7 +238,6 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = functio
       rect.height = this.rect.height;
 
       var intersects = baseSvg.checkIntersection(currentBlock.svgPath_, rect);
-      //var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
       if(intersects) {
         this.addToChosenBlocks(currentBlock);
       }
@@ -220,83 +247,37 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection_boundingBox = functio
 
 // Experimental function here!
 Blockly.BlocksSelection.prototype.getSelectionIntersection_lib = function() {
+  // Create selection rectangle shape get find its transform matrix
+  var rectangleShape = IntersectionParams.newShape("rect", {x: this.rect.x, y: this.rect.y, width: this.rect.width, height: this.rect.height});
+  var rectangleMatrix = this.workspace_.blocksSelectionLayer.selectionRect_.getCTM();
 
-  console.log("----- Find intersecting blocks ------");
-  console.log("Selection rect:");
-  console.log(this.rect);
-
-  var wsScale = this.workspace_.scale;
-  
-    var baseSvg = this.workspace_.blocksSelectionLayer.SVG_;
-  
-    var divXY = Blockly.utils.getInjectionDivXY_(this.workspace_.blocksSelectionLayer.selectionRect_);
-    console.log("Div xy: "+ divXY.x + " " + divXY.y);
-    console.log("Blocks:");
-    var allBlocks = this.workspace_.getAllBlocks();
-    var currentBlock = null;
-    for(var i = 0; i < allBlocks.length; i++) {
-      currentBlock = allBlocks[i];
-      if(currentBlock) {
-        //console.log("\t" + currentBlock.type);
-        //var blockXY = currentBlock.getRelativeToSurfaceXY();
-        var blockBoundingRect = currentBlock.getBoundingRectangle();
-        //console.log(blockBoundingRect);
-  /*
-        console.log(this.rect);
-        console.log(currentBlock.svgPath_);
-        var rectangle = new Rectangle(this.workspace_.blocksSelectionLayer.selectionRect_);
-        var path = new Path(currentBlock.svgPath_);
-        var intersections = Intersection.intersectShapes(rectangle, path);
-        console.log("Intersections: ");
-        console.log(intersections);
-  */
-  
-        var selectionRect = this.rect;
-        var blockRect =
-        {
-          x:      blockBoundingRect.topLeft.x * wsScale, 
-          y:      blockBoundingRect.topLeft.y * wsScale, 
-          width:  (blockBoundingRect.bottomRight.x - blockBoundingRect.topLeft.x) * wsScale,
-          height: (blockBoundingRect.bottomRight.y - blockBoundingRect.topLeft.y) * wsScale,
-        };
-  
-        //console.log("\tblock rect:");
-        //console.log(blockRect);
-  
-        //var isIntersect = Blockly.BlocksSelection.isIntersecting(selectionRect, blockRect);
-        //console.log("\t\t---> Intersecting? " + isIntersect);
-  
-        var rect = baseSvg.createSVGRect();
-        rect.x = divXY.x; //this.rect.x;
-        rect.y = divXY.y; //this.rect.y;
-        rect.width = this.rect.width; // = 133.3
-        rect.height = this.rect.height; // = 40
-  
-        //console.log(rect);
-        //console.log(currentBlock.svgPath_);
-  
-        var blockXY = currentBlock.getRelativeToSurfaceXY();
-        //console.log("Block xy: " + blockXY.x + " " + blockXY.y);
-  
-        var intersects = baseSvg.checkIntersection(currentBlock.svgPath_, rect);
-        //console.log("Intersect? " + intersects);
-        var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
-        //console.log("Enclosed? " + enclosed);
-  
-        //var retVal = svg.checkIntersection(rect, this.workspace_.blocksSelectionLayer.selectionRect_);
-        // topLeft x/y
-        // bottomRight x/y
-  
-        //console.log("");
-  
-        if(intersects) {
-          this.addToChosenBlocks(currentBlock);
-        }
-  
+  // Check all blocks to see if they intersect
+  var allBlocks = this.workspace_.getAllBlocks();
+  var currentBlock = null;
+  for(var i = 0; i < allBlocks.length; i++) 
+  {
+    currentBlock = allBlocks[i];
+    if(currentBlock) 
+    {
+      // Create path shape
+      var blockPath = currentBlock.svgPath_;
+      var pathDefinition = blockPath.getAttribute("d");
+      var pathShape = IntersectionParams.newShape("path", {d: pathDefinition});
+      var pathMatrix = blockPath.getCTM();
+      // Find intersection between select shape and block shape
+      var intersections = intersect(
+        rectangleShape,
+        pathShape, 
+        new Matrix2D(rectangleMatrix.a, rectangleMatrix.b, rectangleMatrix.c, rectangleMatrix.d, rectangleMatrix.e, rectangleMatrix.f),
+        new Matrix2D(pathMatrix.a, pathMatrix.b, pathMatrix.c, pathMatrix.d, pathMatrix.e, pathMatrix.f),
+      );
+      // Add block to 'chosen' if it intersects
+      var intersects = (intersections != null && intersections.points.length > 0);
+      if(currentBlock && intersects) {
+        this.addToChosenBlocks(currentBlock);
       }
     }
-    //var position = block.getSvgRoot().getBoundingClientRect();
-    //var newXY = this.getRelativeToSurfaceXY();
+  }
 };
 
 // x,y,width,height format
@@ -341,4 +322,19 @@ Blockly.BlocksSelection.prototype.addToChosenBlocks = function (block) {
     block.setChosen(true);
     Blockly.BlocksSelection.blocks.push(block);
   }
+};
+
+/**
+ * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
+ * @param {!Blockly.Block} block The block to add and update.
+ */
+Blockly.BlocksSelection.prototype.isInChosenBlocks = function (block) {
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      if(Blockly.BlocksSelection.blocks[i] === block) {
+        return true;
+      }
+    }
+  }
+  return false;
 };

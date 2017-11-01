@@ -1,4 +1,4 @@
-var Point2D = require('kld-affine').Point2D;
+//var Point2D = require('kld-affine').Point2D;
 
 
 /**
@@ -440,8 +440,30 @@ IntersectionParams.newPath = function(d) {
             var segment;
             var length = segments.length;
             var previous = (length == 0) ? null : segments[length - 1];
+
+
+
+            // console.log("Command: " + mode);
+            // console.log("\tparams: ");
+            // console.log(params);
+            // console.log("\tprevious: ");
+            // console.log(previous);
+
+
             switch (mode) {
                 case "A":
+                    segment = new AbsoluteArcPath(params, previous);
+                    break;
+                case "a":
+                    // OB: should do a 'AbsoluteArcPath' function, but no time, sorry
+                    var dy = params.pop();
+                    var dx = params.pop();
+                    var prevPoint = previous.getLastPoint();
+                    var newDx = dx + prevPoint.x;
+                    var newDy = dy + prevPoint.y;
+                    params.push(newDx);
+                    params.push(newDy);
+
                     segment = new AbsoluteArcPath(params, previous);
                     break;
                 case "C":
@@ -452,6 +474,10 @@ IntersectionParams.newPath = function(d) {
                     break;
                 case "H":
                     segment = new AbsoluteHLineto(params, previous);
+                    break;
+                case "h":
+                    params.push(0);
+                    segment = new RelativeLineto(params, previous);
                     break;
                 case "L":
                     segment = new AbsoluteLineto(params, previous);
@@ -483,6 +509,13 @@ IntersectionParams.newPath = function(d) {
                 case "t":
                     segment = new RelativeSmoothCurveto2(params, previous);
                     break;
+                case "V":
+                    segment = new AbsoluteVLineto(params, previous);
+                    break;
+                case "v":
+                    params.unshift(0);
+                    segment = new RelativeLineto(params, previous);
+                    break;
                 case "Z":
                     segment = new RelativeClosePath(params, previous);
                     break;
@@ -492,6 +525,7 @@ IntersectionParams.newPath = function(d) {
                 default:
                     throw new Error("Unsupported segment type: " + mode);
             };
+
             segments.push(segment);
             index += param_length;
             token = tokens[index];
@@ -504,9 +538,19 @@ IntersectionParams.newPath = function(d) {
 
     var segmentParams = [];
     for(i=0; i<segments.length; i++) {
+        
+        //console.log("\tsegment " + i);
+        //console.log(segments[i]);
+
         var ip = segments[i].getIntersectionParams();
         if(ip) {
             segmentParams.push(ip);
+
+            //console.log('\t\tintersection param:');
+            //console.log(ip);
+        }
+        else {
+            //console.log('----> no intersection param');
         }
     }
 
@@ -531,7 +575,19 @@ AbsolutePathSegment.prototype.getLastPoint = function() {
     return this.points[this.points.length - 1];
 };
 AbsolutePathSegment.prototype.getIntersectionParams = function() {
-    return null;
+/*
+    console.log("--- AbsolutePathSegment ---");
+    console.log("\tPoints:");
+    console.log(this.points);
+    console.log("\tPrev:");
+    console.log(this.previous);
+*/
+    if(this.previous) {
+        return IntersectionParams.newLine(this.previous.getLastPoint(), this.points[0]);
+    }
+    else {
+        return null;
+    }
 };
 
 
@@ -616,6 +672,21 @@ AbsoluteHLineto.prototype.init = function(command, params, previous) {
     AbsoluteHLineto.superclass.init.call(this, command, point, previous);
 };
 
+function AbsoluteVLineto(params, previous) {
+    if (arguments.length > 0) {
+        this.init("V", params, previous);
+    }
+}
+AbsoluteVLineto.prototype = new AbsolutePathSegment();
+AbsoluteVLineto.prototype.constructor = AbsoluteVLineto;
+AbsoluteVLineto.superclass = AbsolutePathSegment.prototype;
+
+AbsoluteVLineto.prototype.init = function(command, params, previous) {
+    var prevPoint = previous.getLastPoint();
+    var point = new Array();
+    point.push(prevPoint.x, params.pop());
+    AbsoluteVLineto.superclass.init.call(this, command, point, previous);
+};
 
 function AbsoluteLineto(params, previous) {
     if (arguments.length > 0) {
@@ -629,8 +700,6 @@ AbsoluteLineto.superclass = AbsolutePathSegment.prototype;
 AbsoluteLineto.prototype.getIntersectionParams = function() {
     return IntersectionParams.newLine(this.previous.getLastPoint(), this.points[0]);
 };
-
-
 
 function AbsoluteMoveto(params, previous) {
     if (arguments.length > 0) {
@@ -872,4 +941,4 @@ RelativeSmoothCurveto3.prototype.getIntersectionParams = function() {
 };
 
 
-module.exports = IntersectionParams;
+//module.exports = IntersectionParams;
