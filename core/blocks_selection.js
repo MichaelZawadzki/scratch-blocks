@@ -211,7 +211,7 @@ Blockly.BlocksSelection.prototype.getSelectionEnclosure = function() {
   var currentBlock = null;
   for(var i = 0; i < allBlocks.length; i++) {
     currentBlock = allBlocks[i];
-    if(currentBlock && this.isInChosenBlocks(currentBlock) === false) {
+    if(currentBlock && Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
       var rect = baseSvg.createSVGRect();
       rect.x = divXY.x;
       rect.y = divXY.y;
@@ -220,7 +220,7 @@ Blockly.BlocksSelection.prototype.getSelectionEnclosure = function() {
 
       var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
       if(enclosed) {
-        this.addToChosenBlocks(currentBlock);
+        Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
       }
     }
   }
@@ -257,11 +257,9 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection_lib = function() {
   // Check all blocks to see if they intersect
   var allBlocks = this.workspace_.getAllBlocks();
   var currentBlock = null;
-  for(var i = 0; i < allBlocks.length; i++) 
-  {
+  for(var i = 0; i < allBlocks.length; i++) {
     currentBlock = allBlocks[i];
-    if(currentBlock) 
-    {
+    if(currentBlock) {
       // Create path shape
       var blockPath = currentBlock.svgPath_;
       var pathDefinition = blockPath.getAttribute("d");
@@ -277,7 +275,7 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection_lib = function() {
       // Add block to 'chosen' if it intersects
       var intersects = (intersections != null && intersections.points.length > 0);
       if(currentBlock && intersects) {
-        this.addToChosenBlocks(currentBlock);
+        Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
       }
     }
   }
@@ -332,7 +330,7 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
  * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
  * @param {!Blockly.Block} block The block to add and update.
  */
-Blockly.BlocksSelection.prototype.isInChosenBlocks = function (block) {
+Blockly.BlocksSelection.isInChosenBlocks = function (block) {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       if(Blockly.BlocksSelection.blocks[i] === block) {
@@ -341,6 +339,7 @@ Blockly.BlocksSelection.prototype.isInChosenBlocks = function (block) {
     }
   }
   return false;
+};
 
 /*
  * Removes a block and its inputs from the list of chosen blocks.
