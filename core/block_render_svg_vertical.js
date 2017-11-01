@@ -159,10 +159,25 @@ Blockly.BlockSvg.DUMMY_INPUT_HEIGHT = 1 * Blockly.BlockSvg.GRID_UNIT;
 
 
 /**
+* Amount of margin from the top left of a reflowed block to indent to draw the top left
+* of the shape. non-reflowed hex blocks use the HEIGHT of the block as this indent which doesnt work when the block is taller. 
+* @const
+*/
+Blockly.BlockSvg.REFLOW_EDGE_SHAPE_MARGIN =  5* Blockly.BlockSvg.GRID_UNIT;
+
+/**
  * Height of the top hat.
  * @const
  */
 Blockly.BlockSvg.START_HAT_HEIGHT = 16;
+
+/**
+ * Ratio of height to pointy-bit in the reflowed HEX input
+ * @const
+ * */
+Blockly.BlockSvg.REFLOWED_HEX_EDGE_HEIGHT_RATIO = 0.6;
+Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO = 1 - Blockly.BlockSvg.REFLOWED_HEX_EDGE_HEIGHT_RATIO;
+
 
 /**
  * Path of the top hat's curve.
@@ -992,7 +1007,23 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
   }
   row.height = 0;
   // Default padding for a block: same as separators between fields/inputs.
-  row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
+  if(this.isReflowed)
+  {
+    //MAXIM: This is really awful, temporary harded code. 
+    //It only works for very specific input sizes. The problem is that the width of the
+    //inputs / parent block have not yet been determined/assigned. We need a way to 
+    //calculate the proper spacing based on the size of the inputs. (Pre-calculate and assign 
+    //during the check for re-flowing?) 
+    if(input.name == "DUMMY_REFLOW_INPUT")
+    {
+      row.paddingStart = 100;
+    } else{
+      row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X*3;
+    }
+  }else
+  {
+    row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
+  }
   row.paddingEnd = Blockly.BlockSvg.SEP_SPACE_X;
   return row;
 };
@@ -1299,7 +1330,14 @@ Blockly.BlockSvg.prototype.renderDrawTop_ = function(steps, rightEdge) {
       }
       // Skip space for the output shape
       if (this.edgeShapeWidth_) {
-        steps.push('m ' + this.edgeShapeWidth_ + ',0');
+        if(this.isReflowed)
+        {
+          steps.push('m ' + Blockly.BlockSvg.REFLOW_EDGE_SHAPE_MARGIN + ',0');
+
+        }else
+        {
+          steps.push('m ' + this.edgeShapeWidth_ + ',0');
+        }
       }
     } else {
       steps.push(Blockly.BlockSvg.TOP_LEFT_CORNER_START);
@@ -1385,7 +1423,12 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
         steps.push(Blockly.BlockSvg.TOP_RIGHT_CORNER);
       } else {
         // Don't include corner radius - no corner (edge shape drawn).
-        steps.push('H', cursorX - this.edgeShapeWidth_);
+        if(this.isReflowed)
+        {
+          steps.push('H', cursorX -  Blockly.BlockSvg.REFLOW_EDGE_SHAPE_MARGIN);
+        }else{
+          steps.push('H', cursorX - this.edgeShapeWidth_);
+        }
       }
       // Subtract CORNER_RADIUS * 2 to account for the top right corner
       // and also the bottom right corner. Only move vertically the non-corner length.
@@ -1509,7 +1552,12 @@ Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, cursorY) {
     // Bottom left corner
     steps.push(Blockly.BlockSvg.BOTTOM_LEFT_CORNER);
   } else {
-    steps.push('H', this.edgeShapeWidth_);
+    if(this.isReflowed)
+    {
+      steps.push('H', Blockly.BlockSvg.REFLOW_EDGE_SHAPE_MARGIN); 
+    }else{
+      steps.push('H', this.edgeShapeWidth_);
+    }
   }
 };
 
@@ -1533,8 +1581,12 @@ Blockly.BlockSvg.prototype.renderDrawLeft_ = function(steps) {
       // Draw a half-hexagon.
       if(this.isReflowed)
       {
-        steps.push('v' + -this.edgeShapeWidth_/2 +  'l ' + -this.edgeShapeWidth_/2 + ' ' + -this.edgeShapeWidth_/2 +
-        ' l ' + this.edgeShapeWidth_/2 + ' ' + -this.edgeShapeWidth_/2 + 'v' + -this.edgeShapeWidth_/2);
+        steps.push('v' + -this.edgeShapeWidth_ * Blockly.BlockSvg.REFLOWED_HEX_EDGE_HEIGHT_RATIO +
+                   'l ' + -this.edgeShapeWidth_ * Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO + 
+                   ' ' + -this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO +
+                   'l ' + this.edgeShapeWidth_ * Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO + 
+                   ' ' + -this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO + 
+                   'v' + -this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_HEIGHT_RATIO);
       }else{
         steps.push('l ' + -this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_ +
         ' l ' + this.edgeShapeWidth_ + ' ' + -this.edgeShapeWidth_);
@@ -1560,8 +1612,12 @@ Blockly.BlockSvg.prototype.drawEdgeShapeRight_ = function(steps) {
     } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
       if(this.isReflowed)
       {
-        steps.push('v' + this.edgeShapeWidth_/2 +  'l ' + this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 +
-        ' l ' + -this.edgeShapeWidth_/2 + ' ' + this.edgeShapeWidth_/2 + 'v' + this.edgeShapeWidth_/2);
+        steps.push('v' + this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_HEIGHT_RATIO +  
+                   'l ' + this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO + 
+                   ' ' + this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO +
+                   'l ' + -this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO +
+                   ' ' + this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_POINTER_RATIO + 
+                   'v' + this.edgeShapeWidth_* Blockly.BlockSvg.REFLOWED_HEX_EDGE_HEIGHT_RATIO);
       }else{
         // Draw an half-hexagon.
         steps.push('l ' + this.edgeShapeWidth_ + ' ' + this.edgeShapeWidth_ +

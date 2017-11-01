@@ -608,7 +608,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
         var blockRect = this.getBoundingRectangle();
         var subStacks = [];
         if (this.previousConnection) {
-          blockHighlight.lineSegments.push(
+          blockHighlight.lineSegments.push(   //LINE AT TOP OF THE FIRST BLOCK
             {
               x : blockRect.topLeft.x,
               y : blockRect.topLeft.y
@@ -618,7 +618,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
         // always render the last line
         if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
           var bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
-          blockHighlight.lineSegments.push(
+          blockHighlight.lineSegments.push( // VERY LAST LINE
             {
               x : blockRect.bottomRight.x,
               y : blockRect.bottomRight.y - bottomOffset
@@ -642,16 +642,17 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
           
           if (substack.renderHeight) {
             // empty sub stack add the line.
-            if (!substack.connection.targetConnection) {
-              blockHighlight.lineSegments.push(
+            if (!substack.connection.targetConnection) { 
+              offsetY = substack.connection.offsetInBlock_.y; //This is the height of the top of the 'C'
+              blockHighlight.lineSegments.push(//LINE AT BOTTOM OF AN EMPTY C BLOCK
                 {
                   x : blockRect.topLeft.x,
-                  y : blockRect.topLeft.y + offsetY
+                  y : blockRect.topLeft.y + offsetY 
                 });
       
               offsetY += substack.renderHeight;
       
-              blockHighlight.lineSegments.push(
+              blockHighlight.lineSegments.push( //LINE AT TOP OF THE BOTTOM OF THE 'C'
                 {
                   x : blockRect.topLeft.x,
                   y : blockRect.topLeft.y + offsetY
