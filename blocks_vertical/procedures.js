@@ -88,6 +88,8 @@ Blockly.Blocks['procedures_callnoreturn'] = {
     this._updateDisplay();
   },
   _updateDisplay: function() {
+    var wasRendered = this.rendered;
+    this.rendered = false;
     // Split the proc into components, by %n, %b, and %s (ignoring escaped).
     var procComponents = this.procCode_.split(/(?=[^\\]\%[nbs])/);
     procComponents = procComponents.map(function(c) {
@@ -108,6 +110,10 @@ Blockly.Blocks['procedures_callnoreturn'] = {
             var num = this.workspace.newBlock('math_number');
             num.setShadow(true);
             num.outputConnection.connect(input.connection);
+            if (!this.isInsertionMarker()) {
+              num.initSvg();
+              num.render(false);
+            }
             break;
           case 'b':
             var input = this.appendValueInput(inputName);
@@ -118,12 +124,21 @@ Blockly.Blocks['procedures_callnoreturn'] = {
             var text = this.workspace.newBlock('text');
             text.setShadow(true);
             text.outputConnection.connect(input.connection);
+            if (!this.isInsertionMarker()) {
+              text.initSvg();
+              text.render(false);
+            }
             break;
         }
       } else {
         newLabel = component.trim();
       }
       this.appendDummyInput().appendField(newLabel.replace(/\\%/, '%'));
+    }
+    this.rendered = wasRendered;
+    if (wasRendered && !this.isInsertionMarker()) {
+      this.initSvg();
+      this.render();
     }
   }
 };
@@ -293,7 +308,7 @@ Blockly.Blocks['argument_reporter_boolean'] = {
     this.jsonInit({ "message0": " %1",
       "args0": [
         {
-          "type": "field_label_editable",
+          "type": "field_label_serializable",
           "name": "VALUE",
           "text": ""
         }
@@ -308,12 +323,64 @@ Blockly.Blocks['argument_reporter_string_number'] = {
     this.jsonInit({ "message0": " %1",
       "args0": [
         {
-          "type": "field_label_editable",
+          "type": "field_label_serializable",
           "name": "VALUE",
           "text": ""
         }
       ],
       "extensions": ["colours_more", "output_number", "output_string"]
     });
+  }
+};
+
+Blockly.Blocks['procedures_mutator_root'] = {
+  /**
+   * The root block in the procedure editing workspace.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "extensions": ["colours_more", "shape_statement"]
+    });
+    /* Data known about the procedure. */
+    this.procCode_ = '';
+    this.argumentNames_ = [];
+    this.argumentDefaults_ = [];
+    this.warp_ = false;
+  },
+  /**
+   * Returns the name of the procedure this block calls, or the empty string if
+   * it has not yet been set.
+   * @return {string} Procedure name.
+   * @this Blockly.Block
+   */
+  getProcCode: function() {
+    return this.procCode_;
+  },
+  /**
+   * Create XML to represent the (non-editable) name and arguments.
+   * @return {!Element} XML storage element.
+   * @this Blockly.Block
+   */
+  mutationToDom: function() {
+
+    var container = document.createElement('mutation');
+    container.setAttribute('proccode', this.procCode_);
+    container.setAttribute('argumentnames', JSON.stringify(this.argumentNames_));
+    container.setAttribute('argumentdefaults', JSON.stringify(this.argumentDefaults_));
+    container.setAttribute('warp', this.warp_);
+    return container;
+  },
+  /**
+   * Parse XML to restore the (non-editable) name and parameters.
+   * @param {!Element} xmlElement XML storage element.
+   * @this Blockly.Block
+   */
+  domToMutation: function(xmlElement) {
+    this.procCode_ = xmlElement.getAttribute('proccode');
+    this.argumentNames_ =  JSON.parse(xmlElement.getAttribute('argumentnames'));
+    this.argumentDefaults_ =  JSON.parse(xmlElement.getAttribute('argumentdefaults'));
+    this.warp_ = xmlElement.getAttribute('warp');
+    //this.updateDisplay_();
   }
 };

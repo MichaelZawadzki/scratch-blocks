@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Custom Procedure Playground</title>
+    <script src="../blockly_uncompressed_vertical.js"></script>
+    <script src="../msg/messages.js"></script>
+    <script src="../blocks_vertical/vertical_extensions.js"></script>
+    <script src="../blocks_common/math.js"></script>
+    <script src="../blocks_common/text.js"></script>
+    <script src="../blocks_common/colour.js"></script>
+    <script src="../blocks_vertical/control.js"></script>
+    <script src="../blocks_vertical/event.js"></script>
+    <script src="../blocks_vertical/motion.js"></script>
+    <script src="../blocks_vertical/looks.js"></script>
+    <script src="../blocks_vertical/procedures.js"></script>
+    <script src="../blocks_vertical/operators.js"></script>
+    <script src="../blocks_vertical/pen.js"></script>
+    <script src="../blocks_vertical/sound.js"></script>
+    <script src="../blocks_vertical/sensing.js"></script>
+    <script src="../blocks_vertical/data.js"></script>
+  <style>
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+    h1 {
+      font-weight: normal;
+      font-size: 140%;
+    }
+  </style>
+</head>
+<body>
+
+  <p>This page has two workspaces.  The workspace on the left (primaryWorkspace) will be the custom procedure editing workspace, which will hold a single non-deletable block.  The workspace on the right will hold the resulting procedure definition and call blocks.</p>
+
+
+  <table width="100%">
+    <tr>
+      <td>
+        <div id="primaryDiv" style="height: 480px; width: 600px;"></div>
+      </td>
+      <td>
+        <div id="secondaryDiv" style="height: 480px; width: 600px;"></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <button id="text_number">Add text/number input</button>
+        <button id="boolean">Add boolean input</button>
+        <button id="label">Add label</button>
+        <button id="cancelButton">cancel</button>
+        <button id="okButton" onclick="applyMutation()">ok</button>
+      </td>
+      <td></td>
+    </tr>
+  </table>
+
+  <xml id="toolbox" style="display: none">
+    <block type="pen_clear"></block>
+    <block type="pen_stamp"></block>
+    <block type="pen_pendown"></block>
+    <block type="pen_penup"></block>
+  </xml>
+
+  <xml id="mutator_blocks" style="display:none">
+    <block type="procedures_mutator_root" x="25" y="25" deletable="false">
+    <mutation proccode="say %s %n times if %b" argumentnames="[&quot;something&quot;,&quot;this many&quot;,&quot;this is true&quot;]" argumentdefaults="[&quot;&quot;,1,false]" warp="false"/>
+    </block>
+  </xml>
+
+  <xml id="main_ws_blocks" style="display:none">
+    <block id="]){{Y!7N9ezN+j@Vr`8p" type="procedures_defnoreturn" x="25" y="25">
+      <statement name="custom_block">
+          <shadow type="procedures_callnoreturn_internal" id="caller_internal">
+              <mutation proccode="say %s %n times if %b" argumentnames="[&quot;something&quot;,&quot;this many&quot;,&quot;this is true&quot;]" argumentdefaults="[&quot;&quot;,1,false]" warp="false"/>
+          </shadow>
+      </statement>
+      <next>
+          <block id="caller_external" type="procedures_callnoreturn">
+              <mutation proccode="say %s %n times if %b"/>
+              <value name="input0">
+                  <shadow id="V0~M:TxRk0Ua%osjGzh," type="text">
+                      <field name="TEXT"/>
+                  </shadow>
+              </value>
+              <value name="input1">
+                  <shadow id="uPx3si(KkbL1)-XpbXoQ" type="math_number">
+                      <field name="NUM">1</field>
+                  </shadow>
+              </value>
+          </block>
+      </next>
+  </block>
+  </xml>
+
+  <xml id="main_ws_blocks_simpler" style="display:none">
+    <block id="]){{Y!7N9ezN+j@Vr`8p" type="procedures_defnoreturn" x="25" y="25">
+      <statement name="custom_block">
+          <shadow type="procedures_callnoreturn_internal" id="caller_internal">
+              <mutation proccode="say %s %n times if %b" argumentnames="[&quot;something&quot;,&quot;this many&quot;,&quot;this is true&quot;]" argumentdefaults="[&quot;&quot;,1,false]" warp="false"/>
+          </shadow>
+      </statement>
+      <next>
+          <block id="caller_external" type="procedures_callnoreturn">
+          </block>
+      </next>
+  </block>
+  </xml>
+
+
+  <script>
+    // Inject primary workspace.
+    var primaryWorkspace = Blockly.inject('primaryDiv',
+        {media: '../media/'});
+
+    Blockly.Xml.domToWorkspace(document.getElementById('mutator_blocks'),
+        primaryWorkspace);
+
+    // Inject secondary workspace.
+    var secondaryWorkspace = Blockly.inject('secondaryDiv',
+        {media: '../media/'});
+
+    Blockly.Xml.domToWorkspace(document.getElementById('main_ws_blocks_simpler'),
+        secondaryWorkspace);
+
+    function applyMutation() {
+      var mutation = primaryWorkspace.getTopBlocks()[0].mutationToDom();
+      console.log(mutation);
+      secondaryWorkspace.getBlockById('caller_external').domToMutation(mutation);
+    }
+</script>
+
+</body>
+</html>
