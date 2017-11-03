@@ -168,7 +168,7 @@ Blockly.BlocksSelectionLayerSvg.prototype.resize = function(width, height) {
     // Update width and height.
     var drawW = width;
     var drawH = height;
-    // Make sure width or height is always at least 0, or else there's times we don't see the rectangle
+    // Make sure width or height is always at least 1, or else there's times we don't see the rectangle
     if(drawW === 0 && drawH !== 0) {
       drawW = 1;
     }
