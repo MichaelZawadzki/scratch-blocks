@@ -205,24 +205,17 @@ Blockly.BlocksSelection.prototype.getSelectionIntersection = function() {
 /**
  * Find the intersection of workspace blocks and selection rectangle.
  * The library call to detect the intersection with SVG paths is expensive. To reduce its cost,
- * we first check which blocks are either enclosed or bounding-box intersecting with the selection,
+ * we first check which blocks are bounding-box intersecting with the selection,
  * and then use the SVG intersection detection on this reduced set ob blocks.
  */
 Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = function() {
   var wsBlocks = this.workspace_.getAllBlocks();
+  var selectedBlocks = [];
 
-  var potentialBlocks = [];
-  var enclosedBlocks = this.getEnclosedBlocks(wsBlocks);
-  if(enclosedBlocks) {
-    potentialBlocks = potentialBlocks.concat(enclosedBlocks);
-  }
-  var intersectBlocks = this.getIntersectedBlocks_boundingBox(wsBlocks);
-  if(intersectBlocks) {
-    potentialBlocks = potentialBlocks.concat(intersectBlocks);
-  }
+  selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks)));
+  selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks));
 
-  var finalBlocks = this.getIntersectedBlocks_lib(potentialBlocks);
-  Blockly.BlocksSelection.addMultipleToChosenBlocks(finalBlocks);
+  Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
 }
 
 
