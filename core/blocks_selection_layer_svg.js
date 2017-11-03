@@ -242,8 +242,17 @@ Blockly.BlocksSelectionLayerSvg.prototype.setPosition = function(x, y) {
 Blockly.BlocksSelectionLayerSvg.prototype.resize = function(width, height) {
   if (this.selectionRect_) {
     // Update width and height.
-    this.selectionRect_.setAttribute('width', width);
-    this.selectionRect_.setAttribute('height', height);
+    var drawW = width;
+    var drawH = height;
+    // Make sure width or height is always at least 1, or else there's times we don't see the rectangle
+    if(drawW === 0 && drawH !== 0) {
+      drawW = 1;
+    }
+    else if(drawW !== 0 && drawH === 0 ) {
+      drawH = 1;
+    }
+    this.selectionRect_.setAttribute('width', drawW);
+    this.selectionRect_.setAttribute('height', drawH);
   }
 };
 
