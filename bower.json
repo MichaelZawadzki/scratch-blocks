@@ -49,8 +49,6 @@
         "svg-intersections/kld-polynomial/.*",
         "svg-intersections/kld-polynomial/*.*",
         "svg-intersections/kld-polynomial/LICENSE",
-        "svg-intersections/kld-polynomial/test",
-
-        "svg-intersections/lib"
+        "svg-intersections/kld-polynomial/test"
     ]
 }
