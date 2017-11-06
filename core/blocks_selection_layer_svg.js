@@ -42,6 +42,9 @@ Blockly.BlocksSelectionLayerSvg = function(container) {
   this.container_ = container;
   this.createDom();
   this.createSVGRect_();
+
+  //this.createOtherDom();
+  //this.createOtherSVGRect_();
 };
 
 /**
@@ -64,6 +67,11 @@ Blockly.BlocksSelectionLayerSvg.prototype.container_ = null;
  * @private 
  */
 Blockly.BlocksSelectionLayerSvg.prototype.selectionRect_ = null;
+
+
+Blockly.BlocksSelectionLayerSvg.prototype.otherSVG_ = null;
+Blockly.BlocksSelectionLayerSvg.prototype.otherSelectionRect_ = null;
+
 
 /**
  * Create the layer and inject it into the container.
@@ -88,6 +96,17 @@ Blockly.BlocksSelectionLayerSvg.prototype.createDom = function() {
   this.container_.appendChild(this.SVG_);
 };
 
+Blockly.BlocksSelectionLayerSvg.prototype.createOtherDom = function () {
+  this.otherSVG_ = Blockly.utils.createSvgElement('svg', {
+    'xmlns': Blockly.SVG_NS,
+    'xmlns:html': Blockly.HTML_NS,
+    'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+    'version': '1.1',
+    'class': 'blocklyBlocksSelectionLayer',
+  }, null);
+  this.container_.appendChild(this.otherSVG_);
+};
+
 
 // /**
 //  * Create a single svg rect.
@@ -109,6 +128,63 @@ Blockly.BlocksSelectionLayerSvg.prototype.createSVGRect_ = function() {
     this.selectionRect_ = rect;
 
     this.hideRect();
+};
+
+Blockly.BlocksSelectionLayerSvg.prototype.createOtherSVGRect_ = function() {
+  
+    // // Make an SVG Rect to use for highlighting without having to recreate it every time.
+    // var rect = Blockly.utils.createSvgElement('rect',{
+    //   'x': 400,
+    //   'y': 100,
+    //   'width': 90,
+    //   'height': 90,
+    //   'fill' : '#ff0000',
+    //   'stroke' : '#a0d6fb',
+    //   'fill-opacity' : '0.4',
+    //   'class': 'blocksSelectionRect',
+    //   'visibility' : 'visible',
+    // }, this.otherSVG_);
+    // Make an SVG Rect to use for highlighting without having to recreate it every time.
+
+    var arcSize = 40;
+
+    var rect = Blockly.utils.createSvgElement('path',{
+      'fill':  '#ff0000',
+      'stroke' : '#a0d6fb',
+      'stroke-width' : 4,
+      'transform' : 'translate(400 100)',
+      //'d': 'M 365 100 A 90 100 0 0 0 465 300'
+      //'d': 'M 365 100 a 90 100 0 0 0 100 200'
+
+      //'M 400 100 h 90 v 90 h -90 v -90' 
+      
+      //'d': 'M 400 100 h 90 v 30 h -60 v 30 h 60 v 30 h -90 v -90'
+
+      //'d': 'm 0,0 H 100 V 20 h -100 z'
+
+      'd':
+          'm 0,40 A 40,40 0 0,1 40,0 ' +
+          //' h 172 '
+          'H 100 c 2,0 3,1 4,2 l 4,4 c 1,1 2,2 4,2 h 12 c 2,0 3,-1 4,-2 l 4,-4 c 1,-1 2,-2 4,-2 ' +
+          //'H 149.21591186523438 ' + 
+          'H 149 ' + 
+          'a 40,40 0 0,1 40,40 ' + 
+          'v 80 ' +
+          ' a 40,40 0 0,1 -40,40 ' + 
+          'h -172 ' +
+          'a 40,40 0 0,1 -40,-40 ' + 
+          'z'
+        
+  /*
+      m 0,4 A 4,4 0 0,1 4,0 H 12 c 2,0 3,1 4,2 l 4,4 c 1,1 2,2 4,2 h 12 c 2,0 3,-1 4,-2 l 4,-4 c 1,-1 2,-2 4,-2 H 149.21591186523438
+      a 4,4 0 0,1 4,4 v 40  a 4,4 0 0,1 -4,4 H 48   c -2,0 -3,1 -4,2 l -4,4 c -1,1 -2,2 -4,2 h -12 c -2,0 -3,-1 -4,-2 l -4,-4 c -1,-1 -2,-2 -4,-2 H 4 a 4,4 0 0,1 -4,-4 z
+  */
+
+      //'d': 'M 400 100 A 10,10 0 0,1 410,100'
+    }, this.otherSVG_);
+    this.otherSelectionRect_ = rect;
+
+    //this.hideRect();
 };
 
 Blockly.BlocksSelectionLayerSvg.prototype.setRectVisible = function(visible) {
