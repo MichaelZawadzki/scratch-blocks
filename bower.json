@@ -40,10 +40,12 @@
         "jsconfig.json",
         "gh-pages",
         ".vscode",
-        "svg-intersections/kld-affine/.*",
         "svg-intersections/kld-affine/scratchpad",
         "svg-intersections/kld-affine/test",
         "svg-intersections/kld-affine/visual-test",
+        "svg-intersections/kld-affine/LICENSE",
+        "svg-intersections/kld-affine/.*",
+        "svg-intersections/kld-affine/*.*",
 
         "svg-intersections/kld-polynomial",
         "svg-intersections/lib"
