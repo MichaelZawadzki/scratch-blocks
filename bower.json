@@ -6,7 +6,17 @@
         "msg/messages.js",
         "blocks_compressed.js",
         "blocks_compressed_vertical.js",
-        "javascript_compressed.js"
+        "javascript_compressed.js",
+        "svg-intersections/kld-affine/lib/Matrix2D.js",
+        "svg-intersections/kld-affine/lib/Point2D.js",
+        "svg-intersections/kld-affine/lib/Vector2D.js",
+        "svg-intersections/kld-polynomial/lib/Polynomial.js",
+        "svg-intersections/kld-polynomial/lib/PolynomialAdditionalMethods.js",
+        "svg-intersections/kld-polynomial/lib/SqrtPolynomial.js",
+        "svg-intersections/lib/functions/bezier.js",
+        "svg-intersections/lib/IntersectionParams.js",
+        "svg-intersections/lib/Intersection.js",
+        "svg-intersections/lib/Intersect.js"
     ],
     "ignore": [
         "blocks_common",
@@ -29,6 +39,9 @@
         "moveUncompressedFiles.sh_template.sh",
         "jsconfig.json",
         "gh-pages",
-        ".vscode"
+        ".vscode",
+        "svg-intersections/kld-affine",
+        "svg-intersections/kld-polynomial",
+        "svg-intersections/lib"
     ]
 }
