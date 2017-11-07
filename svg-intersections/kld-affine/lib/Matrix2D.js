@@ -126,8 +126,8 @@ Matrix2D.nonUniformScalingAt = function(scaleX, scaleY, center) {
  *  @returns {Matrix2D}
  */
 Matrix2D.rotation = function(radians) {
-    let c = Math.cos(radians);
-    let s = Math.sin(radians);
+    var c = Math.cos(radians);
+    var s = Math.sin(radians);
 
     return new Matrix2D(c, s, -s, c, 0, 0);
 };
@@ -140,8 +140,8 @@ Matrix2D.rotation = function(radians) {
  *  @returns {Matrix2D}
  */
 Matrix2D.rotationAt = function(radians, center) {
-    let c = Math.cos(radians);
-    let s = Math.sin(radians);
+    var c = Math.cos(radians);
+    var s = Math.sin(radians);
 
     return new Matrix2D(
         c,
