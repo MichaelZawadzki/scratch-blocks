@@ -347,7 +347,7 @@ Bezier.intersectBezier2Line = function(p1, p2, p3, a1, a2) {
 
     // Transform cubic coefficients to line's coordinate system and find roots
     // of cubic
-    roots = new Polynomial(
+    var roots = new Polynomial(
         n.dot(c2),
         n.dot(c1),
         n.dot(c0) + cl
