@@ -387,6 +387,43 @@ Blockly.BlockSvg.prototype.setParent = function(newParent) {
   }
 };
 
+
+/**
+ * Return the coordinates of the top-left corner of this block relative to another
+ * parent element.
+ * This does not change with workspace scale.
+ * @return {!goog.math.Coordinate} Object with .x and .y properties in
+ *     workspace coordinates. NULL if the other element is not a parent
+ */
+Blockly.BlockSvg.prototype.getRelativeToElementXY = function(otherElement) {
+  // The drawing surface is relative to either the workspace canvas
+  // or to the drag surface group.
+  var x = 0;
+  var y = 0;
+
+  var element = this.getSvgRoot();
+  if (element) {
+    do {
+      // Loop through this block and every parent.
+      var xy = Blockly.utils.getRelativeXY(element);
+      x += xy.x;
+      y += xy.y;
+      // If this element is the current element on the drag surface, include
+      // the translation of the drag surface itself.
+      if (this.useDragSurface_ && this.workspace.blockDragSurface_.getCurrentBlock() == element) {
+        var surfaceTranslation = this.workspace.blockDragSurface_.getSurfaceTranslation();
+        x += surfaceTranslation.x;
+        y += surfaceTranslation.y;
+      }
+      element = element.parentNode;
+    } while (element && element != otherElement);
+  }
+  if(element === otherElement)
+    return new goog.math.Coordinate(x, y);
+  else
+    return null;
+};
+
 /**
  * Return the coordinates of the top-left corner of this block relative to the
  * drawing surface's origin (0,0), in workspace units.
@@ -460,6 +497,20 @@ Blockly.BlockSvg.prototype.translate = function(x, y) {
 };
 
 /**
+ * Transforms a block by setting the translation on the transform attribute
+ * of the block's SVG.
+ * @param {number} x The x coordinate of the translation in workspace units.
+ * @param {number} y The y coordinate of the translation in workspace units.
+ */
+Blockly.BlockSvg.prototype.translateBy = function(x, y) {
+  var curTranslate = Blockly.utils.getRelativeXY(this.getSvgRoot());
+  var newX = (curTranslate ? curTranslate.x : 0) + x;
+  var newY = (curTranslate ? curTranslate.y : 0) + y;
+  this.getSvgRoot().setAttribute('transform',
+      'translate(' + newX + ',' + newY + ')');
+};
+
+/**
  * Move this block to its workspace's drag surface, accounting for positioning.
  * Generally should be called at the same time as setDragging_(true).
  * Does nothing if useDragSurface_ is false.
@@ -479,6 +530,34 @@ Blockly.BlockSvg.prototype.moveToDragSurface_ = function() {
   // Execute the move on the top-level SVG component
   this.workspace.blockDragSurface_.setBlocksAndShow(this.getSvgRoot());
 };
+
+
+Blockly.BlockSvg.prototype.addToDragSurface_ = function() {
+  if (!this.useDragSurface_) {
+    return;
+  }
+  // The translation for drag surface blocks,
+  // is equal to the current relative-to-surface position,
+  // to keep the position in sync as it move on/off the surface.
+  // This is in workspace coordinates.
+  var xy = this.getRelativeToSurfaceXY();
+  var surfaceXY = this.workspace.blockDragSurface_.surfaceXY_;
+  var translateXY = goog.math.Coordinate.sum(xy, surfaceXY);
+
+  console.log("# adding to drag surface");
+  console.log("\tsurface XY: " + surfaceXY.x + " " + surfaceXY.y);
+  console.log("\trel XY: " + xy.x + " " + xy.y);
+  console.log("--> Translate by " + translateXY);
+
+  this.clearTransformAttributes_();
+  this.translateBy(translateXY.x, translateXY.y);
+  
+  //this.clearTransformAttributes_();
+  //this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
+  // Execute the move on the top-level SVG component
+  this.workspace.blockDragSurface_.addBlockToSurface(this.getSvgRoot());
+};
+
 
 /**
  * Move this block back to the workspace block canvas.

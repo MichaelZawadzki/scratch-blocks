@@ -325,6 +325,16 @@ Blockly.BlocksSelection.isIntersecting = function (rectA, rectB) {
 Blockly.BlocksSelection.blocks = null;
 
 /**
+ * Are there any selected blocks
+ */
+Blockly.BlocksSelection.hasBlocks = function () {
+  if(Blockly.BlocksSelection.blocks != null && Blockly.BlocksSelection.blocks.length > 0) {
+    return true;
+  }
+  return false;
+};
+
+/**
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */
 Blockly.BlocksSelection.clearChosenBlocks = function () {
@@ -346,10 +356,11 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  if(block) {
+  if(block && !block.isShadow()) {
     block.setChosen(true);
-    if(Blockly.BlocksSelection.blocks.indexOf(block) < 0)
+    if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
+    }
   }
 };
 
@@ -427,3 +438,271 @@ Blockly.BlocksSelection.blockSelectionInstance = null;
 Blockly.BlocksSelection.getBlockSelectionInstance = function () {
   return Blockly.BlocksSelection.blockSelectionInstance;
 };
+
+Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
+  return (Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 1);
+};
+
+
+
+
+
+
+
+
+/**
+ * Disconnects chosen blocks from previous/next un-chosen blocks
+ */
+Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
+
+  console.log("# Unplugging chosen blocks");
+
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    var blocksToUnplug = Blockly.BlocksSelection.blocks.slice(0, Blockly.BlocksSelection.blocks.length);
+  
+    var currentBlock = null;
+    for(var i = 0; i < blocksToUnplug.length; i++) {
+      currentBlock = blocksToUnplug[i];
+      if(currentBlock) {
+
+        // 1- Find block atop this one that is not 'chosen'; disconnect
+        //console.log("Finding prev of " + currentBlock.type);
+        var lastChosenAbove = currentBlock;
+        var prevBlock = lastChosenAbove.getPreviousBlock();
+        while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
+          lastChosenAbove = prevBlock;
+          prevBlock = lastChosenAbove.getPreviousBlock();
+        }
+
+        if(lastChosenAbove) {
+          //console.log("\tlast chosen above is " + lastChosenAbove.type);
+
+          if(lastChosenAbove.previousConnection && lastChosenAbove.previousConnection.isConnected()) {
+            //console.log("Need to disconnect from " + lastChosenAbove.previousConnection.targetBlock().type);
+            lastChosenAbove.previousConnection.disconnect();
+
+            //console.log("--> Disconnect above " + lastChosenAbove.type);
+          }
+        }
+
+        // 2- Find block below this one that is not 'chosen'; disconnect
+        //console.log("Finding next of " + currentBlock.type);
+        var lastChosenBelow = currentBlock;
+        var nextBlock = lastChosenBelow.getNextBlock();
+        while(lastChosenBelow && nextBlock && nextBlock.isChosen_) {
+          lastChosenBelow = nextBlock;
+          nextBlock = lastChosenBelow.getNextBlock();
+        }
+
+        if(lastChosenBelow) {
+          //console.log("\tlast chosen below is " + lastChosenBelow.type);
+
+          if(lastChosenBelow.nextConnection && lastChosenBelow.nextConnection.isConnected()) {
+            //console.log("Need to disconnect from " + lastChosenBelow.nextConnection.targetBlock().type);
+            lastChosenBelow.nextConnection.disconnect();
+
+            //console.log("--> Disconnect below " + lastChosenBelow.type);
+          }
+        }
+      }
+    }
+  }
+};
+
+/**
+ * Gets the top-most block in a stack of blocks
+ * OB: Assumptions:
+ * - contiguous blocks
+ * - only one stack of blocks
+ */ 
+Blockly.BlocksSelection.getTopChosenBlock = function () {
+
+  console.log("# Finding top chosen block");
+
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    var currentBlock = null;
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      currentBlock = Blockly.BlocksSelection.blocks[i];
+      if(currentBlock) {
+        var lastChosenAbove = currentBlock;
+        var prevBlock = lastChosenAbove.getPreviousBlock();
+        while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
+          lastChosenAbove = prevBlock;
+          prevBlock = lastChosenAbove.getPreviousBlock();
+        }
+      }
+      if(lastChosenAbove) {
+        console.log("\tfound "+ lastChosenAbove.type);
+        break;
+      }
+    }
+  }
+
+  return lastChosenAbove;
+};
+
+
+
+
+
+
+
+// Blockly.BlocksSelection.startBlockDrag = function (dragBlock, startXY) {
+//   console.log("Drag chosen blocks");
+//   console.log("\tstart: " + startXY);
+//   //console.log("\tdelta: " + currentDeltaXY);
+//   var initialSurfaceX = -(startXY.x);
+//   var initialSurfaceY = -(startXY.y);
+  
+//   console.log("\tset initial SURFACE xy: " + initialSurfaceX + " " + initialSurfaceY);
+//   dragBlock.workspace.blockDragSurface_.translateSurface(initialSurfaceX, initialSurfaceY);
+//   Blockly.BlocksSelection.moveToDragSurface();
+// };
+
+// /**
+//  * Removes just one specific block from the list of chosen blocks. Also unsets the chosen state of this blocks.
+//  * @param {!Blockly.Block} block The block to remove and update.
+//  */
+// Blockly.BlocksSelection.moveToDragSurface = function () {
+//   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+//     Blockly.BlocksSelection.movedBlocks = [];
+//     var currentBlock = null;
+//     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+//       currentBlock = Blockly.BlocksSelection.blocks[i];
+//       Blockly.BlocksSelection.flattenHierarchy(currentBlock, currentBlock.getPreviousBlock());
+//     }
+//   }
+// };
+
+// Blockly.BlocksSelection.flattenHierarchy = function (block, topBlock) {
+//   if(!block || Blockly.BlocksSelection.isInMovedBlocks(block) === true) {
+//     return;
+//   }
+//   Blockly.BlocksSelection.movedBlocks.push(block);
+  
+//   if(block.isChosen_) {
+//     console.log("" + block.type + " is chosen... ");
+
+//     Blockly.BlocksSelection.flattenCurrentBlock(block, topBlock);
+
+//     // Look at next connected block
+//     var nextBlock = block.getNextBlock();
+//     if(nextBlock) {
+//       console.log("\tcheck next: " + nextBlock.type);
+//       Blockly.BlocksSelection.flattenHierarchy(nextBlock, topBlock);
+//     }
+//      if(block.workspace.blockDragSurface_.isInDragSurface(block.getSvgRoot()) === false)
+//        block.addToDragSurface_();
+//   }
+//   else {
+//     console.log("" + block.type + " is NOT chosen, alter SVG!");
+//     console.log("\tcurrent block: " + block.type);
+
+//     Blockly.BlocksSelection.flattenCurrentBlock(block, topBlock);
+//   }
+// };
+
+// Blockly.BlocksSelection.flattenCurrentBlock = function (block, topBlock) {
+//     // Move block's svg to be a sibling of block's parent
+//     var blockSvg = block.getSvgRoot();
+//     var parentSvg;
+//     if(topBlock) {
+//       console.log("\tparent block: " + topBlock.type);
+//       parentSvg = topBlock.getSvgRoot();
+//     }
+//     else {
+//       console.log("\tno parent block, use canvas root");
+//       parentSvg = block.workspace.svgBlockCanvas_;
+//     }
+
+//     var xy = block.getRelativeToElementXY(parentSvg);
+//     console.log("\trelative xy: " + xy.x + " " + xy.y);
+
+//     parentSvg.appendChild(blockSvg);
+//     block.translate(xy.x, xy.y);
+// };
+
+// Blockly.BlocksSelection.moveOffDragSurface = function(dragBlock, newXY) {
+//   // if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+//   //   var currentBlock = null;
+//   //   for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+//   //     currentBlock = Blockly.BlocksSelection.blocks[i];
+//   //     if(!currentBlock.workspace.blockDragSurface_) {
+//   //       continue;
+//   //     }
+//   //   }
+//   //   //block.workspace.blockDragSurface_
+//   // }
+
+//   dragBlock.workspace.blockDragSurface_.clearBlocksAndHide();
+// };
+
+// /*
+// Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
+//   if (!this.useDragSurface_) {
+//     return;
+//   }
+//   // Translate to current position, turning off 3d.
+//   this.translate(newXY.x, newXY.y);
+//   this.workspace.blockDragSurface_.clearAndHide(this.workspace.getCanvas());
+// };
+// */
+
+
+
+
+
+
+
+// Blockly.BlocksSelection.movedBlocks = null;
+
+// Blockly.BlocksSelection.isInMovedBlocks = function(block) {
+//   if(Blockly.BlocksSelection.movedBlocks && Blockly.BlocksSelection.movedBlocks.length > 0) {
+//     for(var i = 0; i < Blockly.BlocksSelection.movedBlocks.length; i++) {
+//       if(Blockly.BlocksSelection.movedBlocks[i] === block) {
+//         return true;
+//       }
+//     }
+//   }
+//   return false;
+// }
+
+
+
+// /*
+// Blockly.Block.prototype.getNextBlock = function() {
+//   return this.nextConnection && this.nextConnection.targetBlock();
+// };
+// Blockly.Block.prototype.getPreviousBlock = function() {
+//   return this.previousConnection && this.previousConnection.targetBlock();
+// };
+// */
+// /*
+//   Blockly.Block.prototype.unplug = function(opt_healStack) {
+//   var previousTarget = null;
+//   var nextTarget = null;
+//   if (this.outputConnection) {
+//     if (this.outputConnection.isConnected()) {
+//       // Disconnect from any superior block.
+//       this.outputConnection.disconnect();
+//     }
+//   } else if (this.previousConnection) {
+//     //var previousTarget = null;
+//     if (this.previousConnection.isConnected()) {
+//       // Remember the connection that any next statements need to connect to.
+//       previousTarget = this.previousConnection.targetConnection;
+//       // Detach this block from the parent's tree.
+//       this.previousConnection.disconnect();
+//     }
+//     var nextBlock = this.getNextBlock();
+//     if (opt_healStack && nextBlock) {
+//       // Disconnect the next statement.
+//       nextTarget = this.nextConnection.targetConnection;
+//       nextTarget.disconnect();
+//       if (previousTarget && previousTarget.checkType_(nextTarget)) {
+//         // Attach the next statement to the previous statement.
+//         previousTarget.connect(nextTarget);
+//       }
+//     }
+//   };
+// */

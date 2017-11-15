@@ -102,6 +102,8 @@ Blockly.BlockDragger = function(block, workspace) {
    * @private
    */
   this.dragIconData_ = Blockly.BlockDragger.initIconData_(block);
+
+  this.isDraggingChosenBlocks = false;
 };
 
 /**
@@ -157,26 +159,51 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   if (!Blockly.Events.getGroup()) {
     Blockly.Events.setGroup(true);
   }
-
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
-  this.initialDragParent_ = this.draggingBlock_.parentBlock_;
-  
-  var reconnectStack = (this.workspace_.options.dragSingleBlock === true);
-  if (this.draggingBlock_.getParent() || reconnectStack) {
-    this.draggingBlock_.unplug(reconnectStack);
+
+  this.isDraggingChosenBlocks = Blockly.BlocksSelection.isDraggingChosenBlocks();
+
+  // Drag block selection
+  if(this.isDraggingChosenBlocks) {
+
+    var reconnectStack = (this.workspace_.options.dragSingleBlock === true);
+    var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+    this.initialDragParent_ = topBlock.parentBlock_;
+    Blockly.BlocksSelection.unplugBlocks(reconnectStack);
+
     var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
     var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
 
     this.draggingBlock_.translate(newLoc.x, newLoc.y);
     this.draggingBlock_.disconnectUiEffect();
-  }
 
-  this.draggingBlock_.setDragging(true);
-  // For future consideration: we may be able to put moveToDragSurface inside
-  // the block dragger, which would also let the block not track the block drag
-  // surface.
-  this.draggingBlock_.moveToDragSurface_();
+    // Blockly.BlocksSelection.startBlockDrag(this.draggingBlock_, newLoc);
+
+    topBlock.setDragging(true);
+    topBlock.moveToDragSurface_();
+  }
+  // Regular drag
+  else 
+  {
+    this.initialDragParent_ = this.draggingBlock_.parentBlock_;
+    
+    var reconnectStack = (this.workspace_.options.dragSingleBlock === true);
+    if (this.draggingBlock_.getParent() || reconnectStack) {
+      this.draggingBlock_.unplug(reconnectStack);
+      var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
+      var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
+
+      this.draggingBlock_.translate(newLoc.x, newLoc.y);
+      this.draggingBlock_.disconnectUiEffect();
+    }
+
+    this.draggingBlock_.setDragging(true);
+    // For future consideration: we may be able to put moveToDragSurface inside
+    // the block dragger, which would also let the block not track the block drag
+    // surface.
+    this.draggingBlock_.moveToDragSurface_();
+  }
 
   if (this.workspace_.toolbox_) {
     this.workspace_.toolbox_.addDeleteStyle();
@@ -201,7 +228,12 @@ Blockly.BlockDragger.prototype.dragBlock = function(e, currentDragDeltaXY) {
   this.dragIcons_(delta);
 
   this.deleteArea_ = this.workspace_.isDeleteArea(e);
-  this.draggedConnectionManager_.update(delta, this.deleteArea_);
+  
+  // OB TEMP: Insertion marker is messing up the dragging, so disable it for now
+  //if(this.isDraggingChosenBlocks === false)
+  {
+    this.draggedConnectionManager_.update(delta, this.deleteArea_);
+  }
 
   this.updateCursorDuringBlockDrag_();
 };
@@ -229,11 +261,17 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     Blockly.Events.disable();
     delta = new goog.math.Coordinate(0, 0);
     newLoc = this.startXY_;
-    this.draggingBlock_.moveOffDragSurface_(newLoc);
   }
   else {
     delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
     newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
+  }
+  
+  // if(this.isDraggingChosenBlocks) {
+  //   Blockly.BlocksSelection.moveOffDragSurface(this.draggingBlock_, newLoc);
+  // }
+  // else 
+  {
     this.draggingBlock_.moveOffDragSurface_(newLoc);
   }
   
