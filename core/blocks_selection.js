@@ -455,11 +455,13 @@ Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
  */
 Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
 
-  console.log("# Unplugging chosen blocks");
+  //console.log("# Unplugging chosen blocks");
 
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var blocksToUnplug = Blockly.BlocksSelection.blocks.slice(0, Blockly.BlocksSelection.blocks.length);
   
+    var prevTarget = null;
+    var nextTarget = null;
     var currentBlock = null;
     for(var i = 0; i < blocksToUnplug.length; i++) {
       currentBlock = blocksToUnplug[i];
@@ -476,12 +478,11 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
 
         if(lastChosenAbove) {
           //console.log("\tlast chosen above is " + lastChosenAbove.type);
-
           if(lastChosenAbove.previousConnection && lastChosenAbove.previousConnection.isConnected()) {
             //console.log("Need to disconnect from " + lastChosenAbove.previousConnection.targetBlock().type);
-            lastChosenAbove.previousConnection.disconnect();
-
             //console.log("--> Disconnect above " + lastChosenAbove.type);
+            prevTarget = lastChosenAbove.previousConnection.targetConnection;
+            lastChosenAbove.previousConnection.disconnect();
           }
         }
 
@@ -496,18 +497,50 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
 
         if(lastChosenBelow) {
           //console.log("\tlast chosen below is " + lastChosenBelow.type);
-
           if(lastChosenBelow.nextConnection && lastChosenBelow.nextConnection.isConnected()) {
             //console.log("Need to disconnect from " + lastChosenBelow.nextConnection.targetBlock().type);
-            lastChosenBelow.nextConnection.disconnect();
-
             //console.log("--> Disconnect below " + lastChosenBelow.type);
+            nextTarget = lastChosenBelow.nextConnection.targetConnection;
+            lastChosenBelow.nextConnection.disconnect();
           }
         }
       }
     }
+
+    if(opt_healStack && prevTarget && nextTarget) {
+      prevTarget.connect(nextTarget);
+    }
   }
 };
+/*
+  Blockly.Block.prototype.unplug = function(opt_healStack) {
+  var previousTarget = null;
+  var nextTarget = null;
+  if (this.outputConnection) {
+    if (this.outputConnection.isConnected()) {
+      // Disconnect from any superior block.
+      this.outputConnection.disconnect();
+    }
+  } else if (this.previousConnection) {
+    //var previousTarget = null;
+    if (this.previousConnection.isConnected()) {
+      // Remember the connection that any next statements need to connect to.
+      previousTarget = this.previousConnection.targetConnection;
+      // Detach this block from the parent's tree.
+      this.previousConnection.disconnect();
+    }
+    var nextBlock = this.getNextBlock();
+    if (opt_healStack && nextBlock) {
+      // Disconnect the next statement.
+      nextTarget = this.nextConnection.targetConnection;
+      nextTarget.disconnect();
+      if (previousTarget && previousTarget.checkType_(nextTarget)) {
+        // Attach the next statement to the previous statement.
+        previousTarget.connect(nextTarget);
+      }
+    }
+  };
+*/
 
 /**
  * Gets the top-most block in a stack of blocks
@@ -517,7 +550,7 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
  */ 
 Blockly.BlocksSelection.getTopChosenBlock = function () {
 
-  console.log("# Finding top chosen block");
+  //console.log("# Finding top chosen block");
 
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var currentBlock = null;
@@ -532,7 +565,7 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
         }
       }
       if(lastChosenAbove) {
-        console.log("\tfound "+ lastChosenAbove.type);
+        //console.log("\tfound "+ lastChosenAbove.type);
         break;
       }
     }
@@ -676,33 +709,4 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
 // Blockly.Block.prototype.getPreviousBlock = function() {
 //   return this.previousConnection && this.previousConnection.targetBlock();
 // };
-// */
-// /*
-//   Blockly.Block.prototype.unplug = function(opt_healStack) {
-//   var previousTarget = null;
-//   var nextTarget = null;
-//   if (this.outputConnection) {
-//     if (this.outputConnection.isConnected()) {
-//       // Disconnect from any superior block.
-//       this.outputConnection.disconnect();
-//     }
-//   } else if (this.previousConnection) {
-//     //var previousTarget = null;
-//     if (this.previousConnection.isConnected()) {
-//       // Remember the connection that any next statements need to connect to.
-//       previousTarget = this.previousConnection.targetConnection;
-//       // Detach this block from the parent's tree.
-//       this.previousConnection.disconnect();
-//     }
-//     var nextBlock = this.getNextBlock();
-//     if (opt_healStack && nextBlock) {
-//       // Disconnect the next statement.
-//       nextTarget = this.nextConnection.targetConnection;
-//       nextTarget.disconnect();
-//       if (previousTarget && previousTarget.checkType_(nextTarget)) {
-//         // Attach the next statement to the previous statement.
-//         previousTarget.connect(nextTarget);
-//       }
-//     }
-//   };
 // */

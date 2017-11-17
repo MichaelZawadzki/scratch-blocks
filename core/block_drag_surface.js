@@ -90,6 +90,13 @@ Blockly.BlockDragSurfaceSvg.prototype.scale_ = 1;
 Blockly.BlockDragSurfaceSvg.prototype.surfaceXY_ = null;
 
 /**
+ * Surface offset
+ * @type {goog.math.Coordinate}
+ * @private
+ */
+Blockly.BlockDragSurfaceSvg.prototype.surfaceOffsetXY_ = null;
+
+/**
  * ID for the drag shadow filter, set in createDom.
  * @type {string}
  * @private
@@ -233,6 +240,10 @@ Blockly.BlockDragSurfaceSvg.prototype.translateAndScaleGroup = function(x, y, sc
 Blockly.BlockDragSurfaceSvg.prototype.translateSurfaceInternal_ = function() {
   var x = this.surfaceXY_.x;
   var y = this.surfaceXY_.y;
+  if(this.surfaceOffsetXY_) {
+    x += this.surfaceOffsetXY_.x;
+    y += this.surfaceOffsetXY_.y;
+  }
   // This is a work-around to prevent a the blocks from rendering
   // fuzzy while they are being dragged on the drag surface.
   x = x.toFixed(0);
@@ -270,6 +281,10 @@ Blockly.BlockDragSurfaceSvg.prototype.getSurfaceTranslation = function() {
   return new goog.math.Coordinate(xy.x / this.scale_, xy.y / this.scale_);
 };
 
+Blockly.BlockDragSurfaceSvg.prototype.setSurfaceOffsetXY = function (_offsetXY) {
+  this.surfaceOffsetXY_ = new goog.math.Coordinate(_offsetXY.x * this.scale_, _offsetXY.y * this.scale_); ;
+}
+
 /**
  * Provide a reference to the drag group (primarily for
  * BlockSvg.getRelativeToSurfaceXY).
@@ -299,16 +314,18 @@ Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
  *     being moved to a different surface.
  */
 Blockly.BlockDragSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
+  var currentBlock = this.getCurrentBlock();
   if (opt_newSurface) {
     // appendChild removes the node from this.dragGroup_
-    opt_newSurface.appendChild(this.getCurrentBlock());
+    opt_newSurface.appendChild(currentBlock);
   } else {
-    this.dragGroup_.removeChild(this.getCurrentBlock());
+    this.dragGroup_.removeChild(currentBlock);
   }
   this.SVG_.style.display = 'none';
   goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
     'Drag group was not cleared.');
   this.surfaceXY_ = null;
+  this.surfaceOffsetXY_ = null;
 
   // Reset the overflow property back to hidden so that nothing appears outside
   // of the blockly area.

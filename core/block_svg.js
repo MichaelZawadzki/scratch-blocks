@@ -416,7 +416,7 @@ Blockly.BlockSvg.prototype.getRelativeToElementXY = function(otherElement) {
         y += surfaceTranslation.y;
       }
       element = element.parentNode;
-    } while (element && element != otherElement);
+    } while (element && element != otherElement && element != this.workspace.getCanvas());
   }
   if(element === otherElement)
     return new goog.math.Coordinate(x, y);
@@ -532,31 +532,31 @@ Blockly.BlockSvg.prototype.moveToDragSurface_ = function() {
 };
 
 
-Blockly.BlockSvg.prototype.addToDragSurface_ = function() {
-  if (!this.useDragSurface_) {
-    return;
-  }
-  // The translation for drag surface blocks,
-  // is equal to the current relative-to-surface position,
-  // to keep the position in sync as it move on/off the surface.
-  // This is in workspace coordinates.
-  var xy = this.getRelativeToSurfaceXY();
-  var surfaceXY = this.workspace.blockDragSurface_.surfaceXY_;
-  var translateXY = goog.math.Coordinate.sum(xy, surfaceXY);
+// Blockly.BlockSvg.prototype.addToDragSurface_ = function() {
+//   if (!this.useDragSurface_) {
+//     return;
+//   }
+//   // The translation for drag surface blocks,
+//   // is equal to the current relative-to-surface position,
+//   // to keep the position in sync as it move on/off the surface.
+//   // This is in workspace coordinates.
+//   var xy = this.getRelativeToSurfaceXY();
+//   var surfaceXY = this.workspace.blockDragSurface_.surfaceXY_;
+//   var translateXY = goog.math.Coordinate.sum(xy, surfaceXY);
 
-  console.log("# adding to drag surface");
-  console.log("\tsurface XY: " + surfaceXY.x + " " + surfaceXY.y);
-  console.log("\trel XY: " + xy.x + " " + xy.y);
-  console.log("--> Translate by " + translateXY);
+//   console.log("# adding to drag surface");
+//   console.log("\tsurface XY: " + surfaceXY.x + " " + surfaceXY.y);
+//   console.log("\trel XY: " + xy.x + " " + xy.y);
+//   console.log("--> Translate by " + translateXY);
 
-  this.clearTransformAttributes_();
-  this.translateBy(translateXY.x, translateXY.y);
+//   this.clearTransformAttributes_();
+//   this.translateBy(translateXY.x, translateXY.y);
   
-  //this.clearTransformAttributes_();
-  //this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
-  // Execute the move on the top-level SVG component
-  this.workspace.blockDragSurface_.addBlockToSurface(this.getSvgRoot());
-};
+//   //this.clearTransformAttributes_();
+//   //this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
+//   // Execute the move on the top-level SVG component
+//   this.workspace.blockDragSurface_.addBlockToSurface(this.getSvgRoot());
+// };
 
 
 /**
@@ -573,6 +573,11 @@ Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
   }
   // Translate to current position, turning off 3d.
   this.translate(newXY.x, newXY.y);
+  if(this.workspace.blockDragSurface_.surfaceOffsetXY_) {
+    var offsetXY = this.workspace.blockDragSurface_.surfaceOffsetXY_;
+    var scale = this.workspace.blockDragSurface_.scale_;
+    this.translateBy(offsetXY.x / scale, offsetXY.y / scale);
+  }
   this.workspace.blockDragSurface_.clearAndHide(this.workspace.getCanvas());
 };
 

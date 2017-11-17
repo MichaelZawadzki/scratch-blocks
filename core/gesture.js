@@ -636,7 +636,7 @@ Blockly.Gesture.prototype.handleUp = function(e) {
   var shouldEndGesture = true;
   if (this.isDraggingBlock_) {
     // OB TEMP: Can't end dragging of chosen blocks for now
-    // if(Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 1) {
+    // if(Blockly.BlocksSelection.isDraggingChosenBlocks()) {
     //   shouldEndGesture = false;
     // }
     // else 

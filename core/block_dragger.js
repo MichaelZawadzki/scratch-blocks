@@ -67,8 +67,8 @@ Blockly.BlockDragger = function(block, workspace) {
    * @type {!Blockly.InsertionMarkerManager}
    * @private
    */
-  this.draggedConnectionManager_ = new Blockly.InsertionMarkerManager(
-      this.draggingBlock_);
+  // OB: Gets created once the drag actually starts; this is because we don't know which block we will use for the insertion manager
+  this.draggedConnectionManager_ = null; //new Blockly.InsertionMarkerManager(this.draggingBlock_);
 
   /**
    * Which delete area the mouse pointer is over, if any.
@@ -162,6 +162,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
 
+
   this.isDraggingChosenBlocks = Blockly.BlocksSelection.isDraggingChosenBlocks();
 
   // Drag block selection
@@ -174,14 +175,31 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
 
     var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
     var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
+    var relativeToTopXY = this.draggingBlock_.getRelativeToElementXY(topBlock.svgGroup_);
 
-    this.draggingBlock_.translate(newLoc.x, newLoc.y);
-    this.draggingBlock_.disconnectUiEffect();
+    // console.log("# Start block drag:");
+    // console.log("\tstart: "+ this.startXY_);
+    // console.log("\trelative to top: "+ relativeToTopXY);
+    // console.log("\tnew: "+ newLoc);
+
+    //this.draggingBlock_.translate(newLoc.x, newLoc.y);
+    //this.draggingBlock_.disconnectUiEffect();
+    topBlock.translate(newLoc.x, newLoc.y);
+    topBlock.disconnectUiEffect();
 
     // Blockly.BlocksSelection.startBlockDrag(this.draggingBlock_, newLoc);
 
     topBlock.setDragging(true);
     topBlock.moveToDragSurface_();
+    //this.draggingBlock_.setDragging(true);
+    //this.draggingBlock_.moveToDragSurface_();
+
+    if(this.draggingBlock_ != topBlock) {
+      var dragSurface = this.draggingBlock_.workspace.blockDragSurface_;
+      dragSurface.setSurfaceOffsetXY(goog.math.Coordinate.difference(new goog.math.Coordinate(0, 0), relativeToTopXY));
+    }
+
+    this.draggedConnectionManager_ = new Blockly.InsertionMarkerManager(topBlock);
   }
   // Regular drag
   else 
@@ -193,7 +211,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
       this.draggingBlock_.unplug(reconnectStack);
       var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
       var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
-
+      
       this.draggingBlock_.translate(newLoc.x, newLoc.y);
       this.draggingBlock_.disconnectUiEffect();
     }
@@ -203,6 +221,9 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
     // the block dragger, which would also let the block not track the block drag
     // surface.
     this.draggingBlock_.moveToDragSurface_();
+
+
+    this.draggedConnectionManager_ = new Blockly.InsertionMarkerManager(this.draggingBlock_);
   }
 
   if (this.workspace_.toolbox_) {
@@ -221,6 +242,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
  * @package
  */
 Blockly.BlockDragger.prototype.dragBlock = function(e, currentDragDeltaXY) {
+  
   var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
   var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
 
@@ -229,8 +251,8 @@ Blockly.BlockDragger.prototype.dragBlock = function(e, currentDragDeltaXY) {
 
   this.deleteArea_ = this.workspace_.isDeleteArea(e);
   
-  // OB TEMP: Insertion marker is messing up the dragging, so disable it for now
-  //if(this.isDraggingChosenBlocks === false)
+  // // OB TEMP: Insertion marker is messing up the dragging, so disable it for now
+  // if(this.isDraggingChosenBlocks === false)
   {
     this.draggedConnectionManager_.update(delta, this.deleteArea_);
   }
@@ -266,14 +288,17 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
     newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
   }
-  
-  // if(this.isDraggingChosenBlocks) {
-  //   Blockly.BlocksSelection.moveOffDragSurface(this.draggingBlock_, newLoc);
-  // }
-  // else 
-  {
-    this.draggingBlock_.moveOffDragSurface_(newLoc);
+
+  var currentBlock;
+  if(this.isDraggingChosenBlocks) {
+    currentBlock = Blockly.BlocksSelection.getTopChosenBlock();
   }
+  else {
+    currentBlock = this.draggingBlock_;
+  }
+  
+  //this.draggingBlock_.moveOffDragSurface_(newLoc);
+  currentBlock.moveOffDragSurface_(newLoc);
   
   var changedParent = false; 
   var deleted = this.maybeDeleteBlock_();
@@ -297,13 +322,16 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     }
 
     // These are expensive and don't need to be done if we're deleting.
-    this.draggingBlock_.moveConnections_(delta.x, delta.y);
-    this.draggingBlock_.setDragging(false);
+    //this.draggingBlock_.moveConnections_(delta.x, delta.y);
+    //this.draggingBlock_.setDragging(false);
+    currentBlock.moveConnections_(delta.x, delta.y);
+    currentBlock.setDragging(false);
     this.draggedConnectionManager_.applyConnections();
 
     //If we moved the block, but didnt change it's parent AND if it isnt a new block then we dont want to 
     //add the event to the undo/redo stack
-    var currentParent = this.draggingBlock_.parentBlock_;
+    //var currentParent = this.draggingBlock_.parentBlock_;
+    var currentParent = currentBlock.parentBlock_;
     changedParent = (currentParent !== this.initialDragParent_) || isNewBlock === true;
     if(!changedParent){
       Blockly.Events.recordUndo = false;
@@ -311,9 +339,11 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     //Whether we record or not, we need to flush these out here. 
     Blockly.Events.fireSavedEvents();
     
-    this.draggingBlock_.render();
+    //this.draggingBlock_.render();
+    currentBlock.render();
     this.fireMoveEvent_();
-    this.draggingBlock_.scheduleSnapAndBump();
+    //this.draggingBlock_.scheduleSnapAndBump();
+    currentBlock.scheduleSnapAndBump();
   }
 
   this.workspace_.setResizesEnabled(true);
@@ -377,7 +407,14 @@ Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
     }
     // Fire a move event, so we know where to go back to for an undo.
     this.fireMoveEvent_();
-    this.draggingBlock_.dispose(false, true);
+    var currentBlock;
+    if(this.isDraggingChosenBlocks) {
+      currentBlock = Blockly.BlocksSelection.getTopChosenBlock();
+    }
+    else {
+      currentBlock = this.draggingBlock_;
+    }
+    currentBlock.dispose(false, true);
   } else if (trashcan) {
     // Make sure the trash can is closed.
     trashcan.close();
@@ -393,13 +430,25 @@ Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
 Blockly.BlockDragger.prototype.updateCursorDuringBlockDrag_ = function() {
   this.wouldDeleteBlock_ = this.draggedConnectionManager_.wouldDeleteBlock();
   var trashcan = this.workspace_.trashcan;
+
+  var currentBlock;
+  // if(this.isDraggingChosenBlocks) {
+  //   currentBlock = Blockly.BlocksSelection.getTopChosenBlock();
+  // }
+  // else 
+  {
+    currentBlock = this.draggingBlock_;
+  }
+
   if (this.wouldDeleteBlock_) {
-    this.draggingBlock_.setDeleteStyle(true);
+    //this.draggingBlock_.setDeleteStyle(true);
+    currentBlock.setDeleteStyle(true);
     if (this.deleteArea_ == Blockly.DELETE_AREA_TRASH && trashcan) {
       trashcan.setOpen_(true);
     }
   } else {
-    this.draggingBlock_.setDeleteStyle(false);
+    //this.draggingBlock_.setDeleteStyle(false);
+    currentBlock.setDeleteStyle(false);
     if (trashcan) {
       trashcan.setOpen_(false);
     }
