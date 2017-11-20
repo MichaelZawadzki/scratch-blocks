@@ -49,7 +49,7 @@ Blockly.BlockSvg.SEP_SPACE_X = 2 * Blockly.BlockSvg.GRID_UNIT;
  * Base left side padding for reflowed inputs (may be more if other siblings are wider)
  * @const
  */
-Blockly.BlockSvg.BASE_REFLOWED_PADDING = 3 * Blockly.BlockSvg.GRID_UNIT;
+Blockly.BlockSvg.BASE_REFLOWED_PADDING = 3 * Blockly.BlockSvg.SEP_SPACE_X;
 
 /**
  * Vertical space between elements.
@@ -1016,29 +1016,25 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
   // Default padding for a block: same as separators between fields/inputs.
   if(this.isReflowed)
   {
-    if(input.renderWidth !== undefined)
+    //To center the inputs we need to determine the widest sibling in the block
+    var maxSiblingWidth = this.getMaxInputSiblingWidth(input);
+    //and compare it to this block's width
+    var inputWidth = (input.renderWidth === undefined ? 0 : input.renderWidth);
+    if(input.name == "OPERAND1" && input.sourceBlock_.childBlocks_.length > 0)
     {
-      //To center the inputs we need to determine the widest sibling in the block
-      var maxSiblingWidth = this.getMaxInputSiblingWidth(input);
-      //and compare it to this block's width
-      var inputWidth = input.renderWidth;
-      if(input.name == "OPERAND1" && input.sourceBlock_.childBlocks_.length > 0)
-      {
-        inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[0].width);
-      }else if(input.name == "OPERAND2" && input.sourceBlock_.childBlocks_.length > 1)
-      {
-        inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[1].width);
-      }
-      var widthDiff = (maxSiblingWidth - inputWidth)/2;
-      //Start with a base amount of padding 
-      row.paddingStart = Blockly.BlockSvg.BASE_REFLOWED_PADDING;
-      //Add the difference / 2 
-      row.paddingStart += widthDiff;
-    }else
+      inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[0].width);
+    }else if(input.name == "OPERAND2" && input.sourceBlock_.childBlocks_.length > 1)
     {
-      row.paddingStart = Blockly.BlockSvg.BASE_REFLOWED_PADDING;
+      inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[1].width);
+    }else if(input.fieldWidth !== undefined)
+    {
+      inputWidth = Math.max(inputWidth, input.fieldWidth);
     }
-
+    var widthDiff = (maxSiblingWidth - inputWidth)/2;
+    //Start with a base amount of padding 
+    row.paddingStart = Blockly.BlockSvg.BASE_REFLOWED_PADDING;
+    //Add the difference / 2 
+    row.paddingStart += widthDiff;
   }else
   {
     row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
