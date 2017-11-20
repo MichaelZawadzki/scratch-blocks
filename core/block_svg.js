@@ -441,6 +441,8 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
 
   var dragSurfaceGroup = this.useDragSurface_ ?
       this.workspace.blockDragSurface_.getGroup() : null;
+  var outlineGroup = this.isChosen_ ?
+      this.workspace.blocksOutlineSurface.getGroup() : null;
 
   var element = this.getSvgRoot();
   if (element) {
@@ -459,7 +461,7 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
       }
       element = element.parentNode;
     } while (element && element != this.workspace.getCanvas() &&
-        element != dragSurfaceGroup);
+        element != dragSurfaceGroup && element != outlineGroup);
   }
   return new goog.math.Coordinate(x, y);
 };
@@ -569,8 +571,6 @@ Blockly.BlockSvg.prototype.moveToDragSurface_ = function() {
   this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
   // Execute the move on the top-level SVG component
   this.workspace.blockDragSurface_.setBlocksAndShow(this.getSvgRoot());
-
-  console.log("Drag surface relative: " + xy);
 };
 
 
@@ -633,7 +633,6 @@ Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
  */
 Blockly.BlockSvg.prototype.moveDuringDrag = function(newLoc) {
   if (this.useDragSurface_) {
-    console.log("move during drag, new loc: " + newLoc);
     this.workspace.blockDragSurface_.translateSurface(newLoc.x, newLoc.y);
   } else {
     this.svgGroup_.translate_ = 'translate(' + newLoc.x + ',' + newLoc.y + ')';
@@ -1237,6 +1236,7 @@ Blockly.BlockSvg.prototype.dispose = function(healStack, animate) {
   this.svgGroup_ = null;
   this.svgPath_ = null;
   Blockly.Field.stopCache();
+
 };
 
 /**

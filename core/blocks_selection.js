@@ -347,6 +347,8 @@ Blockly.BlocksSelection.clearChosenBlocks = function () {
       }
     }
   }
+  Blockly.BlocksSelection.removeOutline();
+
   Blockly.BlocksSelection.blocks = null;
 };
 
@@ -449,13 +451,15 @@ Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
 
 
 
-
+Blockly.BlocksSelection.initBlockDragging = function() {
+  Blockly.BlocksSelection.removeOutline();
+};
 
 
 /**
  * Disconnects chosen blocks from previous/next un-chosen blocks
  */
-Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
+Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnections) {
 
   //console.log("# Unplugging chosen blocks");
 
@@ -483,6 +487,9 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
           if(lastChosenAbove.previousConnection && lastChosenAbove.previousConnection.isConnected()) {
             //console.log("Need to disconnect from " + lastChosenAbove.previousConnection.targetBlock().type);
             //console.log("--> Disconnect above " + lastChosenAbove.type);
+            if(opt_saveConnections) {
+              lastChosenAbove.savePreviousConnection();
+            }
             prevTarget = lastChosenAbove.previousConnection.targetConnection;
             lastChosenAbove.previousConnection.disconnect();
           }
@@ -502,6 +509,9 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
           if(lastChosenBelow.nextConnection && lastChosenBelow.nextConnection.isConnected()) {
             //console.log("Need to disconnect from " + lastChosenBelow.nextConnection.targetBlock().type);
             //console.log("--> Disconnect below " + lastChosenBelow.type);
+            if(opt_saveConnections) {
+              lastChosenBelow.saveNextConnection();
+            }
             nextTarget = lastChosenBelow.nextConnection.targetConnection;
             lastChosenBelow.nextConnection.disconnect();
           }
@@ -713,12 +723,64 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
 // };
 // */
 
-
-
-
 Blockly.BlocksSelection.createOutline = function() {
-  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+  
+  Blockly.BlocksSelection.disconnectAndMoveBlocks();
+  //Blockly.BlocksSelection.cloneBlocks();
+};
 
+Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
+  Blockly.BlocksSelection.unplugBlocks(false, true);
+  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+  if(topBlock) {
+    Blockly.BlocksSelection.workspace = topBlock.workspace;
+    Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topBlock.svgGroup_);
+  }
+}
+
+
+Blockly.BlocksSelection.removeOutline = function() {
+
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    
+    if(Blockly.BlocksSelection.workspace) {
+      var topBlockSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
+      Blockly.BlocksSelection.workspace.blocksOutlineSurface.clearAndHide();
+      
+      var canvas = Blockly.BlocksSelection.workspace.getCanvas();
+      if(canvas && topBlockSvg) {
+        canvas.appendChild(topBlockSvg);
+      }
+    }
+
+    var curBlock;
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      curBlock = Blockly.BlocksSelection.blocks[i];
+      if(curBlock) {
+        if(curBlock.savedNextBlock != null) {
+          console.log("\treconnect " + curBlock.type + " with next block " + curBlock.savedNextBlock.type);
+          curBlock.restoreNextConnection();
+        }
+        if(curBlock.savedPreviousBlock != null) {
+          console.log("\treconnect " + curBlock.type + " with prev block " + curBlock.savedPreviousBlock.type);
+          curBlock.restorePreviousConnection();
+        }
+      }
+    }
+  }
+  Blockly.BlocksSelection.workspace = null;
+};
+
+
+
+
+
+
+
+
+
+Blockly.BlocksSelection.cloneBlocks = function () {
+  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
   if(topBlock) {
     var clonedSvg = Blockly.BlocksSelection.cloneBlockSvg(topBlock);
     if(clonedSvg) {
@@ -731,10 +793,6 @@ Blockly.BlocksSelection.createOutline = function() {
 
     console.log("Outline surface relative: " + xy);
   }
-
-  // if(Blockly.BlocksSelection.movedBlocks && Blockly.BlocksSelection.movedBlocks.length > 0) {
-    
-  // }
 };
 
 Blockly.BlocksSelection.cloneBlockSvg = function (_block) {
@@ -750,3 +808,8 @@ Blockly.BlocksSelection.cloneBlockSvg = function (_block) {
   //this.workspace.getParentSvg().appendChild(clone);
   return clone;
 };
+
+
+
+// Temp
+Blockly.BlocksSelection.workspace = null;
