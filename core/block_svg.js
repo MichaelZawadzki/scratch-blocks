@@ -465,6 +465,46 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
 };
 
 /**
+ * Return the coordinates of the top-left corner of this block relative to the
+ * drawing surface's origin (0,0), in workspace units.
+ * If the block is on the workspace, (0, 0) is the origin of the workspace
+ * coordinate system.
+ * This does not change with workspace scale.
+ * @return {!goog.math.Coordinate} Object with .x and .y properties in
+ *     workspace coordinates.
+ */
+Blockly.BlockSvg.prototype.getRelativeToOutlineSurfaceXY = function() {
+  // The drawing surface is relative to either the workspace canvas
+  // or to the drag surface group.
+  var x = 0;
+  var y = 0;
+
+  // var dragSurfaceGroup = this.useDragSurface_ ?
+  //     this.workspace.blockDragSurface_.getGroup() : null;
+    var outlineSurfaceGroup = null;//this.workspace.blocksOutlineSurface.getGroup();
+
+  var element = this.getSvgRoot();
+  if (element) {
+    do {
+      // Loop through this block and every parent.
+      var xy = Blockly.utils.getRelativeXY(element);
+      x += xy.x;
+      y += xy.y;
+      // If this element is the current element on the drag surface, include
+      // the translation of the drag surface itself.
+      //if (this.useDragSurface_ && this.workspace.blockDragSurface_.getCurrentBlock() == element) {
+      if (/*this.useDragSurface_*/false && this.workspace.blocksOutlineSurface.getCurrentBlock() == element) {
+        var surfaceTranslation = this.workspace.blocksOutlineSurface.getSurfaceTranslation();
+        x += surfaceTranslation.x;
+        y += surfaceTranslation.y;
+      }
+      element = element.parentNode;
+    } while (element && element != this.workspace.getCanvas() && element != outlineSurfaceGroup);
+  }
+  return new goog.math.Coordinate(x, y);
+};
+
+/**
  * Move a block by a relative offset.
  * @param {number} dx Horizontal offset in workspace units.
  * @param {number} dy Vertical offset in workspace units.
@@ -529,6 +569,8 @@ Blockly.BlockSvg.prototype.moveToDragSurface_ = function() {
   this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
   // Execute the move on the top-level SVG component
   this.workspace.blockDragSurface_.setBlocksAndShow(this.getSvgRoot());
+
+  console.log("Drag surface relative: " + xy);
 };
 
 
@@ -591,6 +633,7 @@ Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
  */
 Blockly.BlockSvg.prototype.moveDuringDrag = function(newLoc) {
   if (this.useDragSurface_) {
+    console.log("move during drag, new loc: " + newLoc);
     this.workspace.blockDragSurface_.translateSurface(newLoc.x, newLoc.y);
   } else {
     this.svgGroup_.translate_ = 'translate(' + newLoc.x + ',' + newLoc.y + ')';

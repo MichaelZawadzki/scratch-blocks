@@ -641,7 +641,7 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     // }
     // else 
     {
-      shouldEndGesture = this.shouldEndBlockDrag(e);
+      shouldEndGesture = false; //this.shouldEndBlockDrag(e);
     }
   }
   else if (this.isDraggingWorkspace_) {

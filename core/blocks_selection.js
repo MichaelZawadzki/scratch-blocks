@@ -216,6 +216,8 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks));
 
   Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
+
+  Blockly.BlocksSelection.createOutline();
 }
 
 
@@ -710,3 +712,41 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
 //   return this.previousConnection && this.previousConnection.targetBlock();
 // };
 // */
+
+
+
+
+Blockly.BlocksSelection.createOutline = function() {
+  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+
+  if(topBlock) {
+    var clonedSvg = Blockly.BlocksSelection.cloneBlockSvg(topBlock);
+    if(clonedSvg) {
+      var xy = topBlock.getRelativeToOutlineSurfaceXY();
+      //topBlock.clearTransformAttributes_(topBlock.getSvgRoot());
+      Blockly.utils.removeAttribute(clonedSvg, 'transform');
+      topBlock.workspace.blocksOutlineSurface.translateSurface(xy.x, xy.y);
+      topBlock.workspace.blocksOutlineSurface.setBlocksAndShow(clonedSvg);
+    }
+
+    console.log("Outline surface relative: " + xy);
+  }
+
+  // if(Blockly.BlocksSelection.movedBlocks && Blockly.BlocksSelection.movedBlocks.length > 0) {
+    
+  // }
+};
+
+Blockly.BlocksSelection.cloneBlockSvg = function (_block) {
+  if(!_block) {
+    return null;
+  }
+  var xy = _block.workspace.getSvgXY(/** @type {!Element} */ (_block.svgGroup_));
+  var clone = _block.svgGroup_.cloneNode(true);
+  clone.translateX_ = xy.x;
+  clone.translateY_ = xy.y;
+  clone.setAttribute('transform',
+      'translate(' + clone.translateX_ + ',' + clone.translateY_ + ')');
+  //this.workspace.getParentSvg().appendChild(clone);
+  return clone;
+};

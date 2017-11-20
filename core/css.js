@@ -247,6 +247,17 @@ Blockly.Css.CONTENT = [
     'overflow: visible !important;',
     'z-index: 50;', /* Display above the toolbox */
   '}',
+  
+  '.blocklyBlocksOutlineSurface {',
+    'display: none;',
+    'position: absolute;',
+    'top: 0;',
+    'left: 0;',
+    'right: 0;',
+    'bottom: 0;',
+    'overflow: visible !important;',
+    'z-index: 50;', /* Display above the toolbox */
+  '}',
 
   '.blocklyTooltipDiv {',
     'background-color: #ffffc7;',
@@ -410,9 +421,8 @@ Blockly.Css.CONTENT = [
   '}',
   
   '.blocklyChosen {',
-    'stroke: #fc3;',
-    //'stroke: #2092e5;',
-    'stroke-width: 4px;',
+    //'stroke: #fc3;',
+    //'stroke-width: 4px;',
   '}',
 
   '.blocklySelected>.blocklyPathLight {',
