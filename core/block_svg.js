@@ -274,8 +274,6 @@ Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
   {
     visible = isGlowingBlock;
     topY = highlightBlockObject.lineSegments[0].y * scale;
-    //MAXIM: We will need to calculate this better in the future when we do re-flow blocks to multiple lines.
-    //Perhaps blocks can even have a 'top height' variable
     height = Blockly.BlockSvg.MIN_BLOCK_Y * scale;
   }
 

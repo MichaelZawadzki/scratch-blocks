@@ -44,6 +44,13 @@ Blockly.BlockSvg.GRID_UNIT = 4;
  */
 Blockly.BlockSvg.SEP_SPACE_X = 2 * Blockly.BlockSvg.GRID_UNIT;
 
+
+/**
+ * Base left side padding for reflowed inputs (may be more if other siblings are wider)
+ * @const
+ */
+Blockly.BlockSvg.BASE_REFLOWED_PADDING = 3 * Blockly.BlockSvg.GRID_UNIT;
+
 /**
  * Vertical space between elements.
  * @const
@@ -1009,23 +1016,45 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
   // Default padding for a block: same as separators between fields/inputs.
   if(this.isReflowed)
   {
-    //MAXIM: This is really awful, temporary harded code. 
-    //It only works for very specific input sizes. The problem is that the width of the
-    //inputs / parent block have not yet been determined/assigned. We need a way to 
-    //calculate the proper spacing based on the size of the inputs. (Pre-calculate and assign 
-    //during the check for re-flowing?) 
-    if(input.name == "DUMMY_REFLOW_INPUT")
+    if(input.renderWidth !== undefined)
     {
-      row.paddingStart = 100;
-    } else{
-      row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X*3;
+      //To center the inputs we need to determine the widest sibling in the block
+      var maxSiblingWidth = this.getMaxInputSiblingWidth(input);
+      //and compare it to this block's width
+      var inputWidth = input.renderWidth;
+      if(input.name == "OPERAND1" && input.sourceBlock_.childBlocks_.length > 0)
+      {
+        inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[0].width);
+      }else if(input.name == "OPERAND2" && input.sourceBlock_.childBlocks_.length > 1)
+      {
+        inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[1].width);
+      }
+      var widthDiff = (maxSiblingWidth - inputWidth)/2;
+      //Start with a base amount of padding 
+      row.paddingStart = Blockly.BlockSvg.BASE_REFLOWED_PADDING;
+      //Add the difference / 2 
+      row.paddingStart += widthDiff;
+    }else
+    {
+      row.paddingStart = Blockly.BlockSvg.BASE_REFLOWED_PADDING;
     }
+
   }else
   {
     row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
   }
   row.paddingEnd = Blockly.BlockSvg.SEP_SPACE_X;
   return row;
+};
+
+Blockly.BlockSvg.prototype.getMaxInputSiblingWidth = function(input)
+{
+    var maxInputWidth = 0;
+    for(var i = 0; i < input.sourceBlock_.childBlocks_.length; i++)
+    {
+      maxInputWidth = Math.max(input.sourceBlock_.childBlocks_[i].width, maxInputWidth);
+    }
+    return maxInputWidth;
 };
 
 /**
