@@ -635,7 +635,14 @@ Blockly.Gesture.prototype.handleUp = function(e) {
 
   var shouldEndGesture = true;
   if (this.isDraggingBlock_) {
-    shouldEndGesture = this.shouldEndBlockDrag(e);
+    // OB TEMP: Can't end dragging of chosen blocks for now
+    // if(Blockly.BlocksSelection.isDraggingChosenBlocks()) {
+    //   shouldEndGesture = false;
+    // }
+    // else 
+    {
+      shouldEndGesture = this.shouldEndBlockDrag(e);
+    }
   }
   else if (this.isDraggingWorkspace_) {
     shouldEndGesture = this.shouldEndWorkspaceDrag(e);
