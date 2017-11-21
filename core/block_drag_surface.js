@@ -164,7 +164,7 @@ Blockly.BlockDragSurfaceSvg.prototype.createDropShadowDom_ = function(defs) {
   Blockly.utils.createSvgElement('feMorphology',
     {'operator': 'dilate', 'radius': '6', 'result': 'border'}, selectFilter);
   Blockly.utils.createSvgElement('feFlood',
-    {'flood-color': '#fc3'}, selectFilter);
+    {'flood-color': '#2092e5'}, selectFilter);
   Blockly.utils.createSvgElement('feComposite',
       {'in2': 'border', 'operator': 'in', 'result': 'border'}, selectFilter);
       
