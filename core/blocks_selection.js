@@ -212,14 +212,20 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   var wsBlocks = this.workspace_.getAllBlocks();
   var selectedBlocks = [];
 
-  selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks)));
-  selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks));
+  selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks, true), true));
+  selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks, true));
 
-  Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
+  // OB TEMP: find top blocks of multiple stacks
+  var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(selectedBlocks);
+  if(topBlocks && topBlocks.length > 0) {
+    Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], selectedBlocks);
+  }
+
+  //Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
 }
 
 
-Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList) {
+Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
     return;
   }
@@ -229,23 +235,29 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList) {
   var currentBlock = null;
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
-    if(currentBlock && Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
-      var rect = baseSvg.createSVGRect();
-      rect.x = divXY.x;
-      rect.y = divXY.y;
-      rect.width = this.rect.width;
-      rect.height = this.rect.height;
+    if(currentBlock)
+    {
+      if(removeShadow && currentBlock.isShadow())
+        continue;
 
-      var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
-      if(enclosed) {
-        resultBlocks.push(currentBlock);
+      if(Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
+        var rect = baseSvg.createSVGRect();
+        rect.x = divXY.x;
+        rect.y = divXY.y;
+        rect.width = this.rect.width;
+        rect.height = this.rect.height;
+
+        var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
+        if(enclosed) {
+          resultBlocks.push(currentBlock);
+        }
       }
     }
   }
   return resultBlocks;
 };
 
-Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList) {
+Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
     return;
   }
@@ -256,6 +268,8 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
+      if(removeShadow && currentBlock.isShadow())
+        continue;
       var rect = baseSvg.createSVGRect();
       rect.x = divXY.x;
       rect.y = divXY.y;
@@ -272,7 +286,7 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
 };
 
 // Experimental function here!
-Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList) {
+Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
     return;
   }
@@ -286,6 +300,8 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList)
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
+      if(removeShadow && currentBlock.isShadow())
+        continue;
       // Create path shape
       var blockPath = currentBlock.svgPath_;
       var pathDefinition = blockPath.getAttribute("d");
@@ -356,7 +372,7 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  if(block && !block.isShadow()) {
+  if(block /*&& !block.isShadow()*/) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
@@ -368,13 +384,32 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
-  if(!Blockly.BlocksSelection.blocks) {
-    Blockly.BlocksSelection.blocks = [];
-  }
+  // if(!Blockly.BlocksSelection.blocks) {
+  //   Blockly.BlocksSelection.blocks = [];
+  // }
   for(var i = 0; i < blockList.length; i++) {
     Blockly.BlocksSelection.addToChosenBlocks(blockList[i]);
   }
 }
+
+/**
+ * Starting for the top block of a stack, sets sub-blocks of stack to 'chosen' if they were
+ * in the list of selected blocks.
+ */
+Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, blockList) {
+  if(!topBlock || !blockList || blockList.length === 0) {
+    return;
+  }
+  // if(!Blockly.BlocksSelection.blocks) {
+  //   Blockly.BlocksSelection.blocks = [];
+  // }
+
+  var currentBlock = topBlock;
+  while(currentBlock && blockList.includes(currentBlock)) {
+    Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
+    currentBlock = currentBlock.getNextBlock();
+  }
+};
 
 /**
  * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
@@ -572,6 +607,38 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
   }
 
   return lastChosenAbove;
+};
+
+/**
+ * Finds all the top-of-stack blocks from a bunch of blocks.
+ * Goes through every block and follows the 'previous block' link to find the top block
+ * that is in the list of currently selected blocks.
+ * TODO: Optimize by marking blocks as 'seen' so we don't process them again
+ */
+Blockly.BlocksSelection.getTopBlocksInList = function (_blockList) {
+  var topBlocks = [];
+  if(_blockList && _blockList.length > 0) {
+    var currentBlock = null;
+    for(var i = 0; i < _blockList.length; i++) {
+      currentBlock = _blockList[i];
+      var lastChosenAbove = null;
+      if(currentBlock) {
+        lastChosenAbove = currentBlock;
+        var prevBlock = lastChosenAbove.getPreviousBlock();
+        while(lastChosenAbove && prevBlock && _blockList.includes(prevBlock)) {
+          lastChosenAbove = prevBlock;
+          prevBlock = lastChosenAbove.getPreviousBlock();
+        }
+      }
+      if(lastChosenAbove) {
+        if(topBlocks.includes(lastChosenAbove) === false) {
+          topBlocks.push(lastChosenAbove);
+        }
+      }
+    }
+  }
+
+  return topBlocks;
 };
 
 
