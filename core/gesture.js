@@ -461,7 +461,9 @@ Blockly.Gesture.prototype.updateIsDragging_ = function(multiTouch) {
     this.updateIsDraggingWorkspace_(false);
 
     if(this.isDraggingWorkspace_ === false) {
-      this.updateIsSelectingBlocks_();
+      if(!this.startWorkspace_.locked){
+        this.updateIsSelectingBlocks_();
+      }
     }
   }
 };
