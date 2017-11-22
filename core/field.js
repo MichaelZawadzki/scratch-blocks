@@ -698,9 +698,9 @@ Blockly.Field.prototype.setTooltip = function(/*newTip*/) {
  * Select the element to bind the click handler to. When this element is
  * clicked on an editable field, the editor will open.
  *
- * <p>If the block has multiple fields, this is just the group containing the
- * field. If the block has only one field, we handle clicks over the whole
- * block.
+ * If the block has only one field and no output connection, we handle clicks
+ * over the whole block. Otherwise, handle clicks over the the group containing
+ * the field.
  *
  * @return {!Element} Element to bind click handler to.
  * @private
@@ -711,8 +711,7 @@ Blockly.Field.prototype.getClickTarget_ = function() {
   for (var i = 0, input; input = this.sourceBlock_.inputList[i]; i++) {
     nFields += input.fieldRow.length;
   }
-
-  if (nFields <= 1) {
+  if (nFields <= 1 && this.sourceBlock_.outputConnection) {
     return this.sourceBlock_.getSvgRoot();
   } else {
     return this.getSvgRoot();

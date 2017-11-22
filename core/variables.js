@@ -148,57 +148,6 @@ Blockly.Variables.allVariables = function(root) {
   return root.getAllVariables();
 };
 
-
-/**
- * Construct the blocks required by the flyout for the variable category.
- * @return {!Array.<!Element>} Array of XML block elements.
- */
-Blockly.Variables.flyoutCategoryPredefined = function() {
-  var variableList = Blockly.Variables.predefinedVars;
-  variableList.sort(goog.string.caseInsensitiveCompare);
-
-  var xmlList = [];
-
-  for (var i = 0; i < variableList.length; i++) {
-    if (Blockly.Blocks['data_variable']) {
-      // <block type="data_variable">
-      //   <value name="VARIABLE">
-      //     <shadow type="data_variablemenu"></shadow>
-      //   </value>
-      // </block>
-      var block = goog.dom.createDom('block');
-      block.setAttribute('type', 'data_variable');
-      block.setAttribute('gap', 8);
-      block.appendChild(Blockly.Variables.createVariableDom_(variableList[i]));
-      xmlList.push(block);
-    }
-  }
-
-  if (xmlList.length > 1) { // The button is always there.
-    xmlList[xmlList.length - 1].setAttribute('gap', 24);
-
-    if (Blockly.Blocks['data_setvariableto']) {
-      // <block type="data_setvariableto" gap="20">
-      //   <value name="VARIABLE">
-      //    <shadow type="data_variablemenu"></shadow>
-      //   </value>
-      //   <value name="VALUE">
-      //     <shadow type="text">
-      //       <field name="TEXT">0</field>
-      //     </shadow>
-      //   </value>
-      // </block>
-      var block = goog.dom.createDom('block');
-      block.setAttribute('type', 'data_setvariableto');
-      block.setAttribute('gap', 8);
-      block.appendChild(Blockly.Variables.createVariableDom_(variableList[0]));
-      block.appendChild(Blockly.Variables.createTextDom_());
-      xmlList.push(block);
-    }
-  }
-  return xmlList;
-};
-
 /**
  * Return the text that should be used in a field_variable or
  * field_variable_getter when no variable exists.
@@ -397,7 +346,7 @@ Blockly.Variables.generateVariableFieldXml_ = function(variableModel, opt_name) 
   // to be escaped to create valid XML.
   var element = goog.dom.createDom('field');
   element.setAttribute('name', opt_name || 'VARIABLE');
-  element.setAttribute('variableType', variableModel.type);
+  element.setAttribute('variabletype', variableModel.type);
   element.setAttribute('id', variableModel.getId());
   element.textContent = variableModel.name;
 

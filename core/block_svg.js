@@ -68,9 +68,6 @@ Blockly.BlockSvg = function(workspace, prototypeName, opt_id) {
   /** @type {boolean} */
   this.rendered = false;
 
-  /** @type {Object.<string,Element>} */
-  this.inputShapes_ = {};
-
   /**
    * Whether to move the block to the drag surface when it is dragged.
    * True if it should move, false if it should be translated directly.
@@ -155,9 +152,7 @@ Blockly.BlockSvg.prototype.initSvg = function() {
     // Input shapes are empty holes drawn when a value input is not connected.
     for (var i = 0, input; input = this.inputList[i]; i++) {
       input.init();
-      if (input.type === Blockly.INPUT_VALUE) {
-        this.initInputShape(input);
-      }
+      input.initOutlinePath(this.svgGroup_);
     }
     var icons = this.getIcons();
     for (i = 0; i < icons.length; i++) {
@@ -175,27 +170,6 @@ Blockly.BlockSvg.prototype.initSvg = function() {
   if (!this.getSvgRoot().parentNode) {
     this.workspace.getCanvas().appendChild(this.getSvgRoot());
   }
-};
-
-/**
- * Create and initialize the SVG element for an input shape.
- * May be called more than once for an input.
- * @param {!Blockly.Input} input Value input to add a shape SVG element for.
- */
-Blockly.BlockSvg.prototype.initInputShape = function(input) {
-  if (this.inputShapes_[input.name] || input.connection.getShadowDom()) {
-    // Only create the shape elements once, and don't bother creating them if
-    // there's a shadow block that will always cover the input shape.
-    return;
-  }
-  this.inputShapes_[input.name] = Blockly.utils.createSvgElement(
-    'path',
-    {
-      'class': 'blocklyPath',
-      'style': 'visibility: hidden' // Hide by default - shown when not connected.
-    },
-    this.svgContentGroup_
-  );
 };
 
 /**
@@ -385,6 +359,43 @@ Blockly.BlockSvg.prototype.setParent = function(newParent) {
   }
 };
 
+
+/**
+ * Return the coordinates of the top-left corner of this block relative to another
+ * parent element.
+ * This does not change with workspace scale.
+ * @return {!goog.math.Coordinate} Object with .x and .y properties in
+ *     workspace coordinates. NULL if the other element is not a parent
+ */
+Blockly.BlockSvg.prototype.getRelativeToElementXY = function(otherElement) {
+  // The drawing surface is relative to either the workspace canvas
+  // or to the drag surface group.
+  var x = 0;
+  var y = 0;
+
+  var element = this.getSvgRoot();
+  if (element) {
+    do {
+      // Loop through this block and every parent.
+      var xy = Blockly.utils.getRelativeXY(element);
+      x += xy.x;
+      y += xy.y;
+      // If this element is the current element on the drag surface, include
+      // the translation of the drag surface itself.
+      if (this.useDragSurface_ && this.workspace.blockDragSurface_.getCurrentBlock() == element) {
+        var surfaceTranslation = this.workspace.blockDragSurface_.getSurfaceTranslation();
+        x += surfaceTranslation.x;
+        y += surfaceTranslation.y;
+      }
+      element = element.parentNode;
+    } while (element && element != otherElement && element != this.workspace.getCanvas());
+  }
+  if(element === otherElement)
+    return new goog.math.Coordinate(x, y);
+  else
+    return null;
+};
+
 /**
  * Return the coordinates of the top-left corner of this block relative to the
  * drawing surface's origin (0,0), in workspace units.
@@ -458,6 +469,20 @@ Blockly.BlockSvg.prototype.translate = function(x, y) {
 };
 
 /**
+ * Transforms a block by setting the translation on the transform attribute
+ * of the block's SVG.
+ * @param {number} x The x coordinate of the translation in workspace units.
+ * @param {number} y The y coordinate of the translation in workspace units.
+ */
+Blockly.BlockSvg.prototype.translateBy = function(x, y) {
+  var curTranslate = Blockly.utils.getRelativeXY(this.getSvgRoot());
+  var newX = (curTranslate ? curTranslate.x : 0) + x;
+  var newY = (curTranslate ? curTranslate.y : 0) + y;
+  this.getSvgRoot().setAttribute('transform',
+      'translate(' + newX + ',' + newY + ')');
+};
+
+/**
  * Move this block to its workspace's drag surface, accounting for positioning.
  * Generally should be called at the same time as setDragging_(true).
  * Does nothing if useDragSurface_ is false.
@@ -478,6 +503,34 @@ Blockly.BlockSvg.prototype.moveToDragSurface_ = function() {
   this.workspace.blockDragSurface_.setBlocksAndShow(this.getSvgRoot());
 };
 
+
+// Blockly.BlockSvg.prototype.addToDragSurface_ = function() {
+//   if (!this.useDragSurface_) {
+//     return;
+//   }
+//   // The translation for drag surface blocks,
+//   // is equal to the current relative-to-surface position,
+//   // to keep the position in sync as it move on/off the surface.
+//   // This is in workspace coordinates.
+//   var xy = this.getRelativeToSurfaceXY();
+//   var surfaceXY = this.workspace.blockDragSurface_.surfaceXY_;
+//   var translateXY = goog.math.Coordinate.sum(xy, surfaceXY);
+
+//   console.log("# adding to drag surface");
+//   console.log("\tsurface XY: " + surfaceXY.x + " " + surfaceXY.y);
+//   console.log("\trel XY: " + xy.x + " " + xy.y);
+//   console.log("--> Translate by " + translateXY);
+
+//   this.clearTransformAttributes_();
+//   this.translateBy(translateXY.x, translateXY.y);
+  
+//   //this.clearTransformAttributes_();
+//   //this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
+//   // Execute the move on the top-level SVG component
+//   this.workspace.blockDragSurface_.addBlockToSurface(this.getSvgRoot());
+// };
+
+
 /**
  * Move this block back to the workspace block canvas.
  * Generally should be called at the same time as setDragging_(false).
@@ -492,6 +545,11 @@ Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
   }
   // Translate to current position, turning off 3d.
   this.translate(newXY.x, newXY.y);
+  if(this.workspace.blockDragSurface_.surfaceOffsetXY_) {
+    var offsetXY = this.workspace.blockDragSurface_.surfaceOffsetXY_;
+    var scale = this.workspace.blockDragSurface_.scale_;
+    this.translateBy(offsetXY.x / scale, offsetXY.y / scale);
+  }
   this.workspace.blockDragSurface_.clearAndHide(this.workspace.getCanvas());
 };
 
@@ -1586,7 +1644,7 @@ Blockly.BlockSvg.prototype.bumpNeighbours_ = function() {
   if (!this.workspace) {
     return;  // Deleted block.
   }
-  if (Blockly.dragMode_ != Blockly.DRAG_NONE) {
+  if (this.workspace.isDragging()) {
     return;  // Don't bump blocks during a drag.
   }
   var rootBlock = this.getRootBlock();
