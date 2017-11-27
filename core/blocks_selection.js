@@ -237,9 +237,8 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, remove
     currentBlock = blockList[i];
     if(currentBlock)
     {
-      if(removeShadow && currentBlock.isShadow())
+      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
         continue;
-
       if(Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
         var rect = baseSvg.createSVGRect();
         rect.x = divXY.x;
@@ -268,7 +267,7 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
-      if(removeShadow && currentBlock.isShadow())
+      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
         continue;
       var rect = baseSvg.createSVGRect();
       rect.x = divXY.x;
@@ -300,7 +299,7 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList,
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
-      if(removeShadow && currentBlock.isShadow())
+      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
         continue;
       // Create path shape
       var blockPath = currentBlock.svgPath_;
@@ -372,7 +371,7 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  if(block /*&& !block.isShadow()*/) {
+  if(block) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
