@@ -384,9 +384,6 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
-  // if(!Blockly.BlocksSelection.blocks) {
-  //   Blockly.BlocksSelection.blocks = [];
-  // }
   for(var i = 0; i < blockList.length; i++) {
     Blockly.BlocksSelection.addToChosenBlocks(blockList[i]);
   }
@@ -400,10 +397,6 @@ Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, bl
   if(!topBlock || !blockList || blockList.length === 0) {
     return;
   }
-  // if(!Blockly.BlocksSelection.blocks) {
-  //   Blockly.BlocksSelection.blocks = [];
-  // }
-
   var currentBlock = topBlock;
   while(currentBlock && blockList.includes(currentBlock)) {
     Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
