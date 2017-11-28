@@ -371,7 +371,8 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  if(block) {
+  // OB: Make sure only blocks that can be set as 'chosen' are added to the list, and only when the workspace is editable
+  if(block && block.canChoose() && block.workspace.locked === false) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
