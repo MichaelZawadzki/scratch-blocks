@@ -76,6 +76,7 @@ Blockly.VerticalFlyout.prototype.autoClose = false;
 
 /**
  * The width of the flyout, if not otherwise specified.
+ * OB TODO: Change this, or make it a variable so we can change the toolbox width if needed
  * @type {number}
  */
 Blockly.VerticalFlyout.prototype.DEFAULT_WIDTH = 250;
