@@ -214,11 +214,10 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
 
   selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks, true), true));
   selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks, true));
-
   // OB TEMP: find top blocks of multiple stacks
   var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(selectedBlocks);
   if(topBlocks && topBlocks.length > 0) {
-    Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], selectedBlocks);
+    Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], selectedBlocks, true);
   }
 
   //Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
@@ -371,7 +370,8 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  if(block) {
+  // OB: Make sure only blocks that can be set as 'chosen' are added to the list, and only when the workspace is editable
+  if(block && block.canChoose() && block.workspace.locked === false) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
@@ -383,9 +383,6 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
-  // if(!Blockly.BlocksSelection.blocks) {
-  //   Blockly.BlocksSelection.blocks = [];
-  // }
   for(var i = 0; i < blockList.length; i++) {
     Blockly.BlocksSelection.addToChosenBlocks(blockList[i]);
   }
@@ -395,18 +392,35 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
  * Starting for the top block of a stack, sets sub-blocks of stack to 'chosen' if they were
  * in the list of selected blocks.
  */
-Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, blockList) {
+Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, blockList, addChildrenStack) {
   if(!topBlock || !blockList || blockList.length === 0) {
     return;
   }
-  // if(!Blockly.BlocksSelection.blocks) {
-  //   Blockly.BlocksSelection.blocks = [];
-  // }
-
   var currentBlock = topBlock;
   while(currentBlock && blockList.includes(currentBlock)) {
+    // Add current block
     Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
+    // Add any sub-stack blocks (in C or E blocks, for example)
+    if(addChildrenStack) {
+      Blockly.BlocksSelection.addSubstackBlocks(currentBlock);
+    }
+    // Get next block in sequence
     currentBlock = currentBlock.getNextBlock();
+  }
+};
+
+/**
+ * Adds the all sub-blocks nested under the current block.
+ * Goes through the current block, and then all sub-blocks of current block so we get all
+ * the blocks at all sub-levels. 
+ */
+Blockly.BlocksSelection.addSubstackBlocks = function (block) {
+  var childrenStack = block.getChildrenStack(true);
+  if(childrenStack && childrenStack.length > 0) {
+    Blockly.BlocksSelection.addMultipleToChosenBlocks(childrenStack);
+    for(var i = 0; i < childrenStack.length; i++) {
+      Blockly.BlocksSelection.addSubstackBlocks(childrenStack[i]);
+    }
   }
 };
 
