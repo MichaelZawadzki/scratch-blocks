@@ -473,6 +473,27 @@ Blockly.Block.prototype.getSubstackBlocks = function() {
 };
 
 /**
+ * Gets sub-blocks nested under the current block.
+ * Goes only one level-deep: user must recursively get the children stack of those sub-blocks
+ * @param {boolean=} opt_ignoreShadows If set, don't include shadow blocks.
+ * @return {!Array.<!Blockly.Block>} Flattened array of sub-blocks.
+ */
+Blockly.Block.prototype.getChildrenStack = function (opt_ignoreShadows) {
+  var childrenStack;
+  var allDescendantBlocks = this.getDescendants(opt_ignoreShadows);
+  if(allDescendantBlocks && allDescendantBlocks.length > 0) {
+    childrenStack = [];
+    for(var i = 0; i < allDescendantBlocks.length; i++) {
+      var currentBlock = allDescendantBlocks[i];
+      if(currentBlock && currentBlock != this && currentBlock.getSurroundParent() == this) {
+        childrenStack.push(currentBlock);
+      }
+    }
+  }
+  return childrenStack;
+};
+
+/**
  * Change the previous connection of a block to a new one.
  * Will do the disconnect of the block's previous connection,
  * and of the new previous block if it is connected, and will then connect the two.
