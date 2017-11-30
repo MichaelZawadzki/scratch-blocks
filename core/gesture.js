@@ -683,9 +683,9 @@ Blockly.Gesture.prototype.handleUp = function(e) {
 
 
 
-  if (this.isDraggingBlock_ && Blockly.BlocksSelection.isDraggingChosenBlocks()) {
-    Blockly.BlocksSelection.createOutline();
-   }
+    if (this.isDraggingBlock_ && Blockly.BlocksSelection.isDraggingChosenBlocks()) {
+      Blockly.BlocksSelection.createOutline();
+    }
   }
 };
 

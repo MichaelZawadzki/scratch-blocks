@@ -746,7 +746,6 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
 
 
 Blockly.BlocksSelection.createOutline = function() {
-  
   Blockly.BlocksSelection.disconnectAndMoveBlocks();
   //Blockly.BlocksSelection.cloneBlocks();
 };
