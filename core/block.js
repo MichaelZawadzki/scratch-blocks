@@ -541,9 +541,9 @@ Blockly.Block.prototype.saveNextConnection = function() {
     if(this.nextConnection.isConnected()) {
       this.savedNextBlock = this.nextConnection.targetBlock();
 
-      console.log("Saving NEXT connection of " + this.type);
-      if(this.savedNextBlock)
-        console.log("target: " + this.savedNextBlock.type);
+      //console.log("Saving NEXT connection of " + this.type);
+      //if(this.savedNextBlock)
+        //console.log("target: " + this.savedNextBlock.type);
     }
   }
 };
@@ -563,9 +563,9 @@ Blockly.Block.prototype.savePreviousConnection = function() {
     if(this.previousConnection.isConnected()) {
       this.savedPreviousBlock = this.previousConnection.targetBlock();
 
-      console.log("Saving PREV connection of " + this.type);
-      if(this.savedPreviousBlock)
-        console.log("target: " + this.savedPreviousBlock.type);
+      //console.log("Saving PREV connection of " + this.type);
+      //if(this.savedPreviousBlock)
+        //console.log("target: " + this.savedPreviousBlock.type);
     }
   }
 };

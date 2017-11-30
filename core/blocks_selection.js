@@ -836,6 +836,10 @@ Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
   if(topBlock) {
     Blockly.BlocksSelection.workspace = topBlock.workspace;
     Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topBlock.svgGroup_);
+
+    var topBlockSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
+    console.log("Surface XY:");
+    console.log(Blockly.utils.getRelativeXY(topBlockSvg));
   }
 }
 
@@ -859,11 +863,11 @@ Blockly.BlocksSelection.removeOutline = function() {
       curBlock = Blockly.BlocksSelection.blocks[i];
       if(curBlock) {
         if(curBlock.savedNextBlock != null) {
-          console.log("\treconnect " + curBlock.type + " with next block " + curBlock.savedNextBlock.type);
+          //console.log("\treconnect " + curBlock.type + " with next block " + curBlock.savedNextBlock.type);
           curBlock.restoreNextConnection();
         }
         if(curBlock.savedPreviousBlock != null) {
-          console.log("\treconnect " + curBlock.type + " with prev block " + curBlock.savedPreviousBlock.type);
+          //console.log("\treconnect " + curBlock.type + " with prev block " + curBlock.savedPreviousBlock.type);
           curBlock.restorePreviousConnection();
         }
       }
