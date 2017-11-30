@@ -757,6 +757,10 @@ Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
   if(topBlock) {
     Blockly.BlocksSelection.workspace = topBlock.workspace;
     Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topBlock.svgGroup_);
+
+    var topBlockSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
+    console.log("Surface XY:");
+    console.log(Blockly.utils.getRelativeXY(topBlockSvg));
   }
 }
 
