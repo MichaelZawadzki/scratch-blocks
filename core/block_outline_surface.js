@@ -29,7 +29,7 @@
 
 'use strict';
 
-goog.provide('Blockly.BlockDragSurfaceSvg');
+goog.provide('Blockly.BlockOutlineSurfaceSvg');
 goog.require('Blockly.utils');
 goog.require('goog.asserts');
 goog.require('goog.math.Coordinate');
@@ -41,7 +41,7 @@ goog.require('goog.math.Coordinate');
  * @param {!Element} container Containing element.
  * @constructor
  */
-Blockly.BlockDragSurfaceSvg = function(container) {
+Blockly.BlockOutlineSurfaceSvg = function(container) {
   /**
    * @type {!Element}
    * @private
@@ -51,11 +51,11 @@ Blockly.BlockDragSurfaceSvg = function(container) {
 };
 
 /**
- * The SVG drag surface. Set once by Blockly.BlockDragSurfaceSvg.createDom.
+ * The SVG drag surface. Set once by Blockly.BlockOutlineSurfaceSvg.createDom.
  * @type {Element}
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.SVG_ = null;
+Blockly.BlockOutlineSurfaceSvg.prototype.SVG_ = null;
 
 /**
  * This is where blocks live while they are being dragged if the drag surface
@@ -63,14 +63,14 @@ Blockly.BlockDragSurfaceSvg.prototype.SVG_ = null;
  * @type {Element}
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.dragGroup_ = null;
+Blockly.BlockOutlineSurfaceSvg.prototype.outlineGroup_ = null;
 
 /**
  * Containing HTML element; parent of the workspace and the drag surface.
  * @type {Element}
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.container_ = null;
+Blockly.BlockOutlineSurfaceSvg.prototype.container_ = null;
 
 /**
  * Cached value for the scale of the drag surface.
@@ -78,7 +78,7 @@ Blockly.BlockDragSurfaceSvg.prototype.container_ = null;
  * @type {number}
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.scale_ = 1;
+Blockly.BlockOutlineSurfaceSvg.prototype.scale_ = 1;
 
 /**
  * Cached value for the translation of the drag surface.
@@ -87,47 +87,42 @@ Blockly.BlockDragSurfaceSvg.prototype.scale_ = 1;
  * @type {goog.math.Coordinate}
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.surfaceXY_ = null;
-
-/**
- * Surface offset
- * @type {goog.math.Coordinate}
- * @private
- */
-Blockly.BlockDragSurfaceSvg.prototype.surfaceOffsetXY_ = null;
+Blockly.BlockOutlineSurfaceSvg.prototype.surfaceXY_ = null;
 
 /**
  * ID for the drag shadow filter, set in createDom.
  * @type {string}
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.dragShadowFilterId_ = '';
+Blockly.BlockOutlineSurfaceSvg.prototype.dragShadowFilterId_ = '';
 
 /**
  * Standard deviation for gaussian blur on drag shadow, in px.
  * @type {number}
  * @const
  */
-Blockly.BlockDragSurfaceSvg.SHADOW_STD_DEVIATION = 6;
+Blockly.BlockOutlineSurfaceSvg.SHADOW_STD_DEVIATION = 6;
 
 /**
  * Create the drag surface and inject it into the container.
  */
-Blockly.BlockDragSurfaceSvg.prototype.createDom = function() {
+Blockly.BlockOutlineSurfaceSvg.prototype.createDom = function() {
   if (this.SVG_) {
     return;  // Already created.
   }
-  this.SVG_ = Blockly.utils.createSvgElement('svg', {
-    'xmlns': Blockly.SVG_NS,
-    'xmlns:html': Blockly.HTML_NS,
-    'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-    'version': '1.1',
-    'class': 'blocklyBlockDragSurface'
-  }, this.container_);
+//   this.SVG_ = Blockly.utils.createSvgElement('svg', {
+//     'xmlns': Blockly.SVG_NS,
+//     'xmlns:html': Blockly.HTML_NS,
+//     'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+//     'version': '1.1',
+//     'class': 'blocklyBlocksOutlineSurface'
+//   }, this.container_);
+this.SVG_ = Blockly.utils.createSvgElement('g',
+    {'class': 'blocklyBlocksOutlineSurface'}, this.container_);
   var defs = Blockly.utils.createSvgElement('defs', {}, this.SVG_);
-  this.dragShadowFilterId_ = this.createDropShadowDom_(defs);
-  this.dragGroup_ = Blockly.utils.createSvgElement('g', {}, this.SVG_);
-  this.dragGroup_.setAttribute('filter', 'url(#' + this.dragShadowFilterId_ + ')');
+  this.selectFilterId_ = this.createOutlineDom_(defs);
+  this.outlineGroup_ = Blockly.utils.createSvgElement('g', {}, this.SVG_);
+  this.outlineGroup_.setAttribute('filter', 'url(#' + this.selectFilterId_ + ')');
 };
 
 /**
@@ -135,23 +130,7 @@ Blockly.BlockDragSurfaceSvg.prototype.createDom = function() {
  * @param {Element} defs Defs element to insert the shadow filter definition
  * @return {string} ID for the filter element
  */
-Blockly.BlockDragSurfaceSvg.prototype.createDropShadowDom_ = function(defs) {
-  // var rnd = String(Math.random()).substring(2);
-  // // Adjust these width/height, x/y properties to prevent the shadow from clipping
-  // var dragShadowFilter = Blockly.utils.createSvgElement('filter',
-  //   {'id': 'blocklyDragShadowFilter' + rnd, 'height': '140%', 'width': '140%', y: '-20%', x: '-20%'}, defs);
-  // Blockly.utils.createSvgElement('feGaussianBlur',
-  //   {'in': 'SourceAlpha', 'stdDeviation': Blockly.BlockDragSurfaceSvg.SHADOW_STD_DEVIATION}, dragShadowFilter);
-  // var componentTransfer = Blockly.utils.createSvgElement('feComponentTransfer',
-  //   {'result': 'offsetBlur'}, dragShadowFilter);
-  // // Shadow opacity is specified in the adjustable colour library,
-  // // since the darkness of the shadow largely depends on the workspace colour.
-  // Blockly.utils.createSvgElement('feFuncA',
-  //   {'type': 'linear', 'slope': Blockly.Colours.dragShadowOpacity}, componentTransfer);
-  // Blockly.utils.createSvgElement('feComposite',
-  //   {'in': 'SourceGraphic', 'in2': 'offsetBlur', 'operator': 'over'}, dragShadowFilter);
-  // return dragShadowFilter.id;
-
+Blockly.BlockOutlineSurfaceSvg.prototype.createOutlineDom_ = function(defs) {
   var rnd = String(Math.random()).substring(2);
   // Adjust these width/height, x/y properties to prevent the shadow from clipping
   var selectFilter = Blockly.utils.createSvgElement('filter',
@@ -180,25 +159,148 @@ Blockly.BlockDragSurfaceSvg.prototype.createDropShadowDom_ = function(defs) {
   return selectFilter.id;
 };
 
+// /**
+//  * Set the SVG blocks on the drag surface's group and show the surface.
+//  * Only one block group should be on the drag surface at a time.
+//  * @param {!Element} blocks Block or group of blocks to place on the drag
+//  * surface.
+//  */
+// //Blockly.BlockOutlineSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
+// Blockly.BlockOutlineSurfaceSvg.prototype.setBlocksAndShow = function(topBlock, translateXY) {
+//   //goog.asserts.assert(this.outlineGroup_.childNodes.length == 0,
+//   //  'Already selecting a block.');
+//   // appendChild removes the blocks from the previous parent
 
-Blockly.BlockDragSurfaceSvg.prototype.isInDragSurface = function(element) {
-  return this.dragGroup_.contains(element);
-};
+//   var svgBlocks = topBlock.getSvgRoot();
 
-/**
- * Set the SVG blocks on the drag surface's group and show the surface.
- * Only one block group should be on the drag surface at a time.
- * @param {!Element} blocks Block or group of blocks to place on the drag
- * surface.
- */
-Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
-  goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
+//   console.log("Set blocks and show:");
+//   console.log(topBlock.type);
+//   // console.log("\thierarchy:");
+//   // console.log(svgBlocks);
+//   var prevBlock = topBlock.getParent();
+//   var prevSvg;
+
+//   if(prevBlock) {
+//     console.log("Parent block is " + prevBlock.type);
+//     console.log(prevBlock);
+    
+//     prevSvg = prevBlock.getSvgRoot().parentNode;
+//   } else {
+//     console.log("No previous block :(");    
+
+//     prevSvg = topBlock.getSvgRoot().parentNode;
+//   }
+
+//   // Find first block that is NOT selected
+//   var curBlock = topBlock;
+//   while (curBlock != null && curBlock.isChosen_) {
+//     curBlock = curBlock.getNextBlock();
+//   }
+
+//   var x = 0, y = 0;
+//   if(curBlock) {
+//     console.log("First non-selected block: " + curBlock.type);
+
+//     var element = curBlock.getSvgRoot();
+//     if (element) {
+//       do {
+//         console.log("Check element:");
+//         console.log(element);
+//         // Loop through this block and every parent.
+//         var xy = Blockly.utils.getRelativeXY(element);
+//         x += xy.x;
+//         y += xy.y;
+
+//         console.log("\trelative: " + xy.x + " " + xy.y);
+//         console.log("\ttotal: " + x + " " + y);
+
+//         element = element.parentNode;
+//       } while (element && element != curBlock.workspace.getCanvas() /*&& element != selectSurfaceGroup*/);
+//     }
+    
+//     // curBlock.clearTransformAttributes_();
+//     // curBlock.translate(xy.x, xy.y);
+//   }
+
+//   // move top block and all SVG sub-blocks to select surface
+//   this.outlineGroup_.appendChild(topBlock.getSvgRoot());
+
+
+//   console.log("BASE relative: " + translateXY.x + " " + translateXY.y);
+//   if(curBlock) {
+//     console.log("----> Append blocks to svg node:");
+//     console.log(prevSvg);
+
+//     prevSvg.appendChild(curBlock.getSvgRoot());
+
+//     var translateX = 0, translateY = 0;
+    
+//     //curBlock.clearTransformAttributes_();
+//     if(prevBlock) {
+//       translateX = x;
+//       translateY = y;
+//     }
+//     else {
+//       translateX = translateXY.x + x;
+//       translateY = translateXY.y + y;
+//     }
+//     curBlock.translate(translateX, translateY);
+
+//     console.log("### Final: " + (translateX) + " " + (translateY));
+//   }
+  
+
+
+// /*
+//   var blocks = [];
+//   var curBlock = topBlock;
+//   while (curBlock != null && curBlock.isChosen_) {
+//     blocks.push(curBlock)
+//     curBlock = curBlock.getNextBlock();
+//   }
+
+//   console.log("Blocks to show:");
+//   console.log(blocks);
+
+//   console.log("Move to SVG select surface:");
+//   var numBlocks = blocks.length;
+//   //for(var i = numBlocks - 1; i >= 0; i--) {
+//   for(var i = 0; i < numBlocks; i++) {
+//     console.log("\t" + blocks[i].type);
+//     console.log(blocks[i].getSvgRoot());
+
+//     if(i == numBlocks - 1) {
+//       if(blocks[i].getNextBlock() != null) {
+//         prevSvg.appendChild(blocks[i].getNextBlock().getSvgRoot());
+//       }
+//     }
+//     this.outlineGroup_.appendChild(blocks[i].getSvgRoot());
+//   }
+// */
+
+
+//   // //this.outlineGroup_.appendChild(svgBlocks);
+//   // this.SVG_.style.display = 'block';
+//   // this.surfaceXY_ = new goog.math.Coordinate(0, 0);
+//   // // This allows blocks to be dragged outside of the blockly svg space.
+//   // // This should be reset to hidden at the end of the block drag.
+//   // // Note that this behavior is different from blockly where block disappear
+//   // // "under" the blockly area.
+//   // var injectionDiv = document.getElementsByClassName('injectionDiv')[0];
+//   // injectionDiv.style.overflow = 'visible';
+//   this.show(translateXY);
+// };
+Blockly.BlockOutlineSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
+  goog.asserts.assert(this.outlineGroup_.childNodes.length == 0,
     'Already dragging a block.');
   // appendChild removes the blocks from the previous parent
-  this.dragGroup_.appendChild(blocks);
+  this.outlineGroup_.appendChild(blocks);
+  this.show();
+};
+
+Blockly.BlockOutlineSurfaceSvg.prototype.show = function(translateXY) {
   this.SVG_.style.display = 'block';
-  if(this.surfaceXY_ == null)
-    this.surfaceXY_ = new goog.math.Coordinate(0, 0);
+  this.surfaceXY_ = new goog.math.Coordinate(0, 0);
   // This allows blocks to be dragged outside of the blockly svg space.
   // This should be reset to hidden at the end of the block drag.
   // Note that this behavior is different from blockly where block disappear
@@ -207,42 +309,6 @@ Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
   injectionDiv.style.overflow = 'visible';
 };
 
-// /**
-//  * Set the SVG blocks on the drag surface's group and show the surface.
-//  * Only one block group should be on the drag surface at a time.
-//  * @param {!Element} blocks Block or group of blocks to place on the drag
-//  * surface.
-//  */
-// Blockly.BlockDragSurfaceSvg.prototype.setBlockListAndShow = function(blockList) {
-//   //goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
-//   //  'Already dragging a block.');
-//   if(!blockList || blockList.length === 0) {
-//     return;
-//   }
-//   // appendChild removes the blocks from the previous parent
-//   for(var i = 0; i < blockList.length; i++) {
-//     this.dragGroup_.appendChild(blockList[i]);
-//   }
-//   this.SVG_.style.display = 'block';
-//   if(this.surfaceXY_ == null)
-//     this.surfaceXY_ = new goog.math.Coordinate(0, 0);
-//   // This allows blocks to be dragged outside of the blockly svg space.
-//   // This should be reset to hidden at the end of the block drag.
-//   // Note that this behavior is different from blockly where block disappear
-//   // "under" the blockly area.
-//   var injectionDiv = document.getElementsByClassName('injectionDiv')[0];
-//   injectionDiv.style.overflow = 'visible';
-// };
-
-// Blockly.BlockDragSurfaceSvg.prototype.addBlockToSurface = function(block) {
-//   if(this.dragGroup_.childNodes.length == 0) {
-//     this.setBlocksAndShow(block);
-//   }
-//   else {
-//     this.dragGroup_.appendChild(block);
-//   }
-// }
-
 /**
  * Translate and scale the entire drag surface group to the given position, to
  * keep in sync with the workspace.
@@ -250,13 +316,13 @@ Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
  * @param {number} y Y translation in workspace coordinates.
  * @param {number} scale Scale of the group.
  */
-Blockly.BlockDragSurfaceSvg.prototype.translateAndScaleGroup = function(x, y, scale) {
+Blockly.BlockOutlineSurfaceSvg.prototype.translateAndScaleGroup = function(x, y, scale) {
   this.scale_ = scale;
   // This is a work-around to prevent a the blocks from rendering
   // fuzzy while they are being dragged on the drag surface.
   x = x.toFixed(0);
   y = y.toFixed(0);
-  this.dragGroup_.setAttribute('transform', 'translate('+ x + ','+ y + ')' +
+  this.outlineGroup_.setAttribute('transform', 'translate('+ x + ','+ y + ')' +
       ' scale(' + scale + ')');
 };
 
@@ -264,13 +330,9 @@ Blockly.BlockDragSurfaceSvg.prototype.translateAndScaleGroup = function(x, y, sc
  * Translate the drag surface's SVG based on its internal state.
  * @private
  */
-Blockly.BlockDragSurfaceSvg.prototype.translateSurfaceInternal_ = function() {
+Blockly.BlockOutlineSurfaceSvg.prototype.translateSurfaceInternal_ = function() {
   var x = this.surfaceXY_.x;
   var y = this.surfaceXY_.y;
-  if(this.surfaceOffsetXY_) {
-    x += this.surfaceOffsetXY_.x;
-    y += this.surfaceOffsetXY_.y;
-  }
   // This is a work-around to prevent a the blocks from rendering
   // fuzzy while they are being dragged on the drag surface.
   x = x.toFixed(0);
@@ -289,13 +351,9 @@ Blockly.BlockDragSurfaceSvg.prototype.translateSurfaceInternal_ = function() {
  * @param {number} x X translation for the entire surface.
  * @param {number} y Y translation for the entire surface.
  */
-Blockly.BlockDragSurfaceSvg.prototype.translateSurface = function(x, y) {
+Blockly.BlockOutlineSurfaceSvg.prototype.translateSurface = function(x, y) {
   this.surfaceXY_ = new goog.math.Coordinate(x * this.scale_, y * this.scale_);
   this.translateSurfaceInternal_();
-
-
-  //console.log("$$$ Translate surface by " + this.surfaceXY_);
-  //console.trace();
 };
 
 /**
@@ -303,22 +361,18 @@ Blockly.BlockDragSurfaceSvg.prototype.translateSurface = function(x, y) {
  * Use this when finishing a drag to return blocks to the correct position.
  * @return {!goog.math.Coordinate} Current translation of the surface.
  */
-Blockly.BlockDragSurfaceSvg.prototype.getSurfaceTranslation = function() {
+Blockly.BlockOutlineSurfaceSvg.prototype.getSurfaceTranslation = function() {
   var xy = Blockly.utils.getRelativeXY(this.SVG_);
   return new goog.math.Coordinate(xy.x / this.scale_, xy.y / this.scale_);
 };
-
-Blockly.BlockDragSurfaceSvg.prototype.setSurfaceOffsetXY = function (_offsetXY) {
-  this.surfaceOffsetXY_ = new goog.math.Coordinate(_offsetXY.x * this.scale_, _offsetXY.y * this.scale_); ;
-}
 
 /**
  * Provide a reference to the drag group (primarily for
  * BlockSvg.getRelativeToSurfaceXY).
  * @return {Element} Drag surface group element.
  */
-Blockly.BlockDragSurfaceSvg.prototype.getGroup = function() {
-  return this.dragGroup_;
+Blockly.BlockOutlineSurfaceSvg.prototype.getGroup = function() {
+  return this.outlineGroup_;
 };
 
 /**
@@ -327,8 +381,8 @@ Blockly.BlockDragSurfaceSvg.prototype.getGroup = function() {
  * @return {!Element|undefined} Drag surface block DOM element, or undefined
  * if no blocks exist.
  */
-Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
-  return this.dragGroup_.firstChild;
+Blockly.BlockOutlineSurfaceSvg.prototype.getCurrentBlock = function() {
+  return this.outlineGroup_.firstChild;
 };
 
 /**
@@ -340,19 +394,17 @@ Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
  *     to, or null if the blocks should be removed from this surface without
  *     being moved to a different surface.
  */
-Blockly.BlockDragSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
-  var currentBlock = this.getCurrentBlock();
+Blockly.BlockOutlineSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
   if (opt_newSurface) {
-    // appendChild removes the node from this.dragGroup_
-    opt_newSurface.appendChild(currentBlock);
+    // appendChild removes the node from this.outlineGroup_
+    opt_newSurface.appendChild(this.getCurrentBlock());
   } else {
-    this.dragGroup_.removeChild(currentBlock);
+    this.outlineGroup_.removeChild(this.getCurrentBlock());
   }
   this.SVG_.style.display = 'none';
-  goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
+  goog.asserts.assert(this.outlineGroup_.childNodes.length == 0,
     'Drag group was not cleared.');
   this.surfaceXY_ = null;
-  this.surfaceOffsetXY_ = null;
 
   // Reset the overflow property back to hidden so that nothing appears outside
   // of the blockly area.
@@ -362,34 +414,17 @@ Blockly.BlockDragSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
   injectionDiv.style.overflow = 'hidden';
 };
 
-// Blockly.BlockDragSurfaceSvg.prototype.clearBlocksAndHide = function(opt_newSurface) {
 
-//   console.log("Clear blocks and hide");
+/**
+ * Translate the layer so that it matches the workspace.
+ */
+Blockly.BlockOutlineSurfaceSvg.prototype.translateLayer = function(x, y, scale) {
+  // if (this.selectionRect_) {
+  //   var translateX = x;
+  //   var translateY = y;
+  //   var translation = 'translate(' + translateX + ',' + translateY + ') ';
+  //   this.selectionRect_.setAttribute('transform', translation);
+  // }
+};
 
-//   var currentChild = null;
-//   for(var i = this.dragGroup_.childNodes.length - 1; i >= 0; i--) {
-//     // if (opt_newSurface) {
-//     //   // appendChild removes the node from this.dragGroup_
-//     //   opt_newSurface.appendChild(this.getCurrentBlock());
-//     // } 
-//     // else 
-//     {
-//       this.dragGroup_.removeChild(this.dragGroup_.childNodes[i]);
-//     }
-//   }
 
-//   console.log("\tnum child: " + this.dragGroup_.childNodes.length);
-
-//   this.SVG_.style.display = 'none';
-//   goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
-//     'Drag group was not cleared.');
-//   this.surfaceXY_ = null;
-
-//   // Reset the overflow property back to hidden so that nothing appears outside
-//   // of the blockly area.
-//   // Note that this behavior is different from blockly. See note in
-//   // setBlocksAndShow.
-//   var injectionDiv = document.getElementsByClassName('injectionDiv')[0];
-//   injectionDiv.style.overflow = 'hidden';
-  
-// };

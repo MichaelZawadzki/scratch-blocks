@@ -476,6 +476,7 @@ Blockly.Gesture.prototype.startDraggingBlock_ = function() {
   if (this.shouldDuplicateOnDrag_) {
     this.duplicateOnDrag_();
   }
+  Blockly.BlocksSelection.initBlockDragging();
   this.blockDragger_ = new Blockly.BlockDragger(this.targetBlock_,
       this.startWorkspace_);
   this.blockDragger_.startBlockDrag(this.currentDragDeltaXY_);
@@ -680,6 +681,13 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     e.stopPropagation();
 
     this.dispose();
+
+
+
+
+  if (this.isDraggingBlock_ && Blockly.BlocksSelection.isDraggingChosenBlocks()) {
+    Blockly.BlocksSelection.createOutline();
+   }
   }
 };
 

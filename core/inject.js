@@ -40,6 +40,8 @@ goog.require('Blockly.WorkspaceDragSurfaceSvg');
 goog.require('Blockly.WorkspaceHighlightLayerSvg');
 // OB: For blocks selection
 goog.require('Blockly.BlocksSelectionLayerSvg');
+// OB: For blocks outline
+goog.require('Blockly.BlockOutlineSurfaceSvg');
 
 goog.require('goog.dom');
 goog.require('goog.ui.Component');
@@ -77,9 +79,11 @@ Blockly.inject = function(container, opt_options) {
   var workspaceDragSurface = new Blockly.WorkspaceDragSurfaceSvg(subContainer);
   var workspaceHighlightLayer = new Blockly.WorkspaceHighlightLayerSvg(svg);
   var blocksSelectionLayer = new Blockly.BlocksSelectionLayerSvg(subContainer);
+  //var blocksOutlineSurface = new Blockly.BlockOutlineSurfaceSvg(subContainer);
+  var blocksOutlineSurface = new Blockly.BlockOutlineSurfaceSvg(null);
 
   var workspace = Blockly.createMainWorkspace_(svg, options, blockDragSurface,
-      workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer);
+      workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer, blocksOutlineSurface);
   Blockly.init_(workspace);
   Blockly.mainWorkspace = workspace;
 
@@ -212,11 +216,15 @@ Blockly.createDom_ = function(container, options) {
  * @return {!Blockly.Workspace} Newly created main workspace.
  * @private
  */
-Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer) {
+Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer, blocksOutlineSurface) {
   options.parentWorkspace = null;
-  var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer);
+  var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer, blocksOutlineSurface);
   mainWorkspace.scale = options.zoomOptions.startScale;
   svg.appendChild(mainWorkspace.createDom('blocklyMainBackground'));
+
+  console.log("Main ws svg: ");
+  console.log(mainWorkspace.svgGroup_);
+  mainWorkspace.svgGroup_.appendChild(blocksOutlineSurface.SVG_);
 
   if (!options.hasCategories && options.languageTree) {
     // Add flyout as an <svg> that is a sibling of the workspace svg.
