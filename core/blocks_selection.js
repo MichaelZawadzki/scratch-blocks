@@ -212,20 +212,16 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   var wsBlocks = this.workspace_.getAllBlocks();
   var selectedBlocks = [];
 
-  selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks, true), true));
-  selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks, true));
-  // OB TEMP: find top blocks of multiple stacks
-  var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(selectedBlocks);
-  if(topBlocks && topBlocks.length > 0) {
-    Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], selectedBlocks, true);
-  }
+  selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks)));
+  selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks));
 
-  //Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
+  Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
+
   Blockly.BlocksSelection.createOutline();
 }
 
 
-Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, removeShadow) {
+Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
@@ -235,28 +231,23 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, remove
   var currentBlock = null;
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
-    if(currentBlock)
-    {
-      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
-        continue;
-      if(Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
-        var rect = baseSvg.createSVGRect();
-        rect.x = divXY.x;
-        rect.y = divXY.y;
-        rect.width = this.rect.width;
-        rect.height = this.rect.height;
+    if(currentBlock && Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
+      var rect = baseSvg.createSVGRect();
+      rect.x = divXY.x;
+      rect.y = divXY.y;
+      rect.width = this.rect.width;
+      rect.height = this.rect.height;
 
-        var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
-        if(enclosed) {
-          resultBlocks.push(currentBlock);
-        }
+      var enclosed = baseSvg.checkEnclosure(currentBlock.svgPath_, rect);
+      if(enclosed) {
+        resultBlocks.push(currentBlock);
       }
     }
   }
   return resultBlocks;
 };
 
-Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList, removeShadow) {
+Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
@@ -267,8 +258,6 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
-      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
-        continue;
       var rect = baseSvg.createSVGRect();
       rect.x = divXY.x;
       rect.y = divXY.y;
@@ -285,7 +274,7 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
 };
 
 // Experimental function here!
-Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList, removeShadow) {
+Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
@@ -299,8 +288,6 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList,
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
-      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
-        continue;
       // Create path shape
       var blockPath = currentBlock.svgPath_;
       var pathDefinition = blockPath.getAttribute("d");
@@ -373,8 +360,7 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  // OB: Make sure only blocks that can be set as 'chosen' are added to the list, and only when the workspace is editable
-  if(block && block.canChoose() && block.workspace.locked === false) {
+  if(block && !block.isShadow()) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
@@ -386,46 +372,13 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
+  if(!Blockly.BlocksSelection.blocks) {
+    Blockly.BlocksSelection.blocks = [];
+  }
   for(var i = 0; i < blockList.length; i++) {
     Blockly.BlocksSelection.addToChosenBlocks(blockList[i]);
   }
 }
-
-/**
- * Starting for the top block of a stack, sets sub-blocks of stack to 'chosen' if they were
- * in the list of selected blocks.
- */
-Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, blockList, addChildrenStack) {
-  if(!topBlock || !blockList || blockList.length === 0) {
-    return;
-  }
-  var currentBlock = topBlock;
-  while(currentBlock && blockList.includes(currentBlock)) {
-    // Add current block
-    Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
-    // Add any sub-stack blocks (in C or E blocks, for example)
-    if(addChildrenStack) {
-      Blockly.BlocksSelection.addSubstackBlocks(currentBlock);
-    }
-    // Get next block in sequence
-    currentBlock = currentBlock.getNextBlock();
-  }
-};
-
-/**
- * Adds the all sub-blocks nested under the current block.
- * Goes through the current block, and then all sub-blocks of current block so we get all
- * the blocks at all sub-levels. 
- */
-Blockly.BlocksSelection.addSubstackBlocks = function (block) {
-  var childrenStack = block.getChildrenStack(true);
-  if(childrenStack && childrenStack.length > 0) {
-    Blockly.BlocksSelection.addMultipleToChosenBlocks(childrenStack);
-    for(var i = 0; i < childrenStack.length; i++) {
-      Blockly.BlocksSelection.addSubstackBlocks(childrenStack[i]);
-    }
-  }
-};
 
 /**
  * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
@@ -633,38 +586,6 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
   return lastChosenAbove;
 };
 
-/**
- * Finds all the top-of-stack blocks from a bunch of blocks.
- * Goes through every block and follows the 'previous block' link to find the top block
- * that is in the list of currently selected blocks.
- * TODO: Optimize by marking blocks as 'seen' so we don't process them again
- */
-Blockly.BlocksSelection.getTopBlocksInList = function (_blockList) {
-  var topBlocks = [];
-  if(_blockList && _blockList.length > 0) {
-    var currentBlock = null;
-    for(var i = 0; i < _blockList.length; i++) {
-      currentBlock = _blockList[i];
-      var lastChosenAbove = null;
-      if(currentBlock) {
-        lastChosenAbove = currentBlock;
-        var prevBlock = lastChosenAbove.getPreviousBlock();
-        while(lastChosenAbove && prevBlock && _blockList.includes(prevBlock)) {
-          lastChosenAbove = prevBlock;
-          prevBlock = lastChosenAbove.getPreviousBlock();
-        }
-      }
-      if(lastChosenAbove) {
-        if(topBlocks.includes(lastChosenAbove) === false) {
-          topBlocks.push(lastChosenAbove);
-        }
-      }
-    }
-  }
-
-  return topBlocks;
-};
-
 
 
 
@@ -825,7 +746,6 @@ Blockly.BlocksSelection.getTopBlocksInList = function (_blockList) {
 
 
 Blockly.BlocksSelection.createOutline = function() {
-  
   Blockly.BlocksSelection.disconnectAndMoveBlocks();
   //Blockly.BlocksSelection.cloneBlocks();
 };
@@ -838,12 +758,13 @@ Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
     Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topBlock.svgGroup_);
 
     var topBlockSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
-    
-    setTimeout(function() {
-      console.log("Surface XY:");
+    console.log("Surface XY:");
+    console.log(Blockly.utils.getRelativeXY(topBlockSvg));
+
+    setTimeout(function(){
+      console.log("ScheduledSurface XY:");
       console.log(Blockly.utils.getRelativeXY(topBlockSvg));
-    }, 1);
-    
+    }, 50);
   }
 }
 
@@ -888,35 +809,35 @@ Blockly.BlocksSelection.removeOutline = function() {
 
 
 
-Blockly.BlocksSelection.cloneBlocks = function () {
-  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
-  if(topBlock) {
-    var clonedSvg = Blockly.BlocksSelection.cloneBlockSvg(topBlock);
-    if(clonedSvg) {
-      var xy = topBlock.getRelativeToOutlineSurfaceXY();
-      //topBlock.clearTransformAttributes_(topBlock.getSvgRoot());
-      Blockly.utils.removeAttribute(clonedSvg, 'transform');
-      topBlock.workspace.blocksOutlineSurface.translateSurface(xy.x, xy.y);
-      topBlock.workspace.blocksOutlineSurface.setBlocksAndShow(clonedSvg);
-    }
+// Blockly.BlocksSelection.cloneBlocks = function () {
+//   var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+//   if(topBlock) {
+//     var clonedSvg = Blockly.BlocksSelection.cloneBlockSvg(topBlock);
+//     if(clonedSvg) {
+//       var xy = topBlock.getRelativeToOutlineSurfaceXY();
+//       //topBlock.clearTransformAttributes_(topBlock.getSvgRoot());
+//       Blockly.utils.removeAttribute(clonedSvg, 'transform');
+//       topBlock.workspace.blocksOutlineSurface.translateSurface(xy.x, xy.y);
+//       topBlock.workspace.blocksOutlineSurface.setBlocksAndShow(clonedSvg);
+//     }
 
-    console.log("Outline surface relative: " + xy);
-  }
-};
+//     console.log("Outline surface relative: " + xy);
+//   }
+// };
 
-Blockly.BlocksSelection.cloneBlockSvg = function (_block) {
-  if(!_block) {
-    return null;
-  }
-  var xy = _block.workspace.getSvgXY(/** @type {!Element} */ (_block.svgGroup_));
-  var clone = _block.svgGroup_.cloneNode(true);
-  clone.translateX_ = xy.x;
-  clone.translateY_ = xy.y;
-  clone.setAttribute('transform',
-      'translate(' + clone.translateX_ + ',' + clone.translateY_ + ')');
-  //this.workspace.getParentSvg().appendChild(clone);
-  return clone;
-};
+// Blockly.BlocksSelection.cloneBlockSvg = function (_block) {
+//   if(!_block) {
+//     return null;
+//   }
+//   var xy = _block.workspace.getSvgXY(/** @type {!Element} */ (_block.svgGroup_));
+//   var clone = _block.svgGroup_.cloneNode(true);
+//   clone.translateX_ = xy.x;
+//   clone.translateY_ = xy.y;
+//   clone.setAttribute('transform',
+//       'translate(' + clone.translateX_ + ',' + clone.translateY_ + ')');
+//   //this.workspace.getParentSvg().appendChild(clone);
+//   return clone;
+// };
 
 
 
