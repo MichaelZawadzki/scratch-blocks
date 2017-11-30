@@ -760,6 +760,11 @@ Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
     var topBlockSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
     console.log("Surface XY:");
     console.log(Blockly.utils.getRelativeXY(topBlockSvg));
+
+    setTimeout(function(){
+      console.log("ScheduledSurface XY:");
+      console.log(Blockly.utils.getRelativeXY(topBlockSvg));
+    }, 50);
   }
 }
 

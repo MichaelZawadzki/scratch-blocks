@@ -1766,12 +1766,14 @@ Blockly.BlockSvg.prototype.scheduleSnapAndBump = function() {
     Blockly.Events.setGroup(group);
     block.snapToGrid();
     Blockly.Events.setGroup(false);
+    console.log("Scheduled 'snap to grid'");
   }, Blockly.BUMP_DELAY / 2);
 
   setTimeout(function() {
     Blockly.Events.setGroup(group);
     block.bumpNeighbours_();
     Blockly.Events.setGroup(false);
+    console.log("Scheduled 'bump neighbors'");
   }, Blockly.BUMP_DELAY);
 };
 
