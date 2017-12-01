@@ -1696,6 +1696,9 @@ Blockly.BlockSvg.prototype.bumpNeighbours_ = function() {
   }
   // Loop through every connection on this block.
   var myConnections = this.getConnections_(false);
+
+  console.log("Num connections: " + myConnections.length);
+
   for (var i = 0, connection; connection = myConnections[i]; i++) {
 
     // Spider down from this block bumping all sub-blocks.
@@ -1705,14 +1708,31 @@ Blockly.BlockSvg.prototype.bumpNeighbours_ = function() {
 
     var neighbours = connection.neighbours_(Blockly.SNAP_RADIUS);
     for (var j = 0, otherConnection; otherConnection = neighbours[j]; j++) {
-
       // If both connections are connected, that's probably fine.  But if
       // either one of them is unconnected, then there could be confusion.
-      if (!connection.isConnected() || !otherConnection.isConnected()) {
+
+
+
+
+      //if (!connection.isConnected() && !connection.isSaved_ || !otherConnection.isConnected(true) && !otherConnection.isSaved_) {
+      
+      if (!connection.isConnected(true) || !otherConnection.isConnected(true)) {
+      
+        // OB: Adding 'saved connections' in the checks here, or else blocks moved to the outline surface will get bumped
+      // Hopefully this doesn't cause other issues... but I can't reproduce when this is actually used!!
+      //  if (connection.isConnected() === false && connection.isSaved_ === false && 
+      //      otherConnection.isConnected() === false && otherConnection.isSaved_ === false) {
+      //if (!connection.isConnected(true) || !otherConnection.isConnected(true)) {
         // Only bump blocks if they are from different tree structures.
         if (otherConnection.getSourceBlock().getRootBlock() != rootBlock) {
-
           // Always bump the inferior block.
+
+      console.log("Check connections between " + connection.getSourceBlock().type + " and " + otherConnection.getSourceBlock().type);
+      console.log("\tconnection connected? " + connection.isConnected() + "; saved? " + connection.isSaved_);
+      console.log("\tother connected? " + otherConnection.isConnected() + "; saved? " + otherConnection.isSaved_);
+
+          //console.log("DO BUMP 2");
+      
           if (connection.isSuperior()) {
             otherConnection.bumpAwayFrom_(connection);
           } else {
@@ -1738,16 +1758,12 @@ Blockly.BlockSvg.prototype.scheduleSnapAndBump = function() {
     Blockly.Events.setGroup(group);
     block.snapToGrid();
     Blockly.Events.setGroup(false);
-    console.log("Scheduled 'snap to grid'");
-    console.log(Blockly.utils.getRelativeXY(block.svgGroup_));
   }, Blockly.BUMP_DELAY / 2);
 
   setTimeout(function() {
     Blockly.Events.setGroup(group);
     block.bumpNeighbours_();
     Blockly.Events.setGroup(false);
-    console.log("Scheduled 'bump neighbors'");
-    console.log(Blockly.utils.getRelativeXY(block.svgGroup_));
   }, Blockly.BUMP_DELAY);
 };
 

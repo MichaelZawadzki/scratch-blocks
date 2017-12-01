@@ -161,7 +161,7 @@ Blockly.BlockOutlineSurfaceSvg.prototype.createOutlineDom_ = function(defs) {
 
 Blockly.BlockOutlineSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
 
-  console.log("Moving blocks to OUTLINE surface");
+  console.log("Move to OUTLINE surface");
 
   goog.asserts.assert(this.outlineGroup_.childNodes.length == 0,
     'Already dragging a block.');
@@ -268,7 +268,7 @@ Blockly.BlockOutlineSurfaceSvg.prototype.getCurrentBlock = function() {
  */
 Blockly.BlockOutlineSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
 
-  console.log("Removing blocks from OUTLINE surface");
+  console.log("Remove from OUTLINE surface");
 
   if (opt_newSurface) {
     // appendChild removes the node from this.outlineGroup_

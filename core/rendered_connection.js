@@ -69,10 +69,14 @@ Blockly.RenderedConnection.prototype.distanceFrom = function(otherConnection) {
  * @private
  */
 Blockly.RenderedConnection.prototype.bumpAwayFrom_ = function(staticConnection) {
+
+  console.log("---> Maybe bump away...");
+  
   if (this.sourceBlock_.workspace.isDragging()) {
     // Don't move blocks around while the user is doing the same.
     return;
   }
+  console.log("---> Bump away!");
   // Move the root block.
   var rootBlock = this.sourceBlock_.getRootBlock();
   if (rootBlock.isInFlyout) {

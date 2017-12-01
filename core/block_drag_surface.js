@@ -193,7 +193,7 @@ Blockly.BlockDragSurfaceSvg.prototype.isInDragSurface = function(element) {
  */
 Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
 
-  console.log("Moving blocks to DRAG surface");
+  console.log("Move to DRAG surface");
 
   goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
     'Already dragging a block.');
@@ -345,7 +345,7 @@ Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
  */
 Blockly.BlockDragSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
 
-  console.log("Removing blocks from DRAG surface");
+  console.log("Remove from DRAG surface");
 
   var currentBlock = this.getCurrentBlock();
   if (opt_newSurface) {

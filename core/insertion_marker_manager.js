@@ -192,6 +192,7 @@ Blockly.InsertionMarkerManager.prototype.wouldDeleteBlock = function() {
  * @package
  */
 Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
+  console.log("### Apply connections");
   if (this.closestConnection_) {
     // Don't fire events for insertion markers.
     Blockly.Events.disable();

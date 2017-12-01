@@ -537,42 +537,39 @@ Blockly.Block.prototype.changeNextConnection = function(newNextConnection) {
 };
 
 Blockly.Block.prototype.saveNextConnection = function() {
-  if(this.nextConnection) {
-    if(this.nextConnection.isConnected()) {
-      this.savedNextBlock = this.nextConnection.targetBlock();
+  if(this.nextConnection && this.nextConnection.isConnected()) {
+    this.nextConnection.isSaved_ = true;
+    this.savedNextBlock = this.nextConnection.targetBlock();
 
-      //console.log("Saving NEXT connection of " + this.type);
-      //if(this.savedNextBlock)
-        //console.log("target: " + this.savedNextBlock.type);
-    }
+    console.log("* Saving NEXT connection of " + this.type);
+    if(this.savedNextBlock)
+      console.log("target: " + this.savedNextBlock.type);
+  }
+};
+
+Blockly.Block.prototype.savePreviousConnection = function() {
+  if(this.previousConnection && this.previousConnection.isConnected()) {
+    this.previousConnection.isSaved_ = true;
+    this.savedPreviousBlock = this.previousConnection.targetBlock();
+
+    console.log("* Saving PREV connection of " + this.type);
+    if(this.savedPreviousBlock)
+      console.log("target: " + this.savedPreviousBlock.type);
   }
 };
 
 Blockly.Block.prototype.restoreNextConnection = function() {
   if(this.savedNextBlock) {
     this.nextConnection.connect(this.savedNextBlock.previousConnection);
+    this.nextConnection.isSaved_ = false;
     this.savedNextBlock = null;
-  }
-};
-
-
-// curBlock.nextConnection.connect(curBlock.savedNextBlock.previousConnection);
-
-Blockly.Block.prototype.savePreviousConnection = function() {
-  if(this.previousConnection) {
-    if(this.previousConnection.isConnected()) {
-      this.savedPreviousBlock = this.previousConnection.targetBlock();
-
-      //console.log("Saving PREV connection of " + this.type);
-      //if(this.savedPreviousBlock)
-        //console.log("target: " + this.savedPreviousBlock.type);
-    }
   }
 };
 
 Blockly.Block.prototype.restorePreviousConnection = function() {
   if(this.savedPreviousBlock) {
     this.previousConnection.connect(this.savedPreviousBlock.nextConnection);
+    this.previousConnection.isSaved_ = false;
     this.savedPreviousBlock = null;
   }
 };

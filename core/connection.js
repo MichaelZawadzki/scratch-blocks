@@ -130,6 +130,13 @@ Blockly.Connection.prototype.dbOpposite_ = null;
 Blockly.Connection.prototype.hidden_ = null;
 
 /**
+ * Whether this connections is hidden (not tracked in a database) or not.
+ * @type {boolean}
+ * @private
+ */
+Blockly.Connection.prototype.isSaved_ = false;
+
+/**
  * Connect two connections together.  This is the connection on the superior
  * block.
  * @param {!Blockly.Connection} childConnection Connection on inferior block.
@@ -283,8 +290,20 @@ Blockly.Connection.prototype.isSuperior = function() {
  * Is the connection connected?
  * @return {boolean} True if connection is connected to another connection.
  */
-Blockly.Connection.prototype.isConnected = function() {
-  return !!this.targetConnection;
+Blockly.Connection.prototype.isConnected = function(_checkIfSaved) {
+  var connected = !!this.targetConnection;
+  if(_checkIfSaved === true) {
+    // console.log("Is connected?");
+    // console.log("\ttarget: "+ connected);
+    // console.log("\tsaved: "+ this.isSaved_);
+    connected = connected || this.isSaved_;
+
+    //console.log("\t\tresult: "+ connected);
+    
+  }
+  return connected;
+  
+  //return !!this.targetConnection;
 };
 
 /**
