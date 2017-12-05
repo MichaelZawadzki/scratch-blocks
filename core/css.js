@@ -194,8 +194,22 @@ Blockly.Css.CONTENT = [
     '-webkit-transform-origin: 0 0;',
   '}',
 
+  '.blocklyWidgetDiv.fieldTextInput.removableTextInput {',
+    'overflow: visible;',
+  '}',
+
   '.blocklyTextDropDownArrow {',
     'position: absolute;',
+  '}',
+
+  '.blocklyTextRemoveIcon {',
+    'position: absolute;',
+    'width: 24px;',
+    'height: 24px;',
+    'top: -40px;',
+    'left: 50%;',
+    'margin-left: -12px;',
+    'cursor: pointer;',
   '}',
 
   '.blocklyNonSelectable {',
@@ -497,6 +511,10 @@ Blockly.Css.CONTENT = [
   '.blocklyNonEditableText>text,',
   '.blocklyEditableText>text {',
     'fill: $colour_text;',
+  '}',
+
+  '.blocklyEditableText>.blocklyEditableLabel {',
+    'fill: #fff;',
   '}',
 
   '.blocklyDropdownText {',

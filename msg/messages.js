@@ -143,6 +143,17 @@ Blockly.Msg.NEW_PROCEDURE = 'Make a Block...';
 // List creation
 /// button text - Text on the button used to launch the list creation dialogue.
 Blockly.Msg.NEW_LIST = 'Create list...';
+/// prompt - Prompts the user to enter the name for a new list
+Blockly.Msg.NEW_LIST_TITLE = 'New list name:';
+
+// Broadcast Message creation
+/// dropdown choice - Create a new message.
+Blockly.Msg.NEW_BROADCAST_MESSAGE = 'New message...';
+/// prompt - Prompts the user to enter the name for a new broadcast message
+Blockly.Msg.NEW_BROADCAST_MESSAGE_TITLE = 'New message name:';
+/// default broadcast message name
+/// (default option in broadcast message dropdown menus)
+Blockly.Msg.DEFAULT_BROADCAST_MESSAGE_NAME = 'message1';
 
 // Variable deletion.
 /// confirm -  Ask the user to confirm their deletion of multiple uses of a variable.

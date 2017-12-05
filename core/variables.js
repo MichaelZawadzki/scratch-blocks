@@ -217,11 +217,23 @@ Blockly.Variables.generateUniqueName = function(workspace) {
  * @param {string} opt_type Optional type of variable, like 'string' or 'list'.
  */
 Blockly.Variables.createVariable = function(workspace, opt_callback, opt_type) {
+  // Decide on a modal message based on the opt_type. If opt_type was not
+  // provided, default to the original message for scalar variables.
+  var newMsg = '';
+  if (opt_type === Blockly.LIST_VARIABLE_TYPE) {
+    newMsg = Blockly.Msg.NEW_LIST_TITLE;
+  } else if (opt_type === Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE) {
+    newMsg = Blockly.Msg.NEW_BROADCAST_MESSAGE_TITLE;
+  } else {
+    newMsg = Blockly.Msg.NEW_VARIABLE_TITLE;
+  }
   // This function needs to be named so it can be called recursively.
   var promptAndCheckWithAlert = function(defaultName) {
-    Blockly.Variables.promptName(Blockly.Msg.NEW_VARIABLE_TITLE, defaultName,
+    Blockly.Variables.promptName(newMsg, defaultName,
       function(text) {
         if (text) {
+          // TODO (#1245) use separate namespaces for lists, variables, and
+          // broadcast messages
           if (workspace.getVariable(text)) {
             Blockly.alert(Blockly.Msg.VARIABLE_ALREADY_EXISTS.replace('%1',
                 text.toLowerCase()),
@@ -271,6 +283,8 @@ Blockly.Variables.createVariable = function(workspace, opt_callback, opt_type) {
  */
 Blockly.Variables.renameVariable = function(workspace, variable,
   opt_callback) {
+  // (karishma) TODO (#1244) Modal message should change depending on what type
+  // of variable is getting renamed.
   // This function needs to be named so it can be called recursively.
   var promptAndCheckWithAlert = function(defaultName) {
     Blockly.Variables.promptName(
@@ -278,6 +292,8 @@ Blockly.Variables.renameVariable = function(workspace, variable,
       function(newName) {
         if (newName) {
           var newVariable = workspace.getVariable(newName);
+          // TODO (#1245) use separate namespaces for lists, variables, and
+          // broadcast messages
           if (newVariable && newVariable.type != variable.type) {
             Blockly.alert(Blockly.Msg.VARIABLE_ALREADY_EXISTS_FOR_ANOTHER_TYPE.replace('%1',
                 newName.toLowerCase()).replace('%2', newVariable.type),
