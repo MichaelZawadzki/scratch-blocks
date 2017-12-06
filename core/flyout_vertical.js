@@ -132,7 +132,7 @@ Blockly.VerticalFlyout.prototype.CHECKBOX_SPACE_X =
 Blockly.VerticalFlyout.prototype.init = function(targetWorkspace) {
   Blockly.VerticalFlyout.superClass_.init.call(this, targetWorkspace);
   this.workspace_.scale = targetWorkspace.scale;
-  
+  // OB [CSI-616]
   this.setShowFlyout(true);
 };
 
