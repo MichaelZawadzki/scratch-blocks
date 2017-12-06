@@ -132,7 +132,20 @@ Blockly.VerticalFlyout.prototype.CHECKBOX_SPACE_X =
 Blockly.VerticalFlyout.prototype.init = function(targetWorkspace) {
   Blockly.VerticalFlyout.superClass_.init.call(this, targetWorkspace);
   this.workspace_.scale = targetWorkspace.scale;
+  
+  this.setShowFlyout(true);
 };
+
+/**
+ * OB [CSI-616]
+ * Change the width of the flyout to 0 when wanting to hide the flyout;
+ * or set it to its default width when wanting to show it.
+ */
+Blockly.VerticalFlyout.prototype.setShowFlyout = function(showIt) {
+  this.setWidth(showIt ? this.DEFAULT_WIDTH : 0);
+  this.position();
+}
+
 
 /**
  * Creates the flyout's DOM.  Only needs to be called once.
@@ -167,6 +180,16 @@ Blockly.VerticalFlyout.prototype.createDom = function(tagName) {
 
   return this.svgGroup_;
 };
+
+/**
+ * OB [CSI-616]
+ * Set the width of the flyout.
+ * @param {number} flyoutWidth The width of the flyout.
+ */
+Blockly.VerticalFlyout.prototype.setWidth = function(flyoutWidth) {
+  this.width_ = flyoutWidth;
+};
+
 
 /**
  * Return an object with all the metrics required to size scrollbars for the
@@ -239,7 +262,9 @@ Blockly.VerticalFlyout.prototype.setMetrics_ = function(xyRatio) {
       this.workspace_.scrollY + metrics.absoluteTop);
 
   this.clipRect_.setAttribute('height', Math.max(0, metrics.viewHeight) + 'px');
-  this.clipRect_.setAttribute('width', metrics.viewWidth + 'px');
+  //this.clipRect_.setAttribute('width', metrics.viewWidth + 'px');
+  var viewWidth = ( metrics.viewWidth >= 0 ? metrics.viewWidth : 0 );
+  this.clipRect_.setAttribute('width', viewWidth + 'px');
 
   if (this.categoryScrollPositions) {
     this.selectCategoryByScrollPosition(-this.workspace_.scrollY);

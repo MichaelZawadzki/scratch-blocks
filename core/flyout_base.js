@@ -370,7 +370,9 @@ Blockly.Flyout.prototype.setParentToolbox = function(toolbox) {
  * @return {number} The width of the flyout.
  */
 Blockly.Flyout.prototype.getWidth = function() {
-  return this.DEFAULT_WIDTH;
+  // OB [CSI-616] Actually return the width that was set, instead of the constant
+  //return this.DEFAULT_WIDTH
+  return this.width_;
 };
 
 /**
