@@ -262,6 +262,7 @@ Blockly.VerticalFlyout.prototype.setMetrics_ = function(xyRatio) {
       this.workspace_.scrollY + metrics.absoluteTop);
 
   this.clipRect_.setAttribute('height', Math.max(0, metrics.viewHeight) + 'px');
+  // OB [CSI-616]: when width of flyout is 0, this 'width' can end up being less than 0 and browser complains
   //this.clipRect_.setAttribute('width', metrics.viewWidth + 'px');
   var viewWidth = ( metrics.viewWidth >= 0 ? metrics.viewWidth : 0 );
   this.clipRect_.setAttribute('width', viewWidth + 'px');
