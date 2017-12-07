@@ -367,9 +367,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
 
 
 Blockly.BlockDragger.prototype.maybeSnapBackBlock_ = function(e) {
-
   var snapBack = false;
-
   if( this.draggingBlock_.isDeletable() === false && this.draggingBlock_.isAlwaysAvailable() === true ) {
     var deleteArea = this.workspace_.isDeleteArea(e);
     if( !this.draggingBlock_.getParent() && deleteArea === Blockly.DELETE_AREA_TOOLBOX ) {
