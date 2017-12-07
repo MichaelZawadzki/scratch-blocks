@@ -340,14 +340,16 @@ Blockly.BlocksSelection.hasBlocks = function () {
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */
 Blockly.BlocksSelection.clearChosenBlocks = function () {
+
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    Blockly.BlocksSelection.removeOutline();
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       if(Blockly.BlocksSelection.blocks[i]) {
         Blockly.BlocksSelection.blocks[i].setChosen(false);
       }
     }
   }
-  Blockly.BlocksSelection.removeOutline();
+  //Blockly.BlocksSelection.removeOutline();
 
   Blockly.BlocksSelection.blocks = null;
 };
@@ -461,8 +463,6 @@ Blockly.BlocksSelection.initBlockDragging = function() {
  */
 Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnections) {
 
-  //console.log("# Unplugging chosen blocks");
-
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var blocksToUnplug = Blockly.BlocksSelection.blocks.slice(0, Blockly.BlocksSelection.blocks.length);
   
@@ -472,9 +472,7 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnectio
     for(var i = 0; i < blocksToUnplug.length; i++) {
       currentBlock = blocksToUnplug[i];
       if(currentBlock) {
-
         // 1- Find block atop this one that is not 'chosen'; disconnect
-        //console.log("Finding prev of " + currentBlock.type);
         var lastChosenAbove = currentBlock;
         var prevBlock = lastChosenAbove.getPreviousBlock();
         while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
@@ -483,22 +481,13 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnectio
         }
 
         if(lastChosenAbove) {
-          console.log("\tlast chosen above is " + lastChosenAbove.type);
           if(lastChosenAbove.previousConnection && lastChosenAbove.previousConnection.isConnected()) {
-            //console.log("Need to disconnect from " + lastChosenAbove.previousConnection.targetBlock().type);
-            //console.log("--> Disconnect above " + lastChosenAbove.type);
-            if(opt_saveConnections) {
-              var targetBlock = lastChosenAbove.previousConnection.targetBlock();
-              lastChosenAbove.savePreviousConnection();
-              targetBlock.saveNextConnection();
-            }
             prevTarget = lastChosenAbove.previousConnection.targetConnection;
             lastChosenAbove.previousConnection.disconnect();
           }
         }
 
         // 2- Find block below this one that is not 'chosen'; disconnect
-        //console.log("Finding next of " + currentBlock.type);
         var lastChosenBelow = currentBlock;
         var nextBlock = lastChosenBelow.getNextBlock();
         while(lastChosenBelow && nextBlock && nextBlock.isChosen_) {
@@ -507,15 +496,7 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnectio
         }
 
         if(lastChosenBelow) {
-          console.log("\tlast chosen below is " + lastChosenBelow.type);
           if(lastChosenBelow.nextConnection && lastChosenBelow.nextConnection.isConnected()) {
-            //console.log("Need to disconnect from " + lastChosenBelow.nextConnection.targetBlock().type);
-            //console.log("--> Disconnect below " + lastChosenBelow.type);
-            if(opt_saveConnections) {
-              var targetBlock = lastChosenBelow.nextConnection.targetBlock();
-              lastChosenBelow.saveNextConnection();
-              targetBlock.savePreviousConnection();
-            }
             nextTarget = lastChosenBelow.nextConnection.targetConnection;
             lastChosenBelow.nextConnection.disconnect();
           }
@@ -528,52 +509,22 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnectio
     }
   }
 };
-/*
-  Blockly.Block.prototype.unplug = function(opt_healStack) {
-  var previousTarget = null;
-  var nextTarget = null;
-  if (this.outputConnection) {
-    if (this.outputConnection.isConnected()) {
-      // Disconnect from any superior block.
-      this.outputConnection.disconnect();
-    }
-  } else if (this.previousConnection) {
-    //var previousTarget = null;
-    if (this.previousConnection.isConnected()) {
-      // Remember the connection that any next statements need to connect to.
-      previousTarget = this.previousConnection.targetConnection;
-      // Detach this block from the parent's tree.
-      this.previousConnection.disconnect();
-    }
-    var nextBlock = this.getNextBlock();
-    if (opt_healStack && nextBlock) {
-      // Disconnect the next statement.
-      nextTarget = this.nextConnection.targetConnection;
-      nextTarget.disconnect();
-      if (previousTarget && previousTarget.checkType_(nextTarget)) {
-        // Attach the next statement to the previous statement.
-        previousTarget.connect(nextTarget);
-      }
-    }
-  };
-*/
 
 /**
  * Gets the top-most block in a stack of blocks
  * OB: Assumptions:
  * - contiguous blocks
  * - only one stack of blocks
+ * - if a C or E blocks is selected, ALL of its content is selected
  */ 
 Blockly.BlocksSelection.getTopChosenBlock = function () {
-
-  //console.log("# Finding top chosen block");
-
+  var lastChosenAbove = null; 
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var currentBlock = null;
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       currentBlock = Blockly.BlocksSelection.blocks[i];
       if(currentBlock) {
-        var lastChosenAbove = currentBlock;
+        lastChosenAbove = currentBlock;
         var prevBlock = lastChosenAbove.getPreviousBlock();
         while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
           lastChosenAbove = prevBlock;
@@ -581,179 +532,58 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
         }
       }
       if(lastChosenAbove) {
-        //console.log("\tfound "+ lastChosenAbove.type);
-        break;
+        return lastChosenAbove;
       }
     }
   }
-
-  return lastChosenAbove;
+  // No block found
+  return null;
 };
 
+/**
+ * Gets the bottom-most block in a stack of blocks
+ * OB: Assumptions:
+ * - contiguous blocks
+ * - only one stack of blocks
+ * - if a C or E blocks is selected, ALL of its content is selected
+ */ 
+Blockly.BlocksSelection.getBottomChosenBlock = function () {
+  var lastChosenBelow = null;
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    var currentBlock = null;
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      currentBlock = Blockly.BlocksSelection.blocks[i];
+      if(currentBlock) {
+        lastChosenBelow = currentBlock;
+        while(currentBlock != null && currentBlock.isChosen_) {
+          lastChosenBelow = currentBlock;
+          currentBlock = currentBlock.getNextBlock();
+        }
+      }
 
+      if(lastChosenBelow) {
+        return lastChosenBelow;
+      }
+    } 
+  }
+  // No block found
+  return null;
+};
 
-
-
-
-
-// Blockly.BlocksSelection.startBlockDrag = function (dragBlock, startXY) {
-//   console.log("Drag chosen blocks");
-//   console.log("\tstart: " + startXY);
-//   //console.log("\tdelta: " + currentDeltaXY);
-//   var initialSurfaceX = -(startXY.x);
-//   var initialSurfaceY = -(startXY.y);
-  
-//   console.log("\tset initial SURFACE xy: " + initialSurfaceX + " " + initialSurfaceY);
-//   dragBlock.workspace.blockDragSurface_.translateSurface(initialSurfaceX, initialSurfaceY);
-//   Blockly.BlocksSelection.moveToDragSurface();
-// };
-
-// /**
-//  * Removes just one specific block from the list of chosen blocks. Also unsets the chosen state of this blocks.
-//  * @param {!Blockly.Block} block The block to remove and update.
-//  */
-// Blockly.BlocksSelection.moveToDragSurface = function () {
-//   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-//     Blockly.BlocksSelection.movedBlocks = [];
-//     var currentBlock = null;
-//     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
-//       currentBlock = Blockly.BlocksSelection.blocks[i];
-//       Blockly.BlocksSelection.flattenHierarchy(currentBlock, currentBlock.getPreviousBlock());
-//     }
-//   }
-// };
-
-// Blockly.BlocksSelection.flattenHierarchy = function (block, topBlock) {
-//   if(!block || Blockly.BlocksSelection.isInMovedBlocks(block) === true) {
-//     return;
-//   }
-//   Blockly.BlocksSelection.movedBlocks.push(block);
-  
-//   if(block.isChosen_) {
-//     console.log("" + block.type + " is chosen... ");
-
-//     Blockly.BlocksSelection.flattenCurrentBlock(block, topBlock);
-
-//     // Look at next connected block
-//     var nextBlock = block.getNextBlock();
-//     if(nextBlock) {
-//       console.log("\tcheck next: " + nextBlock.type);
-//       Blockly.BlocksSelection.flattenHierarchy(nextBlock, topBlock);
-//     }
-//      if(block.workspace.blockDragSurface_.isInDragSurface(block.getSvgRoot()) === false)
-//        block.addToDragSurface_();
-//   }
-//   else {
-//     console.log("" + block.type + " is NOT chosen, alter SVG!");
-//     console.log("\tcurrent block: " + block.type);
-
-//     Blockly.BlocksSelection.flattenCurrentBlock(block, topBlock);
-//   }
-// };
-
-// Blockly.BlocksSelection.flattenCurrentBlock = function (block, topBlock) {
-//     // Move block's svg to be a sibling of block's parent
-//     var blockSvg = block.getSvgRoot();
-//     var parentSvg;
-//     if(topBlock) {
-//       console.log("\tparent block: " + topBlock.type);
-//       parentSvg = topBlock.getSvgRoot();
-//     }
-//     else {
-//       console.log("\tno parent block, use canvas root");
-//       parentSvg = block.workspace.svgBlockCanvas_;
-//     }
-
-//     var xy = block.getRelativeToElementXY(parentSvg);
-//     console.log("\trelative xy: " + xy.x + " " + xy.y);
-
-//     parentSvg.appendChild(blockSvg);
-//     block.translate(xy.x, xy.y);
-// };
-
-// Blockly.BlocksSelection.moveOffDragSurface = function(dragBlock, newXY) {
-//   // if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-//   //   var currentBlock = null;
-//   //   for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
-//   //     currentBlock = Blockly.BlocksSelection.blocks[i];
-//   //     if(!currentBlock.workspace.blockDragSurface_) {
-//   //       continue;
-//   //     }
-//   //   }
-//   //   //block.workspace.blockDragSurface_
-//   // }
-
-//   dragBlock.workspace.blockDragSurface_.clearBlocksAndHide();
-// };
-
-// /*
-// Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
-//   if (!this.useDragSurface_) {
-//     return;
-//   }
-//   // Translate to current position, turning off 3d.
-//   this.translate(newXY.x, newXY.y);
-//   this.workspace.blockDragSurface_.clearAndHide(this.workspace.getCanvas());
-// };
-// */
-
-
-
-
-
-
-
-// Blockly.BlocksSelection.movedBlocks = null;
-
-// Blockly.BlocksSelection.isInMovedBlocks = function(block) {
-//   if(Blockly.BlocksSelection.movedBlocks && Blockly.BlocksSelection.movedBlocks.length > 0) {
-//     for(var i = 0; i < Blockly.BlocksSelection.movedBlocks.length; i++) {
-//       if(Blockly.BlocksSelection.movedBlocks[i] === block) {
-//         return true;
-//       }
-//     }
-//   }
-//   return false;
-// }
-
-
-
-// /*
-// Blockly.Block.prototype.getNextBlock = function() {
-//   return this.nextConnection && this.nextConnection.targetBlock();
-// };
-// Blockly.Block.prototype.getPreviousBlock = function() {
-//   return this.previousConnection && this.previousConnection.targetBlock();
-// };
-// */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * Start the outlining process
+ */
 Blockly.BlocksSelection.createOutline = function() {
-  console.log("^^ Create outline! ^^");
-  Blockly.BlocksSelection.disconnectAndMoveBlocks();
-  //Blockly.BlocksSelection.cloneBlocks();
+  Blockly.BlocksSelection.changeSvgHierarchy();
 };
+
+Blockly.BlocksSelection.removeOutline = function() {
+  Blockly.BlocksSelection.restoreSvgHierarchy();
+};
+
+/**
+ * --- START - OUTLINING USING 'REMEMBER CONNECTION / DISCONNECT' ---
+ */
 
 Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
   Blockly.BlocksSelection.unplugBlocks(false, true);
@@ -764,11 +594,8 @@ Blockly.BlocksSelection.disconnectAndMoveBlocks = function () {
   }
 }
 
-
-Blockly.BlocksSelection.removeOutline = function() {
-
+Blockly.BlocksSelection.removeOutlineReconnect = function() {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-    
     if(Blockly.BlocksSelection.workspace) {
       var topBlockSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
       Blockly.BlocksSelection.workspace.blocksOutlineSurface.clearAndHide();
@@ -778,33 +605,13 @@ Blockly.BlocksSelection.removeOutline = function() {
         canvas.appendChild(topBlockSvg);
       }
     }
-
     Blockly.BlocksSelection.clearSavedConnections();
-    // var curBlock;
-    // for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
-    //   curBlock = Blockly.BlocksSelection.blocks[i];
-    //   if(curBlock) {
-    //     if(curBlock.savedNextBlock != null) {
-    //       console.log("\t*** restore connection of " + curBlock.type + " with next block " + curBlock.savedNextBlock.type);
-    //       var target = curBlock.savedNextBlock;
-    //       curBlock.restoreNextConnection();
-    //       target.restorePreviousConnection();
-    //     }
-    //     if(curBlock.savedPreviousBlock != null) {
-    //       console.log("\t*** restore connection of " + curBlock.type + " with prev block " + curBlock.savedPreviousBlock.type);
-    //       var target = curBlock.savedPreviousBlock;
-    //       curBlock.restorePreviousConnection();
-    //       target.restoreNextConnection();
-    //     }
-    //   }
-    // }
   }
   Blockly.BlocksSelection.workspace = null;
 };
 
 Blockly.BlocksSelection.clearSavedConnections = function () {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-
     var curBlock;
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       curBlock = Blockly.BlocksSelection.blocks[i];
@@ -826,45 +633,93 @@ Blockly.BlocksSelection.clearSavedConnections = function () {
   }
 };
 
-
-
-
-
-
-
-
-
-// Blockly.BlocksSelection.cloneBlocks = function () {
-//   var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
-//   if(topBlock) {
-//     var clonedSvg = Blockly.BlocksSelection.cloneBlockSvg(topBlock);
-//     if(clonedSvg) {
-//       var xy = topBlock.getRelativeToOutlineSurfaceXY();
-//       //topBlock.clearTransformAttributes_(topBlock.getSvgRoot());
-//       Blockly.utils.removeAttribute(clonedSvg, 'transform');
-//       topBlock.workspace.blocksOutlineSurface.translateSurface(xy.x, xy.y);
-//       topBlock.workspace.blocksOutlineSurface.setBlocksAndShow(clonedSvg);
-//     }
-
-//     console.log("Outline surface relative: " + xy);
-//   }
-// };
-
-// Blockly.BlocksSelection.cloneBlockSvg = function (_block) {
-//   if(!_block) {
-//     return null;
-//   }
-//   var xy = _block.workspace.getSvgXY(/** @type {!Element} */ (_block.svgGroup_));
-//   var clone = _block.svgGroup_.cloneNode(true);
-//   clone.translateX_ = xy.x;
-//   clone.translateY_ = xy.y;
-//   clone.setAttribute('transform',
-//       'translate(' + clone.translateX_ + ',' + clone.translateY_ + ')');
-//   //this.workspace.getParentSvg().appendChild(clone);
-//   return clone;
-// };
-
+/**
+ * --- END - OUTLINING USING 'REMEMBER CONNECTION / DISCONNECT' ---
+ */
 
 
 // Temp
 Blockly.BlocksSelection.workspace = null;
+
+
+
+/**
+ * --- START - OUTLINING USING 'CHANGE SVG TREE' ---
+ */
+
+Blockly.BlocksSelection.changeSvgHierarchy = function () {
+  // OB TODO: Cache top and bottom blocks once selection is made 
+  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+  var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
+
+  if(topBlock && bottomBlock) {
+    Blockly.BlocksSelection.workspace = topBlock.workspace;
+
+    var blockCanvasSvg = Blockly.BlocksSelection.workspace.getCanvas();
+    var topSvg = topBlock.getSvgRoot();
+    var topParentSvg = topSvg.parentNode;
+
+    if(bottomBlock && bottomBlock.getNextBlock()) {
+      var firstBottomNotChosenBlock = bottomBlock.getNextBlock();
+
+      var xyToBottomBlock = firstBottomNotChosenBlock.getRelativeToElementXY(bottomBlock.getSvgRoot());
+      Blockly.BlocksSelection.relToParent = xyToBottomBlock;
+
+      var xy = firstBottomNotChosenBlock.getRelativeToElementXY(topParentSvg);
+      topParentSvg.appendChild(firstBottomNotChosenBlock.getSvgRoot());
+      firstBottomNotChosenBlock.translate(xy.x, xy.y);
+
+    } else {
+      //console.log("No last block");
+    }
+
+    var xyToCanvas = topBlock.getRelativeToElementXY(blockCanvasSvg);
+    var xyToParent = topBlock.getRelativeToElementXY(topParentSvg);
+    Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topSvg);
+    Blockly.BlocksSelection.workspace.blocksOutlineSurface.translateSurface(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
+
+    var nextToBottomBlock = bottomBlock.getNextBlock();
+
+  }
+  else {
+    //console.log("no top block selected....");
+  }
+
+  if(Blockly.BlocksSelection.workspace) {
+  }
+};
+
+Blockly.BlocksSelection.relToParent = null;
+
+Blockly.BlocksSelection.restoreSvgHierarchy = function () {
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    if(Blockly.BlocksSelection.workspace && Blockly.BlocksSelection.workspace.blocksOutlineSurface.hasBlocks_) {
+
+      var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+      var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
+      var parentBlock = topBlock.getParent();
+      var parentSvg = null;
+      if(parentBlock) {
+        parentSvg = parentBlock.getSvgRoot();
+      }
+      else {
+        parentSvg = Blockly.BlocksSelection.workspace.getCanvas();
+      }
+      var outlineSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
+      Blockly.BlocksSelection.workspace.blocksOutlineSurface.clearAndHide();
+
+      parentSvg.appendChild(outlineSvg);
+
+      var nextBottomBlock = bottomBlock.getNextBlock();
+      if(nextBottomBlock) {
+        nextBottomBlock.clearTransformAttributes_();
+        bottomBlock.getSvgRoot().appendChild(nextBottomBlock.getSvgRoot());
+        nextBottomBlock.translate(Blockly.BlocksSelection.relToParent.x, Blockly.BlocksSelection.relToParent.y);
+        Blockly.BlocksSelection.relToParent = null;
+      }
+    }
+  }
+}
+/**
+ * --- END - OUTLINING USING 'CHANGE SVG TREE' ---
+ */

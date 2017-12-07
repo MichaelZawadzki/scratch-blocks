@@ -221,9 +221,6 @@ Blockly.createMainWorkspace_ = function(svg, options, blockDragSurface, workspac
   var mainWorkspace = new Blockly.WorkspaceSvg(options, blockDragSurface, workspaceDragSurface, workspaceHighlightLayer, blocksSelectionLayer, blocksOutlineSurface);
   mainWorkspace.scale = options.zoomOptions.startScale;
   svg.appendChild(mainWorkspace.createDom('blocklyMainBackground'));
-
-  console.log("Main ws svg: ");
-  console.log(mainWorkspace.svgGroup_);
   mainWorkspace.svgGroup_.appendChild(blocksOutlineSurface.SVG_);
 
   if (!options.hasCategories && options.languageTree) {

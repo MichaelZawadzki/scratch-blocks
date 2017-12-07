@@ -55,6 +55,13 @@ Blockly.BlockOutlineSurfaceSvg = function(container) {
  * @type {Element}
  * @private
  */
+Blockly.BlockOutlineSurfaceSvg.prototype.hasBlocks_ = false;
+
+/**
+ * The SVG drag surface. Set once by Blockly.BlockOutlineSurfaceSvg.createDom.
+ * @type {Element}
+ * @private
+ */
 Blockly.BlockOutlineSurfaceSvg.prototype.SVG_ = null;
 
 /**
@@ -110,13 +117,6 @@ Blockly.BlockOutlineSurfaceSvg.prototype.createDom = function() {
   if (this.SVG_) {
     return;  // Already created.
   }
-//   this.SVG_ = Blockly.utils.createSvgElement('svg', {
-//     'xmlns': Blockly.SVG_NS,
-//     'xmlns:html': Blockly.HTML_NS,
-//     'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-//     'version': '1.1',
-//     'class': 'blocklyBlocksOutlineSurface'
-//   }, this.container_);
 this.SVG_ = Blockly.utils.createSvgElement('g',
     {'class': 'blocklyBlocksOutlineSurface'}, this.container_);
   var defs = Blockly.utils.createSvgElement('defs', {}, this.SVG_);
@@ -160,14 +160,12 @@ Blockly.BlockOutlineSurfaceSvg.prototype.createOutlineDom_ = function(defs) {
 };
 
 Blockly.BlockOutlineSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
-
-  console.log("Move to OUTLINE surface");
-
   goog.asserts.assert(this.outlineGroup_.childNodes.length == 0,
     'Already dragging a block.');
   // appendChild removes the blocks from the previous parent
   this.outlineGroup_.appendChild(blocks);
   this.show();
+  this.hasBlocks_ = true;
 };
 
 Blockly.BlockOutlineSurfaceSvg.prototype.show = function(translateXY) {
@@ -267,9 +265,6 @@ Blockly.BlockOutlineSurfaceSvg.prototype.getCurrentBlock = function() {
  *     being moved to a different surface.
  */
 Blockly.BlockOutlineSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
-
-  console.log("Remove from OUTLINE surface");
-
   if (opt_newSurface) {
     // appendChild removes the node from this.outlineGroup_
     opt_newSurface.appendChild(this.getCurrentBlock());
@@ -287,6 +282,8 @@ Blockly.BlockOutlineSurfaceSvg.prototype.clearAndHide = function(opt_newSurface)
   // setBlocksAndShow.
   var injectionDiv = document.getElementsByClassName('injectionDiv')[0];
   injectionDiv.style.overflow = 'hidden';
+
+  this.hasBlocks_ = false;
 };
 
 

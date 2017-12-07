@@ -453,9 +453,7 @@ Blockly.BlockSvg.prototype.getRelativeToOutlineSurfaceXY = function() {
   var x = 0;
   var y = 0;
 
-  // var dragSurfaceGroup = this.useDragSurface_ ?
-  //     this.workspace.blockDragSurface_.getGroup() : null;
-    var outlineSurfaceGroup = null;//this.workspace.blocksOutlineSurface.getGroup();
+  var outlineSurfaceGroup = null;
 
   var element = this.getSvgRoot();
   if (element) {
@@ -467,11 +465,11 @@ Blockly.BlockSvg.prototype.getRelativeToOutlineSurfaceXY = function() {
       // If this element is the current element on the drag surface, include
       // the translation of the drag surface itself.
       //if (this.useDragSurface_ && this.workspace.blockDragSurface_.getCurrentBlock() == element) {
-      if (/*this.useDragSurface_*/false && this.workspace.blocksOutlineSurface.getCurrentBlock() == element) {
-        var surfaceTranslation = this.workspace.blocksOutlineSurface.getSurfaceTranslation();
-        x += surfaceTranslation.x;
-        y += surfaceTranslation.y;
-      }
+      // if (this.workspace.blocksOutlineSurface.getCurrentBlock() == element) {
+      //   var surfaceTranslation = this.workspace.blocksOutlineSurface.getSurfaceTranslation();
+      //   x += surfaceTranslation.x;
+      //   y += surfaceTranslation.y;
+      // }
       element = element.parentNode;
     } while (element && element != this.workspace.getCanvas() && element != outlineSurfaceGroup);
   }
@@ -1707,9 +1705,6 @@ Blockly.BlockSvg.prototype.bumpNeighbours_ = function() {
   }
   // Loop through every connection on this block.
   var myConnections = this.getConnections_(false);
-
-  console.log("Num connections: " + myConnections.length);
-
   for (var i = 0, connection; connection = myConnections[i]; i++) {
 
     // Spider down from this block bumping all sub-blocks.
