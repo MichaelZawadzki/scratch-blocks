@@ -57,13 +57,14 @@ Blockly.DataCategory = function(workspace) {
 
     Blockly.DataCategory.addSetVariableTo(xmlList, firstVariable);
     Blockly.DataCategory.addChangeVariableBy(xmlList, firstVariable);
-    Blockly.DataCategory.addShowVariable(xmlList, firstVariable);
-    Blockly.DataCategory.addHideVariable(xmlList, firstVariable);
+    // TODO (#1276): uncomment these when their implementations are finished.
+    // Blockly.DataCategory.addShowVariable(xmlList, firstVariable);
+    // Blockly.DataCategory.addHideVariable(xmlList, firstVariable);
   }
 
   // Now add list variables to the flyout
   Blockly.DataCategory.addCreateButton(xmlList, workspace, 'LIST');
-  variableModelList = workspace.getVariablesOfType('list');
+  variableModelList = workspace.getVariablesOfType(Blockly.LIST_VARIABLE_TYPE);
   variableModelList.sort(Blockly.VariableModel.compareByName);
   for (var i = 0; i < variableModelList.length; i++) {
     Blockly.DataCategory.addDataList(xmlList, variableModelList[i]);
@@ -80,8 +81,9 @@ Blockly.DataCategory = function(workspace) {
     Blockly.DataCategory.addItemOfList(xmlList, firstVariable);
     Blockly.DataCategory.addLengthOfList(xmlList, firstVariable);
     Blockly.DataCategory.addListContainsItem(xmlList, firstVariable);
-    Blockly.DataCategory.addShowList(xmlList, firstVariable);
-    Blockly.DataCategory.addHideList(xmlList, firstVariable);
+    // TODO (#1276): uncomment these when their implementations are finished.
+    // Blockly.DataCategory.addShowList(xmlList, firstVariable);
+    // Blockly.DataCategory.addHideList(xmlList, firstVariable);
   }
 
   return xmlList;
@@ -359,7 +361,7 @@ Blockly.DataCategory.addCreateButton = function(xmlList, workspace, type) {
     callbackKey = 'CREATE_LIST';
     callback = function(button) {
       Blockly.Variables.createVariable(button.getTargetWorkspace(), null,
-        'list');};
+        Blockly.LIST_VARIABLE_TYPE);};
   }
   button.setAttribute('text', msg);
   button.setAttribute('callbackKey', callbackKey);

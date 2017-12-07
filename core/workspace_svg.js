@@ -898,9 +898,13 @@ Blockly.WorkspaceSvg.prototype.isLocked = function() {
   return this.locked === true;
 };
 
-
-
-
+/**
+ * OB [CSI-616]
+ * Show or hide the toolbox.
+ */
+Blockly.WorkspaceSvg.prototype.showToolbox = function(showIt) {
+  this.flyout_.setShowFlyout(showIt);
+};
 
 /**
  * 
