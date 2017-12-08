@@ -482,12 +482,14 @@ Blockly.Gesture.prototype.startDraggingBlock_ = function() {
   this.blockDragger_.dragBlock(this.mostRecentEvent_,
       this.currentDragDeltaXY_);
 
-  // OB: Add an event when a block is dragged
-  var eventsEnabled = Blockly.Events.isEnabled();
-  if (eventsEnabled) {
-     var event = new Blockly.Events.StartDrag(this.targetBlock_);
-     Blockly.Events.fire(event);
-  }
+  // OB [CSI-633] Don't fire 'start drag' even here, or else we don't know who the parent block is
+  // and undo gets messed up. Do it earlier!
+  // // OB: Add an event when a block is dragged
+  // var eventsEnabled = Blockly.Events.isEnabled();
+  // if (eventsEnabled) {
+  //    var event = new Blockly.Events.StartDrag(this.targetBlock_);
+  //    Blockly.Events.fire(event);
+  // }
 };
 
 /**
