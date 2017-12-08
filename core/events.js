@@ -1138,7 +1138,10 @@ Blockly.Events.VarRename.prototype.run = function(forward) {
 
 
 /**
- * Class for a block drag event. 
+ * Class for a block drag event.
+ * OB: This was created by us Amplify
+ * Was added for a reason... why?! It replaces one of the MOVE even we get when dragging a block,
+ * that we save for later.
  * @param {Blockly.Block} block The moved block.  Null for a blank event.
  * @extends {Blockly.Events.Abstract}
  * @constructor
@@ -1215,34 +1218,6 @@ Blockly.Events.StartDrag.prototype.currentLocation_ = function() {
   }
   return location;
 };
-
-/*
-Blockly.Events.Move.prototype.toJson = function() {
-  var json = Blockly.Events.Move.superClass_.toJson.call(this);
-  if (this.newParentId) {
-    json['newParentId'] = this.newParentId;
-  }
-  if (this.newInputName) {
-    json['newInputName'] = this.newInputName;
-  }
-  if (this.newCoordinate) {
-    json['newCoordinate'] = Math.round(this.newCoordinate.x) + ',' +
-        Math.round(this.newCoordinate.y);
-  }
-  return json;
-};
-
-Blockly.Events.Move.prototype.fromJson = function(json) {
-  Blockly.Events.Move.superClass_.fromJson.call(this, json);
-  this.newParentId = json['newParentId'];
-  this.newInputName = json['newInputName'];
-  if (json['newCoordinate']) {
-    var xy = json['newCoordinate'].split(',');
-    this.newCoordinate =
-        new goog.math.Coordinate(parseFloat(xy[0]), parseFloat(xy[1]));
-  }
-};
-*/
 
 /**
  * Run a start drag event.
