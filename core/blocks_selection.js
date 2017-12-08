@@ -19,7 +19,7 @@
  */
 
 /**
- * @fileoverview Methods for drawing a selection rectangle on the workspace
+ * @fileoverview Methods for selecting and outlining blocks
  * @author obrassard@amplify.com
  */
 'use strict';
@@ -30,11 +30,7 @@ goog.require('goog.math.Coordinate');
 goog.require('goog.asserts');
 
 /**
- * Class for a workspace dragger.  It moves the workspace around when it is
- * being dragged by a mouse or touch.
- * Note that the workspace itself manages whether or not it has a drag surface
- * and how to do translations based on that.  This simply passes the right
- * commands based on events.
+ * Class for a workspace block selection.
  * @param {!Blockly.WorkspaceSvg} workspace The workspace to drag.
  * @constructor
  */
@@ -220,7 +216,12 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   Blockly.BlocksSelection.createOutline();
 }
 
-
+/**
+ * Find the intersection of workspace blocks and selection rectangle.
+ * The library call to detect the intersection with SVG paths is expensive. To reduce its cost,
+ * we first check which blocks are bounding-box intersecting with the selection,
+ * and then use the SVG intersection detection on this reduced set ob blocks.
+ */
 Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList) {
   if(!blockList || blockList.length === 0) {
     return;
@@ -247,6 +248,9 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList) {
   return resultBlocks;
 };
 
+/**
+ * Find the blocks that are intersecting the selection rectangle using the bounding box of the blocks.
+ */
 Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList) {
   if(!blockList || blockList.length === 0) {
     return;
@@ -445,6 +449,11 @@ Blockly.BlocksSelection.getBlockSelectionInstance = function () {
   return Blockly.BlocksSelection.blockSelectionInstance;
 };
 
+/**
+ * OB TODO
+ * Need a better way to determine this. If a selection rectangle intersects only one block,
+ * it will not pass this test.
+ */
 Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
   return (Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 1);
 };
@@ -456,7 +465,6 @@ Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
 Blockly.BlocksSelection.initBlockDragging = function() {
   Blockly.BlocksSelection.removeOutline();
 };
-
 
 /**
  * Disconnects chosen blocks from previous/next un-chosen blocks
