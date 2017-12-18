@@ -205,7 +205,8 @@ Blockly.FieldVariable.dropdownCreate = function() {
     }
   }
   // Ensure that the currently selected variable is an option.
-  if (createSelectedVariable && workspace) {
+  // TODO (#1270): Remove isBroadcastType check here when flyout variables fixed.
+  if (createSelectedVariable && workspace && !isBroadcastType) {
     var newVar = workspace.createVariable(name);
     variableModelList.push(newVar);
   }
@@ -217,7 +218,10 @@ Blockly.FieldVariable.dropdownCreate = function() {
   }
 
   if (isBroadcastType) {
-    options.push([Blockly.Msg.NEW_BROADCAST_MESSAGE, Blockly.NEW_BROADCAST_MESSAGE_ID]);
+    // TODO (#1270): Re-enable create broadcast message dropdown in flyout when fixed.
+    if (!workspace.isFlyout) {
+      options.push([Blockly.Msg.NEW_BROADCAST_MESSAGE, Blockly.NEW_BROADCAST_MESSAGE_ID]);
+    }
   } else {
    /**
    * MMZ: For now remove the RENAME/DELETE options
