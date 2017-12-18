@@ -212,8 +212,10 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   var wsBlocks = this.workspace_.getAllBlocks();
   var selectedBlocks = [];
 
+
   selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks, true), true));
   selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks, true));
+
   // OB TEMP: find top blocks of multiple stacks
   var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(selectedBlocks);
   if(topBlocks && topBlocks.length > 0) {
@@ -222,7 +224,6 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
 
   //Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
 }
-
 
 Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
@@ -254,6 +255,7 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, remove
   }
   return resultBlocks;
 };
+
 
 Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
@@ -388,6 +390,7 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
   }
 }
 
+
 /**
  * Starting for the top block of a stack, sets sub-blocks of stack to 'chosen' if they were
  * in the list of selected blocks.
@@ -409,6 +412,7 @@ Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, bl
   }
 };
 
+
 /**
  * Adds the all sub-blocks nested under the current block.
  * Goes through the current block, and then all sub-blocks of current block so we get all
@@ -423,6 +427,7 @@ Blockly.BlocksSelection.addSubstackBlocks = function (block) {
     }
   }
 };
+
 
 /**
  * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
@@ -622,6 +627,7 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
   return lastChosenAbove;
 };
 
+
 /**
  * Finds all the top-of-stack blocks from a bunch of blocks.
  * Goes through every block and follows the 'previous block' link to find the top block
@@ -650,14 +656,8 @@ Blockly.BlocksSelection.getTopBlocksInList = function (_blockList) {
       }
     }
   }
-
   return topBlocks;
 };
-
-
-
-
-
 
 
 // Blockly.BlocksSelection.startBlockDrag = function (dragBlock, startXY) {
