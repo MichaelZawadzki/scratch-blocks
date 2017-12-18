@@ -126,6 +126,8 @@ Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
     // Find blocks that are intersecting the selection rect
     var intersectedBlocks = this.getSelectionIntersection();
     if(intersectedBlocks && intersectedBlocks.length > 0) {
+      console.log("Intersected blocks:");
+      console.log(intersectedBlocks);
       Blockly.BlocksSelection.addMultipleToChosenBlocks(intersectedBlocks);
       Blockly.BlocksSelection.createOutline();
     }
@@ -218,10 +220,7 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks));
 
   return selectedBlocks;
-
-  // Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
-  // Blockly.BlocksSelection.createOutline();
-}
+};
 
 /**
  * Find the intersection of workspace blocks and selection rectangle.
@@ -703,7 +702,6 @@ Blockly.BlocksSelection.changeSvgHierarchy = function () {
   }
 };
 
-Blockly.BlocksSelection.relToParent = null;
 
 Blockly.BlocksSelection.restoreSvgHierarchy = function () {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
@@ -733,7 +731,9 @@ Blockly.BlocksSelection.restoreSvgHierarchy = function () {
       }
     }
   }
-}
+};
+
+Blockly.BlocksSelection.relToParent = null;
 /**
  * --- END - OUTLINING USING 'CHANGE SVG TREE' ---
  */
