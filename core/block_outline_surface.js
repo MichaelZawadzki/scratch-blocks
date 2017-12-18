@@ -135,25 +135,18 @@ Blockly.BlockOutlineSurfaceSvg.prototype.createOutlineDom_ = function(defs) {
   // Adjust these width/height, x/y properties to prevent the shadow from clipping
   var selectFilter = Blockly.utils.createSvgElement('filter',
     {'id': 'blocklySelectFilter' + rnd, 'height': '140%', 'width': '140%', y: '-20%', x: '-20%'}, defs);
-  
-  //Blockly.utils.createSvgElement('feGaussianBlur',
-  //  {'in': 'SourceAlpha', 'stdDeviation': Blockly.BlockOutlineSurfaceSvg.SHADOW_STD_DEVIATION}, selectFilter);
-  
-
   Blockly.utils.createSvgElement('feMorphology',
-    {'operator': 'dilate', 'radius': '6', 'result': 'border'}, selectFilter);
+    {'operator': 'dilate', 'radius': Blockly.Colours.outlineRadius, 'result': 'border'}, selectFilter);
   Blockly.utils.createSvgElement('feFlood',
-    {'flood-color': '#2092e5'}, selectFilter);
+    {'flood-color': Blockly.Colours.outlineColor}, selectFilter);
   Blockly.utils.createSvgElement('feComposite',
-      {'in2': 'border', 'operator': 'in', 'result': 'border'}, selectFilter);
-      
+    {'in2': 'border', 'operator': 'in', 'result': 'border'}, selectFilter);
       
   var componentTransfer = Blockly.utils.createSvgElement('feComponentTransfer',
     {'result': 'offsetBlur'}, selectFilter);
-  // Shadow opacity is specified in the adjustable colour library,
-  // since the darkness of the shadow largely depends on the workspace colour.
+  // Outline opacity is specified in the adjustable colour library.
   Blockly.utils.createSvgElement('feFuncA',
-    {'type': 'linear', 'slope': Blockly.Colours.dragShadowOpacity}, componentTransfer);
+    {'type': 'linear', 'slope': Blockly.Colours.outlineOpacity}, componentTransfer);
   Blockly.utils.createSvgElement('feComposite',
     {'in': 'SourceGraphic', 'in2': 'offsetBlur', 'operator': 'over'}, selectFilter);
   return selectFilter.id;

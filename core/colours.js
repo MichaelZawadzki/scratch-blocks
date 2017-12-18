@@ -112,4 +112,8 @@ Blockly.Colours = {
   "valueReportBorder": "#AAAAAA",
   "dropdownButtonPressedOpacity" : 1,
   "inputShapeOpacity" : 1,
+
+  "outlineColor": '#FF00FF',
+  "outlineOpacity": 0.6,
+  "outlineRadius": '4',
 };
