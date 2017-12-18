@@ -124,7 +124,11 @@ Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
     // Make sure everything is up to date.
     this.updateSelection(currentDragDeltaXY);
     // Find blocks that are intersecting the selection rect
-    this.getSelectionIntersection();
+    var intersectedBlocks = this.getSelectionIntersection();
+    if(intersectedBlocks && intersectedBlocks.length > 0) {
+      Blockly.BlocksSelection.addMultipleToChosenBlocks(intersectedBlocks);
+      Blockly.BlocksSelection.createOutline();
+    }
   }
 };
 
@@ -192,10 +196,12 @@ Blockly.BlocksSelection.prototype.updateRectSize = function (newW, newH) {
 Blockly.BlocksSelection.prototype.getSelectionIntersection = function() {
   var startTime = Date.now();
 
-  this.getSelectionIntersectionWorkspaceBlocks();
+  var intersectedBlocks = this.getSelectionIntersectionWorkspaceBlocks();
 
   var deltaTime = Date.now() - startTime;
   //console.log("TOTAL Selection time: " + deltaTime + " ms");
+
+  return intersectedBlocks;
 };
 
 /**
@@ -211,9 +217,10 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks)));
   selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks));
 
-  Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
+  return selectedBlocks;
 
-  Blockly.BlocksSelection.createOutline();
+  // Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
+  // Blockly.BlocksSelection.createOutline();
 }
 
 /**
@@ -344,7 +351,6 @@ Blockly.BlocksSelection.hasBlocks = function () {
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */
 Blockly.BlocksSelection.clearChosenBlocks = function () {
-
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     Blockly.BlocksSelection.removeOutline();
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
@@ -455,7 +461,7 @@ Blockly.BlocksSelection.getBlockSelectionInstance = function () {
  * it will not pass this test.
  */
 Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
-  return (Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 1);
+  return (Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 0);
 };
 
 
