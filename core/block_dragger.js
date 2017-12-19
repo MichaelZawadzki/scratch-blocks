@@ -171,8 +171,8 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
 
-  // OB: Fix this! If creating a selection box that gets only one block, it will NOT think its dragging chosen blocks :(
-  this.isDraggingChosenBlocks = Blockly.BlocksSelection.isDraggingChosenBlocks();
+  // OB: If we only drag one chosen block at a time, do dragging like it used to be
+  this.isDraggingChosenBlocks = (Blockly.BlocksSelection.isDraggingChosenBlocks() && Blockly.BlocksSelection.blocks.length > 1);
 
   // Drag block selection
   if(this.isDraggingChosenBlocks) {
