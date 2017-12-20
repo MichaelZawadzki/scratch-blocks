@@ -202,7 +202,7 @@ Blockly.BlockSvg.prototype.select = function() {
   this.addSelect();
 
   // OB [CSI-671]: Clicking on a block sets it as 'chosen' and creates the highlight 
-  if(this.workspace.blocksSelectionLayer && Blockly.BlocksSelection.hasBlocks() === false) {
+  if(this.canChoose() && this.workspace.blocksSelectionLayer && Blockly.BlocksSelection.hasBlocks() === false) {
     Blockly.BlocksSelection.addToChosenBlocks(this);
     Blockly.BlocksSelection.createOutline();
   }
@@ -541,37 +541,40 @@ Blockly.BlockSvg.prototype.moveToDragSurface_ = function() {
   var xy = this.getRelativeToSurfaceXY();
   this.clearTransformAttributes_();
   this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
-  // Execute the move on the top-level SVG component
-  this.workspace.blockDragSurface_.setBlocksAndShow(this.getSvgRoot());
+
+  // // Execute the move on the top-level SVG component
+  this.workspace.blockDragSurface_.setBlocksAndShow(this);
 };
 
+Blockly.BlockSvg.prototype.detachNextBlockSvg = function (parentSvg, doRelToParentTranslate) {
+  var nextBlock = this.getNextBlock();
+  if(!nextBlock) {
+    return null;
+  }
+  var xyToNextBlock = nextBlock.getRelativeToElementXY(this.getSvgRoot());
+  // Nest and translate child block under parent of top block
+  var xyToParentSvg = nextBlock.getRelativeToElementXY(parentSvg);
+  parentSvg.appendChild(nextBlock.getSvgRoot());
+  if(doRelToParentTranslate) {
+    nextBlock.translate(xyToParentSvg.x, xyToParentSvg.y);
+  }
 
-// Blockly.BlockSvg.prototype.addToDragSurface_ = function() {
-//   if (!this.useDragSurface_) {
-//     return;
-//   }
-//   // The translation for drag surface blocks,
-//   // is equal to the current relative-to-surface position,
-//   // to keep the position in sync as it move on/off the surface.
-//   // This is in workspace coordinates.
-//   var xy = this.getRelativeToSurfaceXY();
-//   var surfaceXY = this.workspace.blockDragSurface_.surfaceXY_;
-//   var translateXY = goog.math.Coordinate.sum(xy, surfaceXY);
+  return xyToNextBlock;
+};
 
-//   console.log("# adding to drag surface");
-//   console.log("\tsurface XY: " + surfaceXY.x + " " + surfaceXY.y);
-//   console.log("\trel XY: " + xy.x + " " + xy.y);
-//   console.log("--> Translate by " + translateXY);
-
-//   this.clearTransformAttributes_();
-//   this.translateBy(translateXY.x, translateXY.y);
-  
-//   //this.clearTransformAttributes_();
-//   //this.workspace.blockDragSurface_.translateSurface(xy.x, xy.y);
-//   // Execute the move on the top-level SVG component
-//   this.workspace.blockDragSurface_.addBlockToSurface(this.getSvgRoot());
-// };
-
+Blockly.BlockSvg.prototype.reatachNextBlockSvg = function (xyRelToParent) {
+  if(!this.getNextBlock()) {
+    return;
+  }
+  var nextBlock = this.getNextBlock();
+  if(nextBlock) {
+    nextBlock.clearTransformAttributes_();
+    this.getSvgRoot().appendChild(nextBlock.getSvgRoot());
+    if(xyRelToParent) {
+      nextBlock.translate(xyRelToParent.x, xyRelToParent.y);
+    }
+  }
+};
 
 /**
  * Move this block back to the workspace block canvas.

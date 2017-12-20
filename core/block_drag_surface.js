@@ -34,7 +34,6 @@ goog.require('Blockly.utils');
 goog.require('goog.asserts');
 goog.require('goog.math.Coordinate');
 
-
 /**
  * Class for a drag surface for the currently dragged block. This is a separate
  * SVG that contains only the currently moving block, or nothing.
@@ -64,6 +63,27 @@ Blockly.BlockDragSurfaceSvg.prototype.SVG_ = null;
  * @private
  */
 Blockly.BlockDragSurfaceSvg.prototype.dragGroup_ = null;
+
+/**
+ * This blocks group with filter effect
+ * @type {Element}
+ * @private
+ */
+Blockly.BlockDragSurfaceSvg.prototype.dragWithFilter_ = null;
+
+/**
+ * This blocks group with no filter effect
+ * @type {Element}
+ * @private
+ */
+Blockly.BlockDragSurfaceSvg.prototype.dragNoFilter_ = null;
+
+/**
+ * The first block of the hierarchy that is being dragged
+ * @type {Blockly.Block}
+ * @private
+ */
+Blockly.BlockDragSurfaceSvg.prototype.firstBlock = null;
 
 /**
  * Containing HTML element; parent of the workspace and the drag surface.
@@ -111,6 +131,14 @@ Blockly.BlockDragSurfaceSvg.prototype.dragShadowFilterId_ = '';
 Blockly.BlockDragSurfaceSvg.SHADOW_STD_DEVIATION = 6;
 
 /**
+ * If, when we drag a non-outline block, we want the other dragged blocks that CAN be outlined
+ * to be (TRUE) or not (false)
+ * @type {boolean}
+ * @const
+ */
+Blockly.BlockDragSurfaceSvg.SEPARATE_FILTER_AND_NO_FILTER = false;
+
+/**
  * Create the drag surface and inject it into the container.
  */
 Blockly.BlockDragSurfaceSvg.prototype.createDom = function() {
@@ -127,7 +155,19 @@ Blockly.BlockDragSurfaceSvg.prototype.createDom = function() {
   var defs = Blockly.utils.createSvgElement('defs', {}, this.SVG_);
   this.dragShadowFilterId_ = this.createDropShadowDom_(defs);
   this.dragGroup_ = Blockly.utils.createSvgElement('g', {}, this.SVG_);
-  this.dragGroup_.setAttribute('filter', 'url(#' + this.dragShadowFilterId_ + ')');
+  this.dragGroup_.setAttribute('id', 'dragGroup');
+
+  //if(Blockly.BlockDragSurfaceSvg.SEPARATE_FILTER_AND_NO_FILTER)
+  {
+    // Sub-group without filter
+    this.dragNoFilter_ = Blockly.utils.createSvgElement('g', {}, this.dragGroup_);
+    // Sub-group with filter
+    this.dragWithFilter_ = Blockly.utils.createSvgElement('g', {}, this.dragGroup_);
+    this.dragWithFilter_.setAttribute('filter', 'url(#' + this.dragShadowFilterId_ + ')');
+  }
+  // else {
+  //   this.dragGroup_.setAttribute('filter', 'url(#' + this.dragShadowFilterId_ + ')');
+  // }
 };
 
 /**
@@ -158,8 +198,11 @@ Blockly.BlockDragSurfaceSvg.prototype.createDropShadowDom_ = function(defs) {
 };
 
 Blockly.BlockDragSurfaceSvg.prototype.isInDragSurface = function(element) {
-  return this.dragGroup_.contains(element);
+  //return this.dragGroup_.contains(element);
+  return (this.dragWithFilter_.contains(element) || this.dragNoFilter_.contains(element));
 };
+
+Blockly.BlockDragSurfaceSvg.relToParentBlock = null;
 
 /**
  * Set the SVG blocks on the drag surface's group and show the surface.
@@ -167,11 +210,27 @@ Blockly.BlockDragSurfaceSvg.prototype.isInDragSurface = function(element) {
  * @param {!Element} blocks Block or group of blocks to place on the drag
  * surface.
  */
-Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
-  goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
-    'Already dragging a block.');
-  // appendChild removes the blocks from the previous parent
-  this.dragGroup_.appendChild(blocks);
+//Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
+Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(firstBlock) {
+  // goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
+  //   'Already dragging a block.');
+  // OB [CSI-673]: Put the dragged blocks in either the with-filter or without-filter element
+  this.firstBlock = firstBlock;
+  var blocksSvg = this.firstBlock.getSvgRoot();
+  // add to base hierarchy for now
+  this.dragGroup_.appendChild(blocksSvg);
+  if(Blockly.BlockDragSurfaceSvg.SEPARATE_FILTER_AND_NO_FILTER) {
+    this.setBlocksSvgHierarchy();
+  }
+  else {
+    if(this.firstBlock.canChoose() === false) {
+      this.dragNoFilter_.appendChild(this.firstBlock.getSvgRoot());
+    }
+    else {
+      this.dragWithFilter_.appendChild(this.firstBlock.getSvgRoot());
+    }
+  }
+
   this.SVG_.style.display = 'block';
   if(this.surfaceXY_ == null)
     this.surfaceXY_ = new goog.math.Coordinate(0, 0);
@@ -182,6 +241,44 @@ Blockly.BlockDragSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
   var injectionDiv = document.getElementsByClassName('injectionDiv')[0];
   injectionDiv.style.overflow = 'visible';
 };
+
+/**
+ * // OB
+ * Disconnect a block that cannot be outlined from its next blocks, so that they can be outlined.
+ * Move outlined and non-outlined blocks in proper bucket.
+ * Assumptions:
+ * - There is only one non-outline block
+ * - The non-outline block is the first in the sequence of blocks
+ * - What determines if a block needs outline is the 'canChoose' property (we could instead pass a function that tests whatever we want)
+ * ---> This is super specific for the 'when play clicked' right now, but could be generalized a bit if needed.
+ */
+Blockly.BlockDragSurfaceSvg.prototype.setBlocksSvgHierarchy = function () {
+  var nextBlock = this.firstBlock.getNextBlock();
+  if(nextBlock && this.firstBlock.canChoose() === false && nextBlock.canChoose() === true) {
+    var parentSvg = this.dragGroup_;
+    var xyToBottomBlock = this.firstBlock.detachNextBlockSvg(parentSvg, false);
+    Blockly.BlockDragSurfaceSvg.relToParentBlock = xyToBottomBlock;
+    this.dragNoFilter_.appendChild(this.firstBlock.getSvgRoot());
+    this.dragWithFilter_.appendChild(nextBlock.getSvgRoot());
+  }
+  else {
+    this.dragWithFilter_.appendChild(this.firstBlock.getSvgRoot());
+    Blockly.BlockDragSurfaceSvg.relToParentBlock = null;
+  }
+};
+/**
+ * // OB
+ * Restore the SVG hierarchy of the blocks so that they are properly nested.
+ * Assumptions: see 'setBlocksSvgHierarchy' above
+ */
+Blockly.BlockDragSurfaceSvg.prototype.resetBlocksSvgHierarchy = function () {
+  var nextBlock = this.firstBlock.getNextBlock();
+  if(nextBlock && this.firstBlock.canChoose() === false && nextBlock.canChoose() === true) {
+    this.firstBlock.reatachNextBlockSvg(Blockly.BlockDragSurfaceSvg.relToParentBlock);
+    Blockly.BlockDragSurfaceSvg.relToParentBlock = null;
+  }
+};
+
 
 /**
  * Translate and scale the entire drag surface group to the given position, to
@@ -268,7 +365,8 @@ Blockly.BlockDragSurfaceSvg.prototype.getGroup = function() {
  * if no blocks exist.
  */
 Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
-  return this.dragGroup_.firstChild;
+  //return this.dragGroup_.firstChild;
+  return (this.firstBlock ? this.firstBlock.getSvgRoot() : null);
 };
 
 /**
@@ -281,16 +379,40 @@ Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
  *     being moved to a different surface.
  */
 Blockly.BlockDragSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
-  var currentBlock = this.getCurrentBlock();
+
+  if(Blockly.BlockDragSurfaceSvg.SEPARATE_FILTER_AND_NO_FILTER) {
+    this.resetBlocksSvgHierarchy();
+  }
+  this.dragGroup_.appendChild(this.firstBlock.getSvgRoot());
+
+  var currentBlock = this.firstBlock.getSvgRoot();
   if (opt_newSurface) {
     // appendChild removes the node from this.dragGroup_
     opt_newSurface.appendChild(currentBlock);
   } else {
     this.dragGroup_.removeChild(currentBlock);
   }
+
+  if(Blockly.BlockDragSurfaceSvg.SEPARATE_FILTER_AND_NO_FILTER) {
+    goog.asserts.assert(this.dragNoFilter_.childNodes.length == 0,
+      'No filter drag group was not cleared.');
+    goog.asserts.assert(this.dragWithFilter_.childNodes.length == 0,
+      'With filter drag group was not cleared.');
+  }
+  else {
+    if(this.firstBlock.canChoose() === false) {
+      goog.asserts.assert(this.dragNoFilter_.childNodes.length == 0,
+        'Drag group was not cleared.');
+    }
+    else {
+      goog.asserts.assert(this.dragWithFilter_.childNodes.length == 0,
+        'Drag group was not cleared.');
+    }
+  }
+
+  this.firstBlock = null;
   this.SVG_.style.display = 'none';
-  goog.asserts.assert(this.dragGroup_.childNodes.length == 0,
-    'Drag group was not cleared.');
+    
   this.surfaceXY_ = null;
   this.surfaceOffsetXY_ = null;
 
