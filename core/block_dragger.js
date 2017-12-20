@@ -171,11 +171,11 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
 
-  this.isDraggingChosenBlocks = Blockly.BlocksSelection.isDraggingChosenBlocks();
+  // OB: If we only drag one chosen block at a time, do dragging like it used to be
+  this.isDraggingChosenBlocks = (Blockly.BlocksSelection.isDraggingChosenBlocks() && Blockly.BlocksSelection.blocks.length > 1);
 
   // Drag block selection
   if(this.isDraggingChosenBlocks) {
-
     var reconnectStack = (this.workspace_.options.dragSingleBlock === true);
     var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
     this.initialDragParent_ = topBlock.parentBlock_;
@@ -184,23 +184,11 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
     var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
     var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
     var relativeToTopXY = this.draggingBlock_.getRelativeToElementXY(topBlock.svgGroup_);
-
-    // console.log("# Start block drag:");
-    // console.log("\tstart: "+ this.startXY_);
-    // console.log("\trelative to top: "+ relativeToTopXY);
-    // console.log("\tnew: "+ newLoc);
-
-    //this.draggingBlock_.translate(newLoc.x, newLoc.y);
-    //this.draggingBlock_.disconnectUiEffect();
     topBlock.translate(newLoc.x, newLoc.y);
     topBlock.disconnectUiEffect();
 
-    // Blockly.BlocksSelection.startBlockDrag(this.draggingBlock_, newLoc);
-
     topBlock.setDragging(true);
     topBlock.moveToDragSurface_();
-    //this.draggingBlock_.setDragging(true);
-    //this.draggingBlock_.moveToDragSurface_();
 
     if(this.draggingBlock_ != topBlock) {
       var dragSurface = this.draggingBlock_.workspace.blockDragSurface_;
@@ -209,7 +197,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
 
     this.draggedConnectionManager_ = new Blockly.InsertionMarkerManager(topBlock);
   }
-  // Regular drag
+  // Regular dragging
   else 
   {
     this.initialDragParent_ = this.draggingBlock_.parentBlock_;

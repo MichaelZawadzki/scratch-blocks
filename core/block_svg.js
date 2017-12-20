@@ -201,8 +201,10 @@ Blockly.BlockSvg.prototype.select = function() {
   Blockly.selected = this;
   this.addSelect();
 
-  if(this.workspace.blocksSelectionLayer) {
+  // OB [CSI-671]: Clicking on a block sets it as 'chosen' and creates the highlight 
+  if(this.workspace.blocksSelectionLayer && Blockly.BlocksSelection.hasBlocks() === false) {
     Blockly.BlocksSelection.addToChosenBlocks(this);
+    Blockly.BlocksSelection.createOutline();
   }
 };
 
@@ -413,6 +415,8 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
 
   var dragSurfaceGroup = this.useDragSurface_ ?
       this.workspace.blockDragSurface_.getGroup() : null;
+  var outlineGroup = this.isChosen_ ?
+      this.workspace.blocksOutlineSurface.getGroup() : null;
 
   var element = this.getSvgRoot();
   if (element) {
@@ -431,7 +435,45 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
       }
       element = element.parentNode;
     } while (element && element != this.workspace.getCanvas() &&
-        element != dragSurfaceGroup);
+        element != dragSurfaceGroup && element != outlineGroup);
+  }
+  return new goog.math.Coordinate(x, y);
+};
+
+/**
+ * Return the coordinates of the top-left corner of this block relative to the
+ * drawing surface's origin (0,0), in workspace units.
+ * If the block is on the workspace, (0, 0) is the origin of the workspace
+ * coordinate system.
+ * This does not change with workspace scale.
+ * @return {!goog.math.Coordinate} Object with .x and .y properties in
+ *     workspace coordinates.
+ */
+Blockly.BlockSvg.prototype.getRelativeToOutlineSurfaceXY = function() {
+  // The drawing surface is relative to either the workspace canvas
+  // or to the drag surface group.
+  var x = 0;
+  var y = 0;
+
+  var outlineSurfaceGroup = null;
+
+  var element = this.getSvgRoot();
+  if (element) {
+    do {
+      // Loop through this block and every parent.
+      var xy = Blockly.utils.getRelativeXY(element);
+      x += xy.x;
+      y += xy.y;
+      // If this element is the current element on the drag surface, include
+      // the translation of the drag surface itself.
+      //if (this.useDragSurface_ && this.workspace.blockDragSurface_.getCurrentBlock() == element) {
+      // if (this.workspace.blocksOutlineSurface.getCurrentBlock() == element) {
+      //   var surfaceTranslation = this.workspace.blocksOutlineSurface.getSurfaceTranslation();
+      //   x += surfaceTranslation.x;
+      //   y += surfaceTranslation.y;
+      // }
+      element = element.parentNode;
+    } while (element && element != this.workspace.getCanvas() && element != outlineSurfaceGroup);
   }
   return new goog.math.Coordinate(x, y);
 };
@@ -1177,6 +1219,7 @@ Blockly.BlockSvg.prototype.dispose = function(healStack, animate) {
   this.svgGroup_ = null;
   this.svgPath_ = null;
   Blockly.Field.stopCache();
+
 };
 
 /**
@@ -1673,14 +1716,31 @@ Blockly.BlockSvg.prototype.bumpNeighbours_ = function() {
 
     var neighbours = connection.neighbours_(Blockly.SNAP_RADIUS);
     for (var j = 0, otherConnection; otherConnection = neighbours[j]; j++) {
-
       // If both connections are connected, that's probably fine.  But if
       // either one of them is unconnected, then there could be confusion.
-      if (!connection.isConnected() || !otherConnection.isConnected()) {
+
+
+
+
+      //if (!connection.isConnected() && !connection.isSaved_ || !otherConnection.isConnected(true) && !otherConnection.isSaved_) {
+      
+      if (!connection.isConnected(true) || !otherConnection.isConnected(true)) {
+      
+        // OB: Adding 'saved connections' in the checks here, or else blocks moved to the outline surface will get bumped
+      // Hopefully this doesn't cause other issues... but I can't reproduce when this is actually used!!
+      //  if (connection.isConnected() === false && connection.isSaved_ === false && 
+      //      otherConnection.isConnected() === false && otherConnection.isSaved_ === false) {
+      //if (!connection.isConnected(true) || !otherConnection.isConnected(true)) {
         // Only bump blocks if they are from different tree structures.
         if (otherConnection.getSourceBlock().getRootBlock() != rootBlock) {
-
           // Always bump the inferior block.
+
+      console.log("Check connections between " + connection.getSourceBlock().type + " and " + otherConnection.getSourceBlock().type);
+      console.log("\tconnection connected? " + connection.isConnected() + "; saved? " + connection.isSaved_);
+      console.log("\tother connected? " + otherConnection.isConnected() + "; saved? " + otherConnection.isSaved_);
+
+          //console.log("DO BUMP 2");
+      
           if (connection.isSuperior()) {
             otherConnection.bumpAwayFrom_(connection);
           } else {

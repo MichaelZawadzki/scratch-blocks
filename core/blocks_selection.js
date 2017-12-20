@@ -19,7 +19,7 @@
  */
 
 /**
- * @fileoverview Methods for drawing a selection rectangle on the workspace
+ * @fileoverview Methods for selecting and outlining blocks
  * @author obrassard@amplify.com
  */
 'use strict';
@@ -30,11 +30,7 @@ goog.require('goog.math.Coordinate');
 goog.require('goog.asserts');
 
 /**
- * Class for a workspace dragger.  It moves the workspace around when it is
- * being dragged by a mouse or touch.
- * Note that the workspace itself manages whether or not it has a drag surface
- * and how to do translations based on that.  This simply passes the right
- * commands based on events.
+ * Class for a workspace block selection.
  * @param {!Blockly.WorkspaceSvg} workspace The workspace to drag.
  * @constructor
  */
@@ -128,7 +124,18 @@ Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
     // Make sure everything is up to date.
     this.updateSelection(currentDragDeltaXY);
     // Find blocks that are intersecting the selection rect
-    this.getSelectionIntersection();
+    var intersectedBlocks = this.getSelectionIntersection();
+    if(intersectedBlocks && intersectedBlocks.length > 0) {
+      var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(intersectedBlocks);
+      if(topBlocks && topBlocks.length > 0) {
+        Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], intersectedBlocks, true);
+      }
+      else {
+        Blockly.BlocksSelection.addMultipleToChosenBlocks(intersectedBlocks);
+      }
+
+      Blockly.BlocksSelection.createOutline();
+    }
   }
 };
 
@@ -196,10 +203,12 @@ Blockly.BlocksSelection.prototype.updateRectSize = function (newW, newH) {
 Blockly.BlocksSelection.prototype.getSelectionIntersection = function() {
   var startTime = Date.now();
 
-  this.getSelectionIntersectionWorkspaceBlocks();
+  var intersectedBlocks = this.getSelectionIntersectionWorkspaceBlocks();
 
   var deltaTime = Date.now() - startTime;
   //console.log("TOTAL Selection time: " + deltaTime + " ms");
+
+  return intersectedBlocks;
 };
 
 /**
@@ -212,18 +221,19 @@ Blockly.BlocksSelection.prototype.getSelectionIntersectionWorkspaceBlocks = func
   var wsBlocks = this.workspace_.getAllBlocks();
   var selectedBlocks = [];
 
-
   selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks, true), true));
   selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks, true));
 
-  // OB TEMP: find top blocks of multiple stacks
-  var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(selectedBlocks);
-  if(topBlocks && topBlocks.length > 0) {
-    Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], selectedBlocks, true);
-  }
+  // selectedBlocks = selectedBlocks.concat(this.getIntersectedBlocks_lib(this.getIntersectedBlocks_boundingBox(wsBlocks, true), true));
+  // selectedBlocks = selectedBlocks.concat(this.getEnclosedBlocks(wsBlocks, true));
+  // // OB TEMP: find top blocks of multiple stacks
+  // var topBlocks = Blockly.BlocksSelection.getTopBlocksInList(selectedBlocks);
+  // if(topBlocks && topBlocks.length > 0) {
+  //   Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(topBlocks[0], selectedBlocks, true);
+  // }
 
-  //Blockly.BlocksSelection.addMultipleToChosenBlocks(selectedBlocks);
-}
+  return selectedBlocks;
+};
 
 Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
@@ -256,7 +266,9 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, remove
   return resultBlocks;
 };
 
-
+/**
+ * Find the blocks that are intersecting the selection rectangle using the bounding box of the blocks.
+ */
 Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
     return;
@@ -285,7 +297,6 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
   return resultBlocks;
 };
 
-// Experimental function here!
 Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList, removeShadow) {
   if(!blockList || blockList.length === 0) {
     return;
@@ -355,12 +366,15 @@ Blockly.BlocksSelection.hasBlocks = function () {
  */
 Blockly.BlocksSelection.clearChosenBlocks = function () {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    Blockly.BlocksSelection.removeOutline();
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       if(Blockly.BlocksSelection.blocks[i]) {
         Blockly.BlocksSelection.blocks[i].setChosen(false);
       }
     }
   }
+  //Blockly.BlocksSelection.removeOutline();
+
   Blockly.BlocksSelection.blocks = null;
 };
 
@@ -372,8 +386,7 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
-  // OB: Make sure only blocks that can be set as 'chosen' are added to the list, and only when the workspace is editable
-  if(block && block.canChoose() && block.workspace.locked === false) {
+  if(block && !block.isShadow()) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
@@ -385,11 +398,13 @@ Blockly.BlocksSelection.addMultipleToChosenBlocks = function (blockList) {
   if(!blockList || blockList.length === 0) {
     return;
   }
+  if(!Blockly.BlocksSelection.blocks) {
+    Blockly.BlocksSelection.blocks = [];
+  }
   for(var i = 0; i < blockList.length; i++) {
     Blockly.BlocksSelection.addToChosenBlocks(blockList[i]);
   }
 }
-
 
 /**
  * Starting for the top block of a stack, sets sub-blocks of stack to 'chosen' if they were
@@ -404,14 +419,13 @@ Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks = function (topBlock, bl
     // Add current block
     Blockly.BlocksSelection.addToChosenBlocks(currentBlock);
     // Add any sub-stack blocks (in C or E blocks, for example)
-    if(addChildrenStack) {
+    if(addChildrenStack === true) {
       Blockly.BlocksSelection.addSubstackBlocks(currentBlock);
     }
     // Get next block in sequence
     currentBlock = currentBlock.getNextBlock();
   }
 };
-
 
 /**
  * Adds the all sub-blocks nested under the current block.
@@ -492,23 +506,27 @@ Blockly.BlocksSelection.getBlockSelectionInstance = function () {
   return Blockly.BlocksSelection.blockSelectionInstance;
 };
 
+/**
+ * OB TODO
+ * Need a better way to determine this. If a selection rectangle intersects only one block,
+ * it will not pass this test.
+ */
 Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
-  return (Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 1);
+  return (Blockly.BlocksSelection.hasBlocks() === true && Blockly.BlocksSelection.blocks.length > 0);
 };
 
 
 
 
 
-
-
+Blockly.BlocksSelection.initBlockDragging = function() {
+  Blockly.BlocksSelection.removeOutline();
+};
 
 /**
  * Disconnects chosen blocks from previous/next un-chosen blocks
  */
-Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
-
-  //console.log("# Unplugging chosen blocks");
+Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnections) {
 
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var blocksToUnplug = Blockly.BlocksSelection.blocks.slice(0, Blockly.BlocksSelection.blocks.length);
@@ -519,9 +537,7 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
     for(var i = 0; i < blocksToUnplug.length; i++) {
       currentBlock = blocksToUnplug[i];
       if(currentBlock) {
-
         // 1- Find block atop this one that is not 'chosen'; disconnect
-        //console.log("Finding prev of " + currentBlock.type);
         var lastChosenAbove = currentBlock;
         var prevBlock = lastChosenAbove.getPreviousBlock();
         while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
@@ -530,17 +546,13 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
         }
 
         if(lastChosenAbove) {
-          //console.log("\tlast chosen above is " + lastChosenAbove.type);
           if(lastChosenAbove.previousConnection && lastChosenAbove.previousConnection.isConnected()) {
-            //console.log("Need to disconnect from " + lastChosenAbove.previousConnection.targetBlock().type);
-            //console.log("--> Disconnect above " + lastChosenAbove.type);
             prevTarget = lastChosenAbove.previousConnection.targetConnection;
             lastChosenAbove.previousConnection.disconnect();
           }
         }
 
         // 2- Find block below this one that is not 'chosen'; disconnect
-        //console.log("Finding next of " + currentBlock.type);
         var lastChosenBelow = currentBlock;
         var nextBlock = lastChosenBelow.getNextBlock();
         while(lastChosenBelow && nextBlock && nextBlock.isChosen_) {
@@ -549,10 +561,7 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
         }
 
         if(lastChosenBelow) {
-          //console.log("\tlast chosen below is " + lastChosenBelow.type);
           if(lastChosenBelow.nextConnection && lastChosenBelow.nextConnection.isConnected()) {
-            //console.log("Need to disconnect from " + lastChosenBelow.nextConnection.targetBlock().type);
-            //console.log("--> Disconnect below " + lastChosenBelow.type);
             nextTarget = lastChosenBelow.nextConnection.targetConnection;
             lastChosenBelow.nextConnection.disconnect();
           }
@@ -565,52 +574,22 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
     }
   }
 };
-/*
-  Blockly.Block.prototype.unplug = function(opt_healStack) {
-  var previousTarget = null;
-  var nextTarget = null;
-  if (this.outputConnection) {
-    if (this.outputConnection.isConnected()) {
-      // Disconnect from any superior block.
-      this.outputConnection.disconnect();
-    }
-  } else if (this.previousConnection) {
-    //var previousTarget = null;
-    if (this.previousConnection.isConnected()) {
-      // Remember the connection that any next statements need to connect to.
-      previousTarget = this.previousConnection.targetConnection;
-      // Detach this block from the parent's tree.
-      this.previousConnection.disconnect();
-    }
-    var nextBlock = this.getNextBlock();
-    if (opt_healStack && nextBlock) {
-      // Disconnect the next statement.
-      nextTarget = this.nextConnection.targetConnection;
-      nextTarget.disconnect();
-      if (previousTarget && previousTarget.checkType_(nextTarget)) {
-        // Attach the next statement to the previous statement.
-        previousTarget.connect(nextTarget);
-      }
-    }
-  };
-*/
 
 /**
  * Gets the top-most block in a stack of blocks
  * OB: Assumptions:
  * - contiguous blocks
  * - only one stack of blocks
+ * - if a C or E blocks is selected, ALL of its content is selected
  */ 
 Blockly.BlocksSelection.getTopChosenBlock = function () {
-
-  //console.log("# Finding top chosen block");
-
+  var lastChosenAbove = null; 
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var currentBlock = null;
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
       currentBlock = Blockly.BlocksSelection.blocks[i];
       if(currentBlock) {
-        var lastChosenAbove = currentBlock;
+        lastChosenAbove = currentBlock;
         var prevBlock = lastChosenAbove.getPreviousBlock();
         while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
           lastChosenAbove = prevBlock;
@@ -618,13 +597,42 @@ Blockly.BlocksSelection.getTopChosenBlock = function () {
         }
       }
       if(lastChosenAbove) {
-        //console.log("\tfound "+ lastChosenAbove.type);
-        break;
+        return lastChosenAbove;
       }
     }
   }
+  // No block found
+  return null;
+};
 
-  return lastChosenAbove;
+/**
+ * Gets the bottom-most block in a stack of blocks
+ * OB: Assumptions:
+ * - contiguous blocks
+ * - only one stack of blocks
+ * - if a C or E blocks is selected, ALL of its content is selected
+ */ 
+Blockly.BlocksSelection.getBottomChosenBlock = function () {
+  var lastChosenBelow = null;
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    var currentBlock = null;
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      currentBlock = Blockly.BlocksSelection.blocks[i];
+      if(currentBlock) {
+        lastChosenBelow = currentBlock;
+        while(currentBlock != null && currentBlock.isChosen_) {
+          lastChosenBelow = currentBlock;
+          currentBlock = currentBlock.getNextBlock();
+        }
+      }
+
+      if(lastChosenBelow) {
+        return lastChosenBelow;
+      }
+    } 
+  }
+  // No block found
+  return null;
 };
 
 
@@ -659,134 +667,199 @@ Blockly.BlocksSelection.getTopBlocksInList = function (_blockList) {
   return topBlocks;
 };
 
+/**
+ * Start the outlining process
+ */
+Blockly.BlocksSelection.createOutline = function() {
+  Blockly.BlocksSelection.changeSvgHierarchy();
+};
 
-// Blockly.BlocksSelection.startBlockDrag = function (dragBlock, startXY) {
-//   console.log("Drag chosen blocks");
-//   console.log("\tstart: " + startXY);
-//   //console.log("\tdelta: " + currentDeltaXY);
-//   var initialSurfaceX = -(startXY.x);
-//   var initialSurfaceY = -(startXY.y);
-  
-//   console.log("\tset initial SURFACE xy: " + initialSurfaceX + " " + initialSurfaceY);
-//   dragBlock.workspace.blockDragSurface_.translateSurface(initialSurfaceX, initialSurfaceY);
-//   Blockly.BlocksSelection.moveToDragSurface();
-// };
+Blockly.BlocksSelection.removeOutline = function() {
+  Blockly.BlocksSelection.restoreSvgHierarchy();
+};
 
-// /**
-//  * Removes just one specific block from the list of chosen blocks. Also unsets the chosen state of this blocks.
-//  * @param {!Blockly.Block} block The block to remove and update.
-//  */
-// Blockly.BlocksSelection.moveToDragSurface = function () {
-//   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-//     Blockly.BlocksSelection.movedBlocks = [];
-//     var currentBlock = null;
-//     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
-//       currentBlock = Blockly.BlocksSelection.blocks[i];
-//       Blockly.BlocksSelection.flattenHierarchy(currentBlock, currentBlock.getPreviousBlock());
-//     }
-//   }
-// };
 
-// Blockly.BlocksSelection.flattenHierarchy = function (block, topBlock) {
-//   if(!block || Blockly.BlocksSelection.isInMovedBlocks(block) === true) {
-//     return;
-//   }
-//   Blockly.BlocksSelection.movedBlocks.push(block);
-  
-//   if(block.isChosen_) {
-//     console.log("" + block.type + " is chosen... ");
-
-//     Blockly.BlocksSelection.flattenCurrentBlock(block, topBlock);
-
-//     // Look at next connected block
-//     var nextBlock = block.getNextBlock();
-//     if(nextBlock) {
-//       console.log("\tcheck next: " + nextBlock.type);
-//       Blockly.BlocksSelection.flattenHierarchy(nextBlock, topBlock);
-//     }
-//      if(block.workspace.blockDragSurface_.isInDragSurface(block.getSvgRoot()) === false)
-//        block.addToDragSurface_();
-//   }
-//   else {
-//     console.log("" + block.type + " is NOT chosen, alter SVG!");
-//     console.log("\tcurrent block: " + block.type);
-
-//     Blockly.BlocksSelection.flattenCurrentBlock(block, topBlock);
-//   }
-// };
-
-// Blockly.BlocksSelection.flattenCurrentBlock = function (block, topBlock) {
-//     // Move block's svg to be a sibling of block's parent
-//     var blockSvg = block.getSvgRoot();
-//     var parentSvg;
-//     if(topBlock) {
-//       console.log("\tparent block: " + topBlock.type);
-//       parentSvg = topBlock.getSvgRoot();
-//     }
-//     else {
-//       console.log("\tno parent block, use canvas root");
-//       parentSvg = block.workspace.svgBlockCanvas_;
-//     }
-
-//     var xy = block.getRelativeToElementXY(parentSvg);
-//     console.log("\trelative xy: " + xy.x + " " + xy.y);
-
-//     parentSvg.appendChild(blockSvg);
-//     block.translate(xy.x, xy.y);
-// };
-
-// Blockly.BlocksSelection.moveOffDragSurface = function(dragBlock, newXY) {
-//   // if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-//   //   var currentBlock = null;
-//   //   for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
-//   //     currentBlock = Blockly.BlocksSelection.blocks[i];
-//   //     if(!currentBlock.workspace.blockDragSurface_) {
-//   //       continue;
-//   //     }
-//   //   }
-//   //   //block.workspace.blockDragSurface_
-//   // }
-
-//   dragBlock.workspace.blockDragSurface_.clearBlocksAndHide();
-// };
-
-// /*
-// Blockly.BlockSvg.prototype.moveOffDragSurface_ = function(newXY) {
-//   if (!this.useDragSurface_) {
-//     return;
-//   }
-//   // Translate to current position, turning off 3d.
-//   this.translate(newXY.x, newXY.y);
-//   this.workspace.blockDragSurface_.clearAndHide(this.workspace.getCanvas());
-// };
-// */
+// Temp
+Blockly.BlocksSelection.workspace = null;
 
 
 
+/**
+ * --- START - OUTLINING USING 'CHANGE SVG TREE' ---
+ */
 
+Blockly.BlocksSelection.relToParent = null;
+Blockly.BlocksSelection.relToEnclosing = null;
 
+/**
+ * Change the svg hierarchy of the workspace so that blocks that need to be outlined
+ * are moved to the outline surface
+ */
+Blockly.BlocksSelection.changeSvgHierarchy = function () {
+  // OB TODO: Cache top and bottom blocks once selection is made 
+  var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+  var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
 
+  var blockCanvasSvg = null;
+  var topSvg = null;
+  var topParentSvg = null;
+  if(topBlock) {
+    Blockly.BlocksSelection.workspace = topBlock.workspace;
+    blockCanvasSvg = Blockly.BlocksSelection.workspace.getCanvas();
+    topSvg = topBlock.getSvgRoot();
+    topParentSvg = topSvg.parentNode;
 
-// Blockly.BlocksSelection.movedBlocks = null;
+    // 1- Move non-chosen children out of chosen hierarchy
+    Blockly.BlocksSelection.changeChildrenSubstackHierarchy(topBlock, topParentSvg);
+    // 2- Move post chosen stack out of chosen hierarchy
+    Blockly.BlocksSelection.changeAfterBottomHierarchy(bottomBlock, topParentSvg);
+    // 3- Move chosen blocks to outline surface
+    var xyToCanvas = topBlock.getRelativeToElementXY(blockCanvasSvg);
+    var xyToParent = topBlock.getRelativeToElementXY(topParentSvg);
+    Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topSvg);
+    Blockly.BlocksSelection.workspace.blocksOutlineSurface.translateSurface(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
+  }
+};
 
-// Blockly.BlocksSelection.isInMovedBlocks = function(block) {
-//   if(Blockly.BlocksSelection.movedBlocks && Blockly.BlocksSelection.movedBlocks.length > 0) {
-//     for(var i = 0; i < Blockly.BlocksSelection.movedBlocks.length; i++) {
-//       if(Blockly.BlocksSelection.movedBlocks[i] === block) {
-//         return true;
-//       }
-//     }
-//   }
-//   return false;
-// }
+/**
+ * Restore the svg hierarchy of the workspace so that blocks that were outlined
+ * are moved back to the workspace hierarchy, in the proper order and nested under the proper parent
+ */
+Blockly.BlocksSelection.restoreSvgHierarchy = function () {
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    if(Blockly.BlocksSelection.workspace && Blockly.BlocksSelection.workspace.blocksOutlineSurface.hasBlocks_) {
+      var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+      var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
+      var parentBlock = topBlock.getParent();
+      var parentSvg = null;
+      if(parentBlock) {
+        parentSvg = parentBlock.getSvgRoot();
+      }
+      else {
+        parentSvg = Blockly.BlocksSelection.workspace.getCanvas();
+      }
 
+      // 1- Move chosen blocks back to main svg hierarchy
+      var outlineSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
+      Blockly.BlocksSelection.workspace.blocksOutlineSurface.clearAndHide();
+      parentSvg.appendChild(outlineSvg);
+      // 2- Restore post chosen stack in main hierarchy
+      Blockly.BlocksSelection.restoreAfterBottomHierarchy(bottomBlock);
+      // 3- Restore non-chosen children in their enclosing block's hierarchy
+      Blockly.BlocksSelection.restoreChildrenSubstackHierarchy(topBlock);
+    }
+  }
+};
 
+/**
+ * Go through chosen blocks and check if there are children blocks nested under them.
+ * If there are, check to see if they are chosen:
+ *  - if YES, keep them in SVG hierarchy;
+ *  - if NO, move them out and nest them under the top parent.
+ * @param {!Blockly.Block} topBlock The first block in the stack of chosen blocks.
+ * @param {Blockly.BlockSvg} topParentSvg The svg of the element under which the top block is nested.
+ */
+Blockly.BlocksSelection.changeChildrenSubstackHierarchy = function (topBlock, topParentSvg) {
+  if(!topBlock || !topParentSvg) {
+    return;
+  }
+  var curBlock = topBlock;
+  var childrenBlocks = null;
+  Blockly.BlocksSelection.relToEnclosing = [];
+  // For each block, check if it has children
+  while(curBlock) {
+    var childrenBlocks = curBlock.getChildren();
+    var curChildBlock = null;
+    if(childrenBlocks && childrenBlocks.length > 0) {
+      for(var i = 0; i < childrenBlocks.length; i++) {
+        curChildBlock = childrenBlocks[i];
+        if(curChildBlock && !curChildBlock.isShadow() && curBlock.getNextBlock() != curChildBlock && !Blockly.BlocksSelection.isInChosenBlocks(curChildBlock)) {
+          // Find and remember x/y relative to parent block
+          // Is there a way to just re-calculate this instead of remembering it?
+          var xyToEnclosingBlock = curChildBlock.getRelativeToElementXY(curBlock.getSvgRoot());
+          Blockly.BlocksSelection.relToEnclosing.unshift(xyToEnclosingBlock);
+          // Nest and translate child block under parent of top block
+          var xy = curChildBlock.getRelativeToElementXY(topParentSvg);
+          topParentSvg.appendChild(curChildBlock.getSvgRoot());
+          curChildBlock.translate(xy.x, xy.y);
+        }
+      }
+    }
+    curBlock = curBlock.getNextBlock();
+  }
+};
 
-// /*
-// Blockly.Block.prototype.getNextBlock = function() {
-//   return this.nextConnection && this.nextConnection.targetBlock();
-// };
-// Blockly.Block.prototype.getPreviousBlock = function() {
-//   return this.previousConnection && this.previousConnection.targetBlock();
-// };
-// */
+/**
+ * Go through chosen blocks and check if there are children blocks nested under them.
+ * If there are, check to see if they are chosen:
+ *  - if YES, do nothing, they are on the outline surface and will be moved back to main svg hierachy normally
+ *  - if NO, move them to the outline surface, so that they can later be moved back to main svg hierachy.
+ * @param {!Blockly.Block} topBlock The first block in the stack of chosen blocks.
+ */
+Blockly.BlocksSelection.restoreChildrenSubstackHierarchy = function (topBlock) {
+  var curBlock = topBlock;
+  var childrenBlocks = null;
+  while(curBlock) {
+    var childrenBlocks = curBlock.getChildren();
+    var curChildBlock = null;
+    if(childrenBlocks && childrenBlocks.length > 0) {
+      for(var i = 0; i < childrenBlocks.length; i++) {
+        curChildBlock = childrenBlocks[i];
+        if(curChildBlock && curChildBlock.isShadow() === false && curBlock.getNextBlock() != curChildBlock && Blockly.BlocksSelection.isInChosenBlocks(curChildBlock) === false) {
+          curChildBlock.clearTransformAttributes_();
+          curBlock.getSvgRoot().appendChild(curChildBlock.getSvgRoot());
+          var relXY = Blockly.BlocksSelection.relToEnclosing.pop();
+          curChildBlock.translate(relXY.x, relXY.y);
+        }
+      }
+    }
+    curBlock = curBlock.getNextBlock();
+  }
+  Blockly.BlocksSelection.relToEnclosing = null;
+
+};
+
+/**
+ * Take the first block after the chosen sub-stack and move it out of the SVG hierarchy;
+ * nest it under the parent element of the first chosen block in the substack.
+ * @param {!Blockly.Block} bottomBlock The last block in the stack of chosen blocks.
+ * @param {Blockly.BlockSvg} topParentSvg The svg of the element under which the top chosen block is nested.
+ */
+Blockly.BlocksSelection.changeAfterBottomHierarchy = function (bottomBlock, topParentSvg) {
+  if(!bottomBlock || !topParentSvg) {
+    return;
+  }
+  if(bottomBlock.getNextBlock()) {
+    // Find first block after last block in chosen stack
+    var firstAfterBottomBlock = bottomBlock.getNextBlock();
+    // Find and remember x/y relative to parent block
+    // Is there a way to just re-calculate this instead of remembering it?
+    var xyToBottomBlock = firstAfterBottomBlock.getRelativeToElementXY(bottomBlock.getSvgRoot());
+    Blockly.BlocksSelection.relToParent = xyToBottomBlock;
+    // Nest and translate child block under parent of top block
+    var xy = firstAfterBottomBlock.getRelativeToElementXY(topParentSvg);
+    topParentSvg.appendChild(firstAfterBottomBlock.getSvgRoot());
+    firstAfterBottomBlock.translate(xy.x, xy.y);
+  }
+};
+
+/**
+ * Restore the svg of the first block after the chosen sub-stack under the last chosen block
+ * @param {!Blockly.Block} bottomBlock The last block in the stack of chosen blocks.
+ */
+Blockly.BlocksSelection.restoreAfterBottomHierarchy = function (bottomBlock) {
+  if(!bottomBlock) {
+    return;
+  }
+  var nextBottomBlock = bottomBlock.getNextBlock();
+  if(nextBottomBlock) {
+    nextBottomBlock.clearTransformAttributes_();
+    bottomBlock.getSvgRoot().appendChild(nextBottomBlock.getSvgRoot());
+    nextBottomBlock.translate(Blockly.BlocksSelection.relToParent.x, Blockly.BlocksSelection.relToParent.y);
+    Blockly.BlocksSelection.relToParent = null;
+  }
+};
+
+/**
+ * --- END - OUTLINING USING 'CHANGE SVG TREE' ---
+ */
