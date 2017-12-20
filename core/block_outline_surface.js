@@ -282,6 +282,7 @@ Blockly.BlockOutlineSurfaceSvg.prototype.clearAndHide = function(opt_newSurface)
 
 /**
  * Translate the layer so that it matches the workspace.
+ * //OB TODO: Check if/how this is used and fix
  */
 Blockly.BlockOutlineSurfaceSvg.prototype.translateLayer = function(x, y, scale) {
   // if (this.selectionRect_) {
