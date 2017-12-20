@@ -79,9 +79,6 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   /** @type {boolean} */
   this.contextMenu = true;
 
-  this.savedNextBlock = null;
-  this.savedPreviousBlock = null;
-
   /**
    * @type {Blockly.Block}
    * @private
@@ -535,65 +532,6 @@ Blockly.Block.prototype.changeNextConnection = function(newNextConnection) {
     }
   }
 };
-
-Blockly.Block.prototype.saveNextConnection = function() {
-  if(this.nextConnection && this.nextConnection.isConnected()) {
-    this.nextConnection.isSaved_ = true;
-    this.savedNextBlock = this.nextConnection.targetBlock();
-
-    console.log("* Saving NEXT connection of " + this.type);
-    if(this.savedNextBlock)
-      console.log("target: " + this.savedNextBlock.type);
-  }
-};
-
-Blockly.Block.prototype.savePreviousConnection = function() {
-  if(this.previousConnection && this.previousConnection.isConnected()) {
-    this.previousConnection.isSaved_ = true;
-    this.savedPreviousBlock = this.previousConnection.targetBlock();
-
-    console.log("* Saving PREV connection of " + this.type);
-    if(this.savedPreviousBlock)
-      console.log("target: " + this.savedPreviousBlock.type);
-  }
-};
-
-Blockly.Block.prototype.restoreNextConnection = function() {
-  if(this.savedNextBlock) {
-    this.nextConnection.connect(this.savedNextBlock.previousConnection);
-    this.nextConnection.isSaved_ = false;
-    this.savedNextBlock = null;
-  }
-};
-
-Blockly.Block.prototype.restorePreviousConnection = function() {
-  if(this.savedPreviousBlock) {
-    this.previousConnection.connect(this.savedPreviousBlock.nextConnection);
-    this.previousConnection.isSaved_ = false;
-    this.savedPreviousBlock = null;
-  }
-};
-
-// Blockly.Block.prototype.setNextStatement = function(newBoolean, opt_check) {
-//   if (newBoolean) {
-//     if (opt_check === undefined) {
-//       opt_check = null;
-//     }
-//     if (!this.nextConnection) {
-//       this.nextConnection = this.makeConnection_(Blockly.NEXT_STATEMENT);
-//     }
-//     this.nextConnection.setCheck(opt_check);
-//   } else {
-//     if (this.nextConnection) {
-//       goog.asserts.assert(!this.nextConnection.isConnected(),
-//           'Must disconnect next statement before removing connection.');
-//       this.nextConnection.dispose();
-//       this.nextConnection = null;
-//     }
-//   }
-// };
-
-
 
 /**
  * Returns all connections originating from this block.
