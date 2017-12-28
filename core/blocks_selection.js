@@ -247,7 +247,7 @@ Blockly.BlocksSelection.prototype.getEnclosedBlocks = function(blockList, remove
     currentBlock = blockList[i];
     if(currentBlock)
     {
-      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
+      if(currentBlock.canChoose() === false || removeShadow && currentBlock.isShadow())
         continue;
       if(Blockly.BlocksSelection.isInChosenBlocks(currentBlock) === false) {
         var rect = baseSvg.createSVGRect();
@@ -280,7 +280,7 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_boundingBox = function(bl
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
-      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
+      if(currentBlock.canChoose() === false || removeShadow && currentBlock.isShadow())
         continue;
       var rect = baseSvg.createSVGRect();
       rect.x = divXY.x;
@@ -311,7 +311,7 @@ Blockly.BlocksSelection.prototype.getIntersectedBlocks_lib = function(blockList,
   for(var i = 0; i < blockList.length; i++) {
     currentBlock = blockList[i];
     if(currentBlock) {
-      if(currentBlock.canChoose === false || removeShadow && currentBlock.isShadow())
+      if(currentBlock.canChoose() === false || removeShadow && currentBlock.isShadow())
         continue;
       // Create path shape
       var blockPath = currentBlock.svgPath_;
@@ -688,7 +688,7 @@ Blockly.BlocksSelection.workspace = null;
  * --- START - OUTLINING USING 'CHANGE SVG TREE' ---
  */
 
-Blockly.BlocksSelection.relToParent = null;
+Blockly.BlocksSelection.relToParentBlock = null;
 Blockly.BlocksSelection.relToEnclosing = null;
 
 /**
@@ -830,16 +830,8 @@ Blockly.BlocksSelection.changeAfterBottomHierarchy = function (bottomBlock, topP
     return;
   }
   if(bottomBlock.getNextBlock()) {
-    // Find first block after last block in chosen stack
-    var firstAfterBottomBlock = bottomBlock.getNextBlock();
-    // Find and remember x/y relative to parent block
-    // Is there a way to just re-calculate this instead of remembering it?
-    var xyToBottomBlock = firstAfterBottomBlock.getRelativeToElementXY(bottomBlock.getSvgRoot());
-    Blockly.BlocksSelection.relToParent = xyToBottomBlock;
-    // Nest and translate child block under parent of top block
-    var xy = firstAfterBottomBlock.getRelativeToElementXY(topParentSvg);
-    topParentSvg.appendChild(firstAfterBottomBlock.getSvgRoot());
-    firstAfterBottomBlock.translate(xy.x, xy.y);
+    var xyToBottomBlock = bottomBlock.detachNextBlockSvg(topParentSvg, true);
+    Blockly.BlocksSelection.relToParentBlock = xyToBottomBlock;
   }
 };
 
@@ -851,13 +843,8 @@ Blockly.BlocksSelection.restoreAfterBottomHierarchy = function (bottomBlock) {
   if(!bottomBlock) {
     return;
   }
-  var nextBottomBlock = bottomBlock.getNextBlock();
-  if(nextBottomBlock) {
-    nextBottomBlock.clearTransformAttributes_();
-    bottomBlock.getSvgRoot().appendChild(nextBottomBlock.getSvgRoot());
-    nextBottomBlock.translate(Blockly.BlocksSelection.relToParent.x, Blockly.BlocksSelection.relToParent.y);
-    Blockly.BlocksSelection.relToParent = null;
-  }
+  bottomBlock.reatachNextBlockSvg(Blockly.BlocksSelection.relToParentBlock);
+  Blockly.BlocksSelection.relToParentBlock = null;
 };
 
 /**
