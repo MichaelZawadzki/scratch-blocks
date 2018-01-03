@@ -483,6 +483,8 @@ Blockly.Workspace.prototype.newBlock = function(prototypeName, opt_id) {
  * @param {boolean} redo False if undo, true if redo.
  */
 Blockly.Workspace.prototype.undo = function(redo) {
+  // OB: Remove outline to make sure blocks are on proper surface
+  Blockly.BlocksSelection.removeOutline();
   var inputStack = redo ? this.redoStack_ : this.undoStack_;
   var outputStack = redo ? this.undoStack_ : this.redoStack_;
   var inputEvent = inputStack.pop();

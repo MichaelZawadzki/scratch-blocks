@@ -172,9 +172,6 @@ Blockly.Events.fireSavedEvents = function(event) {
   Blockly.Events.fireNow_();
 };
 
-
-
-
 /**
  * Create a custom event and fire it.
  * @param {!Blockly.Events.Abstract} event Custom data for event.
