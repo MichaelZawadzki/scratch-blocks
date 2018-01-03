@@ -910,23 +910,22 @@ Blockly.WorkspaceSvg.prototype.showToolbox = function(showIt) {
  * 
  */
 Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
-
   if (this.isFlyout === false) {
     // CD, TODO: filter connected blocks
     var activeBlocks = this.getAllBlocks();
     var lineSegmentInfo = [];
     var width = this.getParentSvg().getAttribute("width");
+    var curBlock = null;
     for(var j = 0; j < activeBlocks.length; j++) {
-      var blockHighlight = activeBlocks[j].getBlockHighlightObject();
+      curBlock = activeBlocks[j];
+      var blockHighlight = curBlock.getBlockHighlightObject();
       for(var i = 0; i < blockHighlight.lineSegments.length; i++) {
         blockHighlight.lineSegments[i].x *= this.scale;
         blockHighlight.lineSegments[i].y *= this.scale;
         blockHighlight.lineSegments[i].width = width;
       }
-
       lineSegmentInfo.push(blockHighlight);
     }
-    
     this.workspaceHighlightLayer.updateHighlightLayer(lineSegmentInfo);
   }
 };

@@ -416,11 +416,13 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
   var dragSurfaceGroup = this.useDragSurface_ ?
       this.workspace.blockDragSurface_.getGroup() : null;
   var outlineGroup = this.isChosen_ ?
-      this.workspace.blocksOutlineSurface.getGroup() : null;
+    this.workspace.blocksOutlineSurface.getGroup() : null;
 
   var element = this.getSvgRoot();
   if (element) {
     do {
+      //console.log("\telement:");
+      //console.log(element);
       // Loop through this block and every parent.
       var xy = Blockly.utils.getRelativeXY(element);
       x += xy.x;
@@ -665,7 +667,7 @@ Blockly.BlockSvg.prototype.snapToGrid = function() {
  *    Object with top left and bottom right coordinates of the bounding box.
  */
 Blockly.BlockSvg.prototype.getBoundingRectangle = function() {
-  var blockXY = this.getRelativeToSurfaceXY(this);
+  var blockXY = this.getRelativeToSurfaceXY();
   var blockBounds = this.getHeightWidth();
   var topLeft;
   var bottomRight;

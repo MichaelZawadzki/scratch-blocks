@@ -152,6 +152,11 @@ Blockly.BlockOutlineSurfaceSvg.prototype.createOutlineDom_ = function(defs) {
   return selectFilter.id;
 };
 
+Blockly.BlockOutlineSurfaceSvg.prototype.isInOutlineSurface = function(element) {
+  //return this.dragGroup_.contains(element);
+  return (this.outlineGroup_.contains(element) || this.outlineGroup_.contains(element));
+};
+
 Blockly.BlockOutlineSurfaceSvg.prototype.setBlocksAndShow = function(blocks) {
   goog.asserts.assert(this.outlineGroup_.childNodes.length == 0,
     'Already dragging a block.');
