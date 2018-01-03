@@ -416,7 +416,7 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
   var dragSurfaceGroup = this.useDragSurface_ ?
       this.workspace.blockDragSurface_.getGroup() : null;
   var outlineGroup = this.isChosen_ ?
-    this.workspace.blocksOutlineSurface.getGroup() : null;
+      this.workspace.blocksOutlineSurface.getGroup() : null;
 
   var element = this.getSvgRoot();
   if (element) {
