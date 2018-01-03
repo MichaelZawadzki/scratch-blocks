@@ -690,6 +690,7 @@ Blockly.BlocksSelection.workspace = null;
 
 Blockly.BlocksSelection.relToParentBlock = null;
 Blockly.BlocksSelection.relToEnclosing = null;
+Blockly.BlocksSelection.surfaceTranslate = null;
 
 /**
  * Change the svg hierarchy of the workspace so that blocks that need to be outlined
@@ -717,37 +718,11 @@ Blockly.BlocksSelection.changeSvgHierarchy = function () {
     var xyToCanvas = topBlock.getRelativeToElementXY(blockCanvasSvg);
     var xyToParent = topBlock.getRelativeToElementXY(topParentSvg);
     Blockly.BlocksSelection.workspace.blocksOutlineSurface.setBlocksAndShow(topSvg);
-    Blockly.BlocksSelection.workspace.blocksOutlineSurface.translateSurface(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
-  }
-};
-
-/**
- * Restore the svg hierarchy of the workspace so that blocks that were outlined
- * are moved back to the workspace hierarchy, in the proper order and nested under the proper parent
- */
-Blockly.BlocksSelection.restoreSvgHierarchy = function () {
-  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-    if(Blockly.BlocksSelection.workspace && Blockly.BlocksSelection.workspace.blocksOutlineSurface.hasBlocks_) {
-      var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
-      var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
-      var parentBlock = topBlock.getParent();
-      var parentSvg = null;
-      if(parentBlock) {
-        parentSvg = parentBlock.getSvgRoot();
-      }
-      else {
-        parentSvg = Blockly.BlocksSelection.workspace.getCanvas();
-      }
-
-      // 1- Move chosen blocks back to main svg hierarchy
-      var outlineSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
-      Blockly.BlocksSelection.workspace.blocksOutlineSurface.clearAndHide();
-      parentSvg.appendChild(outlineSvg);
-      // 2- Restore post chosen stack in main hierarchy
-      Blockly.BlocksSelection.restoreAfterBottomHierarchy(bottomBlock);
-      // 3- Restore non-chosen children in their enclosing block's hierarchy
-      Blockly.BlocksSelection.restoreChildrenSubstackHierarchy(topBlock);
-    }
+    // OB: Don't translate the outline surface; instead, translate the top block inside the surface
+    // Translating the surface was causing issues
+    //Blockly.BlocksSelection.workspace.blocksOutlineSurface.translateSurface(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
+    Blockly.BlocksSelection.surfaceTranslate = new goog.math.Coordinate(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
+    topBlock.translateBy(Blockly.BlocksSelection.surfaceTranslate.x, Blockly.BlocksSelection.surfaceTranslate.y);
   }
 };
 
@@ -790,6 +765,54 @@ Blockly.BlocksSelection.changeChildrenSubstackHierarchy = function (topBlock, to
 };
 
 /**
+ * Take the first block after the chosen sub-stack and move it out of the SVG hierarchy;
+ * nest it under the parent element of the first chosen block in the substack.
+ * @param {!Blockly.Block} bottomBlock The last block in the stack of chosen blocks.
+ * @param {Blockly.BlockSvg} topParentSvg The svg of the element under which the top chosen block is nested.
+ */
+Blockly.BlocksSelection.changeAfterBottomHierarchy = function (bottomBlock, topParentSvg) {
+  if(!bottomBlock || !topParentSvg) {
+    return;
+  }
+  if(bottomBlock.getNextBlock()) {
+    var xyToBottomBlock = bottomBlock.detachNextBlockSvg(topParentSvg, true);
+    Blockly.BlocksSelection.relToParentBlock = xyToBottomBlock;
+  }
+};
+
+/**
+ * Restore the svg hierarchy of the workspace so that blocks that were outlined
+ * are moved back to the workspace hierarchy, in the proper order and nested under the proper parent
+ */
+Blockly.BlocksSelection.restoreSvgHierarchy = function () {
+  if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
+    if(Blockly.BlocksSelection.workspace && Blockly.BlocksSelection.workspace.blocksOutlineSurface.hasBlocks_) {
+      var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+      var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
+      var parentBlock = topBlock.getParent();
+      var parentSvg = null;
+      if(parentBlock) {
+        parentSvg = parentBlock.getSvgRoot();
+      }
+      else {
+        parentSvg = Blockly.BlocksSelection.workspace.getCanvas();
+      }
+
+      // Un-translate top block
+      topBlock.translateBy(-Blockly.BlocksSelection.surfaceTranslate.x, -Blockly.BlocksSelection.surfaceTranslate.y);
+      // 1- Move chosen blocks back to main svg hierarchy
+      var outlineSvg = Blockly.BlocksSelection.workspace.blocksOutlineSurface.getCurrentBlock();
+      Blockly.BlocksSelection.workspace.blocksOutlineSurface.clearAndHide();
+      parentSvg.appendChild(outlineSvg);
+      // 2- Restore post chosen stack in main hierarchy
+      Blockly.BlocksSelection.restoreAfterBottomHierarchy(bottomBlock);
+      // 3- Restore non-chosen children in their enclosing block's hierarchy
+      Blockly.BlocksSelection.restoreChildrenSubstackHierarchy(topBlock);
+    }
+  }
+};
+
+/**
  * Go through chosen blocks and check if there are children blocks nested under them.
  * If there are, check to see if they are chosen:
  *  - if YES, do nothing, they are on the outline surface and will be moved back to main svg hierachy normally
@@ -817,22 +840,6 @@ Blockly.BlocksSelection.restoreChildrenSubstackHierarchy = function (topBlock) {
   }
   Blockly.BlocksSelection.relToEnclosing = null;
 
-};
-
-/**
- * Take the first block after the chosen sub-stack and move it out of the SVG hierarchy;
- * nest it under the parent element of the first chosen block in the substack.
- * @param {!Blockly.Block} bottomBlock The last block in the stack of chosen blocks.
- * @param {Blockly.BlockSvg} topParentSvg The svg of the element under which the top chosen block is nested.
- */
-Blockly.BlocksSelection.changeAfterBottomHierarchy = function (bottomBlock, topParentSvg) {
-  if(!bottomBlock || !topParentSvg) {
-    return;
-  }
-  if(bottomBlock.getNextBlock()) {
-    var xyToBottomBlock = bottomBlock.detachNextBlockSvg(topParentSvg, true);
-    Blockly.BlocksSelection.relToParentBlock = xyToBottomBlock;
-  }
 };
 
 /**

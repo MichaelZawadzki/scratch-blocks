@@ -910,7 +910,6 @@ Blockly.WorkspaceSvg.prototype.showToolbox = function(showIt) {
  * 
  */
 Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
-
   if (this.isFlyout === false) {
     // CD, TODO: filter connected blocks
     var activeBlocks = this.getAllBlocks();
@@ -923,10 +922,8 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
         blockHighlight.lineSegments[i].y *= this.scale;
         blockHighlight.lineSegments[i].width = width;
       }
-
       lineSegmentInfo.push(blockHighlight);
     }
-    
     this.workspaceHighlightLayer.updateHighlightLayer(lineSegmentInfo);
   }
 };

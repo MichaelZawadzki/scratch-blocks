@@ -379,7 +379,6 @@ Blockly.BlockDragSurfaceSvg.prototype.getCurrentBlock = function() {
  *     being moved to a different surface.
  */
 Blockly.BlockDragSurfaceSvg.prototype.clearAndHide = function(opt_newSurface) {
-
   if(Blockly.BlockDragSurfaceSvg.SEPARATE_FILTER_AND_NO_FILTER) {
     this.resetBlocksSvgHierarchy();
   }
