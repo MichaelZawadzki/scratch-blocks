@@ -399,6 +399,13 @@ Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
     if (trashcan) {
       goog.Timer.callOnce(trashcan.close, 100, trashcan);
     }
+    // OB [CSI-664]:
+    // Taking a block out of a sub-stack will create move events for the other blocks being repositioned.
+    // However, the events are saved and are delayed to when the block is actually dropped.
+    // This code path, where we delete a block, would end up never firing the saved events, and so
+    // the undo/redo functions would get all messed up.
+    // Fix: force a firing of the saved events. Hopefully nothing else breaks! Stupid events...
+    Blockly.Events.fireSavedEvents();
     // Fire a move event, so we know where to go back to for an undo.
     this.fireMoveEvent_();
     var currentBlock;
