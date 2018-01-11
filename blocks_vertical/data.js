@@ -100,54 +100,53 @@ Blockly.Blocks['data_changevariableby'] = {
   }
 };
 
-// @todo reinstate when there are implementations for these
-// Blockly.Blocks['data_showvariable'] = {
-//   /**
-//    * Block to show a variable
-//    * @this Blockly.Block
-//    */
-//   init: function() {
-//     this.jsonInit({
-//       "message0": "show variable %1",
-//       "args0": [
-//         {
-//           "type": "input_value",
-//           "name": "VARIABLE"
-//         }
-//       ],
-//       "previousStatement": null,
-//       "nextStatement": null,
-//       "category": Blockly.Categories.data,
-//       "colour": Blockly.Colours.data.primary,
-//       "colourSecondary": Blockly.Colours.data.secondary,
-//       "colourTertiary": Blockly.Colours.data.tertiary
-//     });
-//   }
-// };
-//
-// Blockly.Blocks['data_hidevariable'] = {
-//   /**
-//    * Block to hide a variable
-//    * @this Blockly.Block
-//    */
-//   init: function() {
-//     this.jsonInit({
-//       "message0": "hide variable %1",
-//       "args0": [
-//         {
-//           "type": "input_value",
-//           "name": "VARIABLE"
-//         }
-//       ],
-//       "previousStatement": null,
-//       "nextStatement": null,
-//       "category": Blockly.Categories.data,
-//       "colour": Blockly.Colours.data.primary,
-//       "colourSecondary": Blockly.Colours.data.secondary,
-//       "colourTertiary": Blockly.Colours.data.tertiary
-//     });
-//   }
-// };
+Blockly.Blocks['data_showvariable'] = {
+  /**
+   * Block to show a variable
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": "show variable %1",
+      "args0": [
+        {
+          "type": "field_variable",
+          "name": "VARIABLE"
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "category": Blockly.Categories.data,
+      "colour": Blockly.Colours.data.primary,
+      "colourSecondary": Blockly.Colours.data.secondary,
+      "colourTertiary": Blockly.Colours.data.tertiary
+    });
+  }
+};
+
+Blockly.Blocks['data_hidevariable'] = {
+  /**
+   * Block to hide a variable
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": "hide variable %1",
+      "args0": [
+        {
+          "type": "field_variable",
+          "name": "VARIABLE"
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "category": Blockly.Categories.data,
+      "colour": Blockly.Colours.data.primary,
+      "colourSecondary": Blockly.Colours.data.secondary,
+      "colourTertiary": Blockly.Colours.data.tertiary
+    });
+  }
+};
 
 Blockly.Blocks['data_listcontents'] = {
   /**
@@ -165,8 +164,8 @@ Blockly.Blocks['data_listcontents'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "output_string"],
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "output_string"],
       "checkboxInFlyout": true
     });
   }
@@ -247,8 +246,8 @@ Blockly.Blocks['data_addtolist'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "shape_statement"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "shape_statement"]
     });
   }
 };
@@ -272,8 +271,8 @@ Blockly.Blocks['data_deleteoflist'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "shape_statement"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "shape_statement"]
     });
   }
 };
@@ -301,8 +300,8 @@ Blockly.Blocks['data_insertatlist'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "shape_statement"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "shape_statement"]
     });
   }
 };
@@ -330,8 +329,8 @@ Blockly.Blocks['data_replaceitemoflist'] = {
           "name": "ITEM"
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "shape_statement"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "shape_statement"]
     });
   }
 };
@@ -356,8 +355,8 @@ Blockly.Blocks['data_itemoflist'] = {
         }
       ],
       "output": null,
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data"],
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists"],
       "outputShape": Blockly.OUTPUT_SHAPE_ROUND
     });
   }
@@ -378,8 +377,8 @@ Blockly.Blocks['data_lengthoflist'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "output_number"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "output_number"]
     });
   }
 };
@@ -403,8 +402,8 @@ Blockly.Blocks['data_listcontainsitem'] = {
           "name": "ITEM"
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "output_boolean"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "output_boolean"]
     });
   }
 };
@@ -424,8 +423,8 @@ Blockly.Blocks['data_showlist'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "shape_statement"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "shape_statement"]
     });
   }
 };
@@ -445,8 +444,8 @@ Blockly.Blocks['data_hidelist'] = {
           "variableTypes": ["list"]
         }
       ],
-      "category": Blockly.Categories.data,
-      "extensions": ["colours_data", "shape_statement"]
+      "category": Blockly.Categories.dataLists,
+      "extensions": ["colours_data_lists", "shape_statement"]
     });
   }
 };
@@ -531,7 +530,8 @@ Blockly.Constants.Data.RENAME_OPTION_CALLBACK_FACTORY = function(block) {
   return function() {
     var workspace = block.workspace;
     var currentName = block.getField('VARIABLE').text_;
-    Blockly.FieldVariable.renameVariablePrompt(workspace, currentName);
+    var variable = workspace.getVariable(currentName);
+    Blockly.Variables.renameVariable(workspace, variable);
   };
 };
 
@@ -548,4 +548,3 @@ Blockly.Constants.Data.DELETE_OPTION_CALLBACK_FACTORY = function(block) {
     workspace.deleteVariable(name);
   };
 };
-

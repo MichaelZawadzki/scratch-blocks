@@ -172,8 +172,22 @@ Blockly.Css.CONTENT = [
     '-webkit-transform-origin: 0 0;',
   '}',
 
+  '.blocklyWidgetDiv.fieldTextInput.removableTextInput {',
+    'overflow: visible;',
+  '}',
+
   '.blocklyTextDropDownArrow {',
     'position: absolute;',
+  '}',
+
+  '.blocklyTextRemoveIcon {',
+    'position: absolute;',
+    'width: 24px;',
+    'height: 24px;',
+    'top: -40px;',
+    'left: 50%;',
+    'margin-left: -12px;',
+    'cursor: pointer;',
   '}',
 
   '.blocklyNonSelectable {',
@@ -186,9 +200,14 @@ Blockly.Css.CONTENT = [
   '.blocklyWsDragSurface {',
     'display: none;',
     'position: absolute;',
-    'overflow: visible;',
     'top: 0;',
     'left: 0;',
+  '}',
+  /* Added as a separate rule with multiple classes to make it more specific
+     than a bootstrap rule that selects svg:root. See issue #1275 for context.
+  */
+  '.blocklyWsDragSurface.blocklyOverflowVisible {',
+    'overflow: visible;',
   '}',
 
   '.blocklyBlockDragSurface {',
@@ -447,6 +466,10 @@ Blockly.Css.CONTENT = [
     'fill: $colour_text;',
   '}',
 
+  '.blocklyEditableText>.blocklyEditableLabel {',
+    'fill: #fff;',
+  '}',
+
   '.blocklyDropdownText {',
     'fill: #fff !important;',
   '}',
@@ -494,7 +517,10 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.blocklyFlyoutLabelText {',
-    'fill: #000;',
+    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-size: 14pt;',
+    'fill: #575E75;',
+    'font-weight: bold;',
   '}',
 
   /*
@@ -689,6 +715,7 @@ Blockly.Css.CONTENT = [
     'position: absolute;',
     'font-family: "Helvetica Neue", Helvetica, sans-serif;',
     'z-index: 40;', /* so blocks go over toolbox when dragging */
+    '-webkit-tap-highlight-color: transparent;', /* issue #1345 */
   '}',
 
   '.blocklyTreeRoot {',
@@ -790,54 +817,52 @@ Blockly.Css.CONTENT = [
     'color: #fff;',
   '}',
 
-  /* Copied from: goog/css/colorpicker-simplegrid.css */
-  /*
-   * Copyright 2007 The Closure Library Authors. All Rights Reserved.
-   *
-   * Use of this source code is governed by the Apache License, Version 2.0.
-   * See the COPYING file for details.
-   */
-
-  /* Author: pupius@google.com (Daniel Pupius) */
-
-  /*
-    Styles to make the colorpicker look like the old gmail color picker
-    NOTE: without CSS scoping this will override styles defined in palette.css
-  */
-  '.blocklyWidgetDiv .goog-palette {',
-    'outline: none;',
-    'cursor: default;',
-  '}',
-
-  '.blocklyWidgetDiv .goog-palette-table {',
-    'border-collapse: collapse;',
-  '}',
-
-  '.blocklyWidgetDiv .goog-palette-cell {',
-    'height: 13px;',
-    'width: 15px;',
-    'margin: 0;',
-    'border: 0;',
-    'text-align: center;',
-    'vertical-align: middle;',
-    'font-size: 1px;',
-  '}',
-
-  '.blocklyWidgetDiv .goog-palette-colorswatch {',
+  '.blocklyDropDownDiv .goog-slider-horizontal {',
+    'margin: 8px;',
+    'height: 22px;',
+    'width: 150px;',
     'position: relative;',
-    'height: 13px;',
-    'width: 15px;',
+    'outline: none;',
+    'border-radius: 11px;',
+    'margin-bottom: 20px;',
   '}',
 
-  '.blocklyWidgetDiv .goog-palette-cell-hover .goog-palette-colorswatch {',
-    'border: 1px solid #FFF;',
-    'box-sizing: border-box;',
+  '.blocklyDropDownDiv .goog-slider-horizontal .goog-slider-thumb {',
+    'width: 26px;',
+    'height: 26px;',
+    'margin-top: -1px;',
+    'position: absolute;',
+    'background-color: white;',
+    'border-radius: 100%;',
+    '-webkit-box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);',
+    '-moz-box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);',
+    'box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);',
   '}',
 
-  '.blocklyWidgetDiv .goog-palette-cell-selected .goog-palette-colorswatch {',
-    'border: 1px solid #000;',
-    'box-sizing: border-box;',
-    'color: #fff;',
+  '.scratchEyedropper {',
+    'background: none;',
+    'outline: none;',
+    'border: none;',
+    'width: 100%;',
+    'text-align: center;',
+    'border-top: 1px solid #ddd;',
+    'padding-top: 5px;',
+    'cursor: pointer;',
+  '}',
+
+  '.scratchColourPickerLabel {',
+    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-size: 0.65rem;',
+    'color: $colour_toolboxText;',
+    'margin: 8px;',
+  '}',
+
+  '.scratchColourPickerLabelText {',
+    'font-weight: bold;',
+  '}',
+
+  '.scratchColourPickerReadout {',
+    'margin-left: 10px;',
   '}',
 
   /* Copied from: goog/css/menu.css */
@@ -922,6 +947,7 @@ Blockly.Css.CONTENT = [
     'font-weight: bold;',
     'list-style: none;',
     'margin: 0;',
+    'min-height: 24px;',
      /* 28px on the left for icon or checkbox; 7em on the right for shortcut. */
     'padding: 4px 7em 4px 28px;',
     'white-space: nowrap;',
@@ -1104,10 +1130,10 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.scratchCategoryMenu {',
-    'width: 60px;',
+    'width: 52px;',
     'background: $colour_toolbox;',
     'color: $colour_toolboxText;',
-    'font-size: .7em;',
+    'font-size: .7rem;',
     'user-select: none;',
     '-webkit-user-select: none;',
     '-moz-user-select: none;',
@@ -1134,18 +1160,9 @@ Blockly.Css.CONTENT = [
   '.scratchCategoryMenuRow {',
   '}',
 
-  '.scratchCategoryMenu .scratchCategoryMenuRow + .scratchCategoryMenuRow:before {',
-    'display: block;',
-    'border-top: 1px solid #ddd;',
-    'content: "";',
-    'width: 60%;',
-    'margin: 4px auto;',
-  '}',
-
   '.scratchCategoryMenuItem {',
-    'padding: 6px 0px;',
+    'padding: 0.375rem 0px;',
     'cursor: pointer;',
-    'margin: 0px 2px;',
     'text-align: center;',
   '}',
 
@@ -1155,15 +1172,21 @@ Blockly.Css.CONTENT = [
 
   '.scratchCategoryMenuItem.categorySelected {',
     'background: $colour_toolboxSelected;',
-    'border-radius: 6px;',
   '}',
 
   '.scratchCategoryItemBubble {',
-    'width: 16px;',
-    'height: 16px;',
+    'width: 1.25rem;',
+    'height: 1.25rem;',
     'border: 1px solid;',
     'border-radius: 100%;',
-    'margin: 0 auto 3px;',
+    'margin: 0 auto 0.125rem;',
+  '}',
+
+  '.scratchCategoryItemIcon {',
+    'width: 1.25rem;',
+    'height: 1.25rem;',
+    'margin: 0 auto 0.125rem;',
+    'background-size: 100%;',
   '}',
 
   '.scratchCategoryMenuItem:hover {',

@@ -51,6 +51,8 @@ Blockly.FieldVariable = function(varname, opt_validator, opt_variableTypes) {
   this.setValue(varname || '');
   this.addArgType('variable');
   this.variableTypes = opt_variableTypes;
+  this.variableType = (opt_variableTypes && opt_variableTypes.length == 1) ?
+    opt_variableTypes[0] : '';
 };
 goog.inherits(Blockly.FieldVariable, Blockly.FieldDropdown);
 
@@ -81,7 +83,18 @@ Blockly.FieldVariable.prototype.initModel = function() {
   // For instance, some blocks in the toolbox have variable dropdowns filled
   // in by default.
   if (!this.sourceBlock_.isInFlyout) {
-    this.sourceBlock_.workspace.createVariable(this.getValue());
+    // Check if there was exactly one element specified in the
+    // variableTypes list. This is the list that specifies which types of
+    // variables to include in the dropdown.
+    this.sourceBlock_.workspace.createVariable(this.getValue(), this.variableType);
+  } else {
+    // Using shorter name for this constant
+    var broadcastMsgType = Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE;
+    var broadcastVars = this.sourceBlock_.workspace.getVariablesOfType(broadcastMsgType);
+    if (this.variableType == broadcastMsgType && broadcastVars.length != 0) {
+      broadcastVars.sort(Blockly.VariableModel.compareByName);
+      this.setValue(broadcastVars[0].name);
+    }
   }
 };
 
@@ -189,9 +202,15 @@ Blockly.FieldVariable.dropdownCreate = function() {
       }
     }
   }
+  var isBroadcastType = this.variableType == Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE;
   // Ensure that the currently selected variable is an option.
   if (createSelectedVariable && workspace) {
-    var newVar = workspace.createVariable(name);
+    var newVar = null;
+    if (isBroadcastType && workspace.isFlyout) {
+      newVar = workspace.targetWorkspace.createVariable(name, Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE);
+    } else {
+      newVar = workspace.createVariable(name);
+    }
     variableModelList.push(newVar);
   }
   variableModelList.sort(Blockly.VariableModel.compareByName);
@@ -200,9 +219,15 @@ Blockly.FieldVariable.dropdownCreate = function() {
     // Set the uuid as the internal representation of the variable.
     options[i] = [variableModelList[i].name, variableModelList[i].getId()];
   }
-  options.push([Blockly.Msg.RENAME_VARIABLE, Blockly.RENAME_VARIABLE_ID]);
-  options.push([Blockly.Msg.DELETE_VARIABLE.replace('%1', name),
-               Blockly.DELETE_VARIABLE_ID]);
+  if (isBroadcastType) {
+    options.push([Blockly.Msg.NEW_BROADCAST_MESSAGE, Blockly.NEW_BROADCAST_MESSAGE_ID]);
+  } else {
+    options.push([Blockly.Msg.RENAME_VARIABLE, Blockly.RENAME_VARIABLE_ID]);
+    if (Blockly.Msg.DELETE_VARIABLE) {
+      options.push([Blockly.Msg.DELETE_VARIABLE.replace('%1', name),
+          Blockly.DELETE_VARIABLE_ID]);
+    }
+  }
   return options;
 };
 
@@ -234,6 +259,16 @@ Blockly.FieldVariable.prototype.onItemSelected = function(menu, menuItem) {
     } else if (id == Blockly.DELETE_VARIABLE_ID) {
       // Delete variable.
       workspace.deleteVariable(this.getText());
+      return;
+    } else if (id == Blockly.NEW_BROADCAST_MESSAGE_ID) {
+      var thisField = this;
+      var setName = function(newName) {
+        if (newName) {
+          thisField.setValue(newName);
+        }
+      };
+      var broadcastMsgWkspc = workspace.isFlyout ? workspace.targetWorkspace : workspace;
+      Blockly.Variables.createVariable(broadcastMsgWkspc, setName, Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE);
       return;
     }
 

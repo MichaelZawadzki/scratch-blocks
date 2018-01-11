@@ -85,9 +85,10 @@ Blockly.Toolbox = function(workspace) {
 
 /**
  * Width of the toolbox, which changes only in vertical layout.
+ * This is the sum of the width of the flyout (250) and the category menu (52).
  * @type {number}
  */
-Blockly.Toolbox.prototype.width = 310;
+Blockly.Toolbox.prototype.width = 302;
 
 /**
  * Height of the toolbox, which changes only in horizontal layout.
@@ -116,6 +117,8 @@ Blockly.Toolbox.prototype.init = function() {
   // Clicking on toolbox closes popups.
   Blockly.bindEventWithChecks_(this.HtmlDiv, 'mousedown', this,
       function(e) {
+        // Cancel any gestures in progress.
+        this.workspace_.cancelCurrentGesture();
         if (Blockly.utils.isRightButton(e) || e.target == this.HtmlDiv) {
           // Close flyout.
           Blockly.hideChaff(false);
@@ -124,7 +127,7 @@ Blockly.Toolbox.prototype.init = function() {
           Blockly.hideChaff(true);
         }
         Blockly.Touch.clearTouchIdentifier();  // Don't block future drags.
-      });
+      }, /*opt_noCaptureIdentifier*/ false, /*opt_noPreventDefault*/ true);
 
   this.createFlyout_();
   this.categoryMenu_ = new Blockly.Toolbox.CategoryMenu(this, this.HtmlDiv);
@@ -179,7 +182,30 @@ Blockly.Toolbox.prototype.createFlyout_ = function() {
  */
 Blockly.Toolbox.prototype.populate_ = function(newTree) {
   this.categoryMenu_.populate(newTree);
+  this.showAll_();
   this.setSelectedItem(this.categoryMenu_.categories_[0]);
+};
+
+/**
+ * Show all blocks for all categories in the flyout
+ * @private
+ */
+Blockly.Toolbox.prototype.showAll_ = function() {
+  var allContents = [];
+  for (var i = 0; i < this.categoryMenu_.categories_.length; i++) {
+    var category = this.categoryMenu_.categories_[i];
+
+    // create a label node to go at the top of the category
+    var labelString = '<xml><label text="' + category.name_ + '"' +
+      ' category-label="true"' +
+      ' web-class="categoryLabel">' +
+      '</label></xml>';
+    var labelXML = Blockly.Xml.textToDom(labelString);
+    allContents.push(labelXML.firstChild);
+
+    allContents = allContents.concat(category.getContents());
+  }
+  this.flyout_.show(allContents);
 };
 
 /**
@@ -264,6 +290,11 @@ Blockly.Toolbox.prototype.getClientRect = function() {
     return null;
   }
 
+  // If not an auto closing flyout, always use the (larger) flyout client rect
+  if (!this.flyout_.autoClose) {
+    return this.flyout_.getClientRect();
+  }
+
   // BIG_NUM is offscreen padding so that blocks dragged beyond the toolbox
   // area are still deleted.  Must be smaller than Infinity, but larger than
   // the largest screen size.
@@ -272,7 +303,7 @@ Blockly.Toolbox.prototype.getClientRect = function() {
 
   var x = toolboxRect.left;
   var y = toolboxRect.top;
-  var width = this.getWidth();
+  var width = toolboxRect.width;
   var height = toolboxRect.height;
 
   // Assumes that the toolbox is on the SVG edge.  If this changes
@@ -286,7 +317,7 @@ Blockly.Toolbox.prototype.getClientRect = function() {
     return new goog.math.Rect(-BIG_NUM, -BIG_NUM, 2 * BIG_NUM,
         BIG_NUM + y + height);
   } else {  // Bottom
-    return new goog.math.Rect(0, y, 2 * BIG_NUM, BIG_NUM + width);
+    return new goog.math.Rect(0, y, 2 * BIG_NUM, BIG_NUM);
   }
 };
 
@@ -296,10 +327,7 @@ Blockly.Toolbox.prototype.getClientRect = function() {
  * procedures.
  */
 Blockly.Toolbox.prototype.refreshSelection = function() {
-  var selectedItem = this.getSelectedItem();
-  if (selectedItem && selectedItem.getContents()) {
-    this.flyout_.show(selectedItem.getContents());
-  }
+  this.showAll_();
 };
 
 /**
@@ -315,18 +343,56 @@ Blockly.Toolbox.prototype.getSelectedItem = function() {
  */
 Blockly.Toolbox.prototype.setSelectedItem = function(item) {
   if (this.selectedItem_) {
-    // Don't do anything if they selected the already-open category.
-    if (this.selectedItem_ == item) {
-      return;
-    }
     // They selected a different category but one was already open.  Close it.
     this.selectedItem_.setSelected(false);
   }
   this.selectedItem_ = item;
   if (this.selectedItem_ != null) {
     this.selectedItem_.setSelected(true);
-    this.flyout_.show(item.getContents());
-    this.flyout_.scrollToStart();
+    // Scroll flyout to the top of the selected category
+    var categoryName = item.name_;
+    this.scrollToCategoryByName(categoryName);
+  }
+};
+
+/**
+ * Select and scroll to a category by name.
+ * @param {string} name The name of the category to select and scroll to.
+ */
+Blockly.Toolbox.prototype.setSelectedCategoryByName = function(name) {
+  this.selectCategoryByName(name);
+  this.scrollToCategoryByName(name);
+};
+
+/**
+ * Scroll to a category by name.
+ * @param {string} name The name of the category to scroll to.
+ * @package
+ */
+Blockly.Toolbox.prototype.scrollToCategoryByName = function(name) {
+  var scrollPositions = this.flyout_.categoryScrollPositions;
+  for (var i = 0; i < scrollPositions.length; i++) {
+    if (name === scrollPositions[i].categoryName) {
+      this.flyout_.setVisible(true);
+      this.flyout_.scrollTo(scrollPositions[i].position);
+      return;
+    }
+  }
+};
+
+/**
+ * Select a category by name.
+ * @param {string} name The name of the category to select.
+ * @package
+ */
+Blockly.Toolbox.prototype.selectCategoryByName = function(name) {
+  for (var i = 0; i < this.categoryMenu_.categories_.length; i++) {
+    var category = this.categoryMenu_.categories_[i];
+    if (name === category.name_) {
+      this.selectedItem_.setSelected(false);
+      this.selectedItem_ = category;
+      this.selectedItem_.setSelected(true);
+    }
   }
 };
 
@@ -440,6 +506,7 @@ Blockly.Toolbox.Category = function(parent, parentHtml, domTree) {
   this.name_ = domTree.getAttribute('name');
   this.setColour(domTree);
   this.custom_ = domTree.getAttribute('custom');
+  this.iconURI_ = domTree.getAttribute('iconURI');
   this.contents_ = [];
   if (!this.custom_) {
     this.parseContents_(domTree);
@@ -470,14 +537,20 @@ Blockly.Toolbox.Category.prototype.createDom = function() {
   this.label_ = goog.dom.createDom('div',
     {'class': 'scratchCategoryMenuItemLabel'},
     this.name_);
-  this.bubble_ = goog.dom.createDom('div',
-    {'class': 'scratchCategoryItemBubble'});
-  this.bubble_.style.backgroundColor = this.colour_;
-  this.bubble_.style.borderColor = this.secondaryColour_;
+  if (this.iconURI_) {
+    this.bubble_ = goog.dom.createDom('div',
+        {'class': 'scratchCategoryItemIcon'});
+    this.bubble_.style.backgroundImage = 'url(' + this.iconURI_ + ')';
+  } else {
+    this.bubble_ = goog.dom.createDom('div',
+        {'class': 'scratchCategoryItemBubble'});
+    this.bubble_.style.backgroundColor = this.colour_;
+    this.bubble_.style.borderColor = this.secondaryColour_;
+  }
   this.item_.appendChild(this.bubble_);
   this.item_.appendChild(this.label_);
   this.parentHtml_.appendChild(this.item_);
-  Blockly.bindEvent_(this.item_, 'mousedown', toolbox,
+  Blockly.bindEvent_(this.item_, 'mouseup', toolbox,
     toolbox.setSelectedItemFactory(this));
 };
 

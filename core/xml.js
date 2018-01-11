@@ -107,15 +107,31 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
     }
   }
   function fieldToDom(field) {
-    if (field.name && field.EDITABLE) {
+    if (field.name && field.SERIALIZABLE) {
       var container = goog.dom.createDom('field', null, field.getValue());
       container.setAttribute('name', field.name);
       if (field instanceof Blockly.FieldVariable || field instanceof
         Blockly.FieldVariableGetter) {
+        // TODO (#1253) Lookup variable by id instead of name
         var variable = block.workspace.getVariable(field.getValue());
         if (variable) {
           container.setAttribute('id', variable.getId());
-          container.setAttribute('variableType', variable.type);
+          container.setAttribute('variabletype', variable.type);
+        } else {
+          // Above works well for untyped variables, but we need to correctly
+          // set the type for blocks that exist by default in the toolbox
+          // (e.g. broadcast messages)
+          // TODO figure out if we need to do something different when there's
+          // more than one element in variableTypes field
+
+          // must check that field is an instance of FieldVariable because
+          // FieldVariableGetter doesn't have getVariableTypes_ function
+          if (field instanceof Blockly.FieldVariable) {
+            var variableTypes = field.getVariableTypes_();
+            if (variableTypes.length == 1) {
+              container.setAttribute('variabletype', variableTypes[0]);
+            }
+          }
         }
       }
       element.appendChild(container);
@@ -302,6 +318,23 @@ Blockly.Xml.textToDom = function(text) {
 };
 
 /**
+ * Clear the given workspace then decode an XML DOM and
+ * create blocks on the workspace.
+ * @param {!Element} xml XML DOM.
+ * @param {!Blockly.Workspace} workspace The workspace.
+ * @return {Array.<string>} An array containing new block ids.
+ */
+Blockly.Xml.clearWorkspaceAndLoadFromXml = function(xml, workspace) {
+  workspace.setResizesEnabled(false);
+  workspace.setToolboxRefreshEnabled(false);
+  workspace.clear();
+  var blockIds = Blockly.Xml.domToWorkspace(xml, workspace);
+  workspace.setResizesEnabled(true);
+  workspace.setToolboxRefreshEnabled(true);
+  return blockIds;
+};
+
+/**
  * Decode an XML DOM and create blocks on the workspace.
  * @param {!Element} xml XML DOM.
  * @param {!Blockly.Workspace} workspace The workspace.
@@ -397,7 +430,7 @@ Blockly.Xml.appendDomToWorkspace = function(xml, workspace) {
     var savetab = Blockly.BlockSvg.TAB_WIDTH;
     try {
       Blockly.BlockSvg.TAB_WIDTH = 0;
-      var bbox = workspace.getBlocksBoundingBox();
+      bbox = workspace.getBlocksBoundingBox();
     } finally {
       Blockly.BlockSvg.TAB_WIDTH = savetab;
     }
@@ -473,21 +506,6 @@ Blockly.Xml.domToBlock = function(xmlBlock, workspace) {
         setTimeout(function() {
           if (topBlock.workspace) {  // Check that the block hasn't been deleted.
             topBlock.setConnectionsHidden(false);
-            // Force a render on IE and Edge to get around the issue described in
-            // Blockly.Field.getCachedWidth
-            if (goog.userAgent.IE || goog.userAgent.EDGE) {
-              topBlock.render();
-            }
-          }
-        }, 1);
-      } else {
-        setTimeout(function() {
-          if (topBlock.workspace) {  // Check that the block hasn't been deleted.
-            // Force a render on IE and Edge to get around the issue described in
-            // Blockly.Field.getCachedWidth
-            if (goog.userAgent.IE || goog.userAgent.EDGE) {
-              topBlock.render();
-            }
           }
         }, 1);
       }
@@ -611,7 +629,7 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
           // TODO (marisaleung): When we change setValue and getValue to
           // interact with id's instead of names, update this so that we get
           // the variable based on id instead of textContent.
-          var type = xmlChild.getAttribute('variableType') || '';
+          var type = xmlChild.getAttribute('variabletype') || '';
           var variable = workspace.getVariable(text);
           if (!variable) {
             variable = workspace.createVariable(text, type,
@@ -711,9 +729,6 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
       goog.asserts.assert(child.isShadow(),
                           'Shadow block not allowed non-shadow child.');
     }
-    // Ensure this block doesn't have any variable inputs.
-    goog.asserts.assert(block.getVars().length == 0,
-        'Shadow blocks cannot have variable fields.');
     block.setShadow(true);
   }
   return block;
@@ -743,3 +758,5 @@ goog.global['Blockly']['Xml']['domToText'] = Blockly.Xml.domToText;
 goog.global['Blockly']['Xml']['domToWorkspace'] = Blockly.Xml.domToWorkspace;
 goog.global['Blockly']['Xml']['textToDom'] = Blockly.Xml.textToDom;
 goog.global['Blockly']['Xml']['workspaceToDom'] = Blockly.Xml.workspaceToDom;
+goog.global['Blockly']['Xml']['clearWorkspaceAndLoadFromXml'] =
+  Blockly.Xml.clearWorkspaceAndLoadFromXml;

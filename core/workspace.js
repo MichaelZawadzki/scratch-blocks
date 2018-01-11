@@ -357,7 +357,7 @@ Blockly.Workspace.prototype.deleteVariable = function(name) {
   // Check whether this variable is a function parameter before deleting.
   var uses = this.getVariableUses(name);
   for (var i = 0, block; block = uses[i]; i++) {
-    if (block.type == 'procedures_defnoreturn' ||
+    if (block.type == Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE ||
       block.type == 'procedures_defreturn') {
       var procedureName = block.getFieldValue('NAME');
       Blockly.alert(
@@ -515,6 +515,21 @@ Blockly.Workspace.prototype.clearUndo = function() {
   Blockly.Events.clearPendingUndo();
 };
 
+/**
+ * @return {boolean} whether there are any events in the redo stack.
+ * @package
+ */
+Blockly.Workspace.prototype.hasRedoStack = function() {
+  return this.redoStack_.length != 0;
+};
+
+/**
+ * @return {boolean} whether there are any events in the undo stack.
+ * @package
+ */
+Blockly.Workspace.prototype.hasUndoStack = function() {
+  return this.undoStack_.length != 0;
+};
 /**
  * When something in this workspace changes, call a function.
  * @param {!Function} func Function to call.
