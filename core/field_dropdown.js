@@ -154,6 +154,9 @@ Blockly.FieldDropdown.prototype.init = function() {
  * @private
  */
 Blockly.FieldDropdown.prototype.showEditor_ = function() {
+  var options = this.getOptions();
+  if (options.length == 0) return;
+
   this.dropDownOpen_ = true;
   // If there is an existing drop-down someone else owns, hide it immediately and clear it.
   Blockly.DropDownDiv.hideWithoutAnimation();
@@ -175,7 +178,6 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
 
   var menu = new goog.ui.Menu();
   menu.setRightToLeft(this.sourceBlock_.RTL);
-  var options = this.getOptions();
   for (var i = 0; i < options.length; i++) {
     var content = options[i][0]; // Human-readable text or image.
     var value = options[i][1];   // Language-neutral value.

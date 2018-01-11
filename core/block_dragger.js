@@ -292,11 +292,16 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   else {
     currentBlock = this.draggingBlock_;
   }
+
+  // Scratch-specific: note possible illegal definition deletion for rollback below.
+  // OB: When dragging multiple blocks, we night need to make sure we check all the blocks if they are procedures?
+  var isDeletingProcDef = this.wouldDeleteBlock_ &&
+      (this.draggingBlock_.type == Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE);
   
   //this.draggingBlock_.moveOffDragSurface_(newLoc);
   currentBlock.moveOffDragSurface_(newLoc);
   
-  var changedParent = false; 
+  var changedParent = false;
   var deleted = this.maybeDeleteBlock_();
   var deletedNewBlock = false;
   var isNewBlock = false;
@@ -358,10 +363,42 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.workspace_.toolbox_.removeDeleteStyle();
   }
   Blockly.Events.setGroup(false);
+  
+  // Scratch-specific: roll back deletes that create call blocks with defines.
+  // Have to wait for connections to be re-established, so put in setTimeout.
+  // Only do this if we deleted a proc def.
+  if (isDeletingProcDef) {
+    var ws = this.workspace_;
+    setTimeout(function() {
+      var allBlocks = ws.getAllBlocks();
+      for (var i = 0; i < allBlocks.length; i++) {
+        var block = allBlocks[i];
+        if (block.type == Blockly.PROCEDURES_CALL_BLOCK_TYPE) {
+          var procCode = block.getProcCode();
+          // Check for call blocks with no associated define block.
+          if (!Blockly.Procedures.getDefineBlock(procCode, ws)) {
+            // TODO:(#1151)
+            alert('To delete a block definition, first remove all uses of the block');
+            ws.undo();
+            return; // There can only be one define deletion at a time.
+          }
+        }
+      }
+      // The proc deletion was valid, update the toolbox.
+      ws.refreshToolboxSelection_();
+    });
+  }
+
   Blockly.Events.recordUndo = true;
 };
 
-
+/**
+ * OB
+ * Some blocks cannot be deleted. If the user tries to delete one of them, let the app know
+ * (and eventually snap it back to its last position).
+ * @param {!Event} e The mouseup/touchend event.
+ * @package
+ */
 Blockly.BlockDragger.prototype.maybeSnapBackBlock_ = function(e) {
   var snapBack = false;
   if( this.draggingBlock_.isDeletable() === false && this.draggingBlock_.isAlwaysAvailable() === true ) {
@@ -370,9 +407,7 @@ Blockly.BlockDragger.prototype.maybeSnapBackBlock_ = function(e) {
       snapBack = true;
     }
   }
-
   return snapBack;
-
 };
 
 /**

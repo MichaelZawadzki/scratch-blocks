@@ -1004,6 +1004,7 @@ Blockly.Css.CONTENT = [
     'font-weight: bold;',
     'list-style: none;',
     'margin: 0;',
+    'min-height: 24px;',
      /* 28px on the left for icon or checkbox; 7em on the right for shortcut. */
     'padding: 4px 7em 4px 28px;',
     'white-space: nowrap;',
@@ -1236,6 +1237,13 @@ Blockly.Css.CONTENT = [
     'border: 1px solid;',
     'border-radius: 100%;',
     'margin: 0 auto 0.125rem;',
+  '}',
+
+  '.scratchCategoryItemIcon {',
+    'width: 1.25rem;',
+    'height: 1.25rem;',
+    'margin: 0 auto 0.125rem;',
+    'background-size: 100%;',
   '}',
 
   '.scratchCategoryMenuItem:hover {',

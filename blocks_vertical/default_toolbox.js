@@ -193,17 +193,16 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
         '</shadow>'+
       '</value>'+
     '</block>'+
-    '<block type="looks_gotofront" id="looks_gotofront"></block>'+
-    '<block type="looks_gobacklayers" id="looks_gobacklayers">'+
+    '<block type="looks_gotofrontback" id="looks_gotofrontback"></block>'+
+    '<block type="looks_goforwardbackwardlayers" id="looks_goforwardbackwardlayers">'+
       '<value name="NUM">'+
         '<shadow type="math_integer">'+
           '<field name="NUM">1</field>'+
         '</shadow>'+
       '</value>'+
     '</block>'+
-    '<block type="looks_costumeorder" id="looks_costumeorder"></block>'+
-    '<block type="looks_backdroporder" id="looks_backdroporder"></block>'+
-    '<block type="looks_backdropname" id="looks_backdropname"></block>'+
+    '<block type="looks_costumenumbername" id="looks_costumenumbername"></block>'+
+    '<block type="looks_backdropnumbername" id="looks_backdropnumbername"></block>'+
     '<block type="looks_size" id="looks_size"></block>'+
   '</category>'+
   '<category name="Sound" colour="#D65CD6" secondaryColour="#BD42BD">'+
@@ -315,8 +314,14 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
     '<block type="event_whenbroadcastreceived" id="event_whenbroadcastreceived">'+
     '</block>'+
     '<block type="event_broadcast" id="event_broadcast">'+
+      '<value name="BROADCAST_INPUT">'+
+        '<shadow type="event_broadcast_menu"></shadow>'+
+      '</value>'+
     '</block>'+
     '<block type="event_broadcastandwait" id="event_broadcastandwait">'+
+      '<value name="BROADCAST_INPUT">'+
+        '<shadow type="event_broadcast_menu"></shadow>'+
+      '</value>'+
     '</block>'+
   '</category>'+
   '<category name="Control" colour="#FFAB19" secondaryColour="#CF8B17">'+
@@ -380,6 +385,7 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
     '<block type="sensing_mousedown" id="sensing_mousedown"></block>'+
     '<block type="sensing_mousex" id="sensing_mousex"></block>'+
     '<block type="sensing_mousey" id="sensing_mousey"></block>'+
+    '<block type="sensing_setdragmode" id="sensing_setdragmode"></block>' +
     '<block type="sensing_loudness" id="sensing_loudness"></block>'+
     '<block type="sensing_timer" id="sensing_timer"></block>'+
     '<block type="sensing_resettimer" id="sensing_resettimer"></block>'+
@@ -640,4 +646,24 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
   '</category>' +
   '<category name="More" colour="#FF6680" secondaryColour="#FF4D6A" custom="PROCEDURE">' +
   '</category>' +
+  '<category name="Extensions" colour="#FF6680" secondaryColour="#FF4D6A" '+
+    'iconURI="../media/extensions/wedo2-block-icon.svg">'+
+    '<block type="extension_pen_down" id="extension_pen_down"></block>'+
+    '<block type="extension_music_drum" id="extension_music_drum">'+
+      '<value name="NUMBER">'+
+        '<shadow type="math_number">'+
+          '<field name="NUM">1</field>'+
+        '</shadow>'+
+      '</value>'+
+      '</block>'+
+    '<block type="extension_wedo_motor" id="extension_wedo_motor"></block>'+
+    '<block type="extension_wedo_hat" id="extension_wedo_hat"></block>'+
+    '<block type="extension_wedo_boolean" id="extension_wedo_boolean"></block>'+
+    '<block type="extension_wedo_tilt_reporter" id="extension_wedo_reporter">' +
+      '<value name="TILT">'+
+        '<shadow type="extension_wedo_tilt_menu"></shadow>'+
+      '</value>'+
+    '</block>'+
+    '<block type="extension_music_reporter" id="extension_music_reporter"></block>'+
+  '</category>'+
   '</xml>';

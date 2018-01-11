@@ -49,6 +49,7 @@ goog.require('Blockly.FieldTextDropdown');
 goog.require('Blockly.FieldNumber');
 goog.require('Blockly.FieldNumberDropdown');
 goog.require('Blockly.FieldVariable');
+goog.require('Blockly.FieldVerticalSeparator');
 goog.require('Blockly.Generator');
 goog.require('Blockly.Msg');
 goog.require('Blockly.Procedures');
@@ -323,6 +324,7 @@ Blockly.confirm = function(message, callback) {
   callback(window.confirm(message));
 };
 
+/* eslint-disable no-unused-vars */
 /**
  * Wrapper to window.prompt() that app developers may override to provide
  * alternatives to the modal browser window. Built-in browser prompts are
@@ -331,10 +333,14 @@ Blockly.confirm = function(message, callback) {
  * @param {string} message The message to display to the user.
  * @param {string} defaultValue The value to initialize the prompt with.
  * @param {!function(string)} callback The callback for handling user response.
+ * @param {?string} opt_title An optional title for the prompt.
  */
-Blockly.prompt = function(message, defaultValue, callback) {
+Blockly.prompt = function(message, defaultValue, callback, opt_title) {
+  // opt_title is unused because we only need it to pass information to the
+  // scratch-gui, which overwrites this function
   callback(window.prompt(message, defaultValue));
 };
+/* eslint-enable no-unused-vars */
 
 /**
  * Helper function for defining a block from JSON.  The resulting function has

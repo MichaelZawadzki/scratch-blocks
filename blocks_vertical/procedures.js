@@ -44,7 +44,7 @@ Blockly.ScratchBlocks.ProcedureUtils.callerMutationToDom = function() {
   var container = document.createElement('mutation');
   container.setAttribute('proccode', this.procCode_);
   container.setAttribute('argumentids', JSON.stringify(this.argumentIds_));
-  container.setAttribute('warp', this.warp_);
+  container.setAttribute('warp', JSON.stringify(this.warp_));
   return container;
 };
 
@@ -57,7 +57,7 @@ Blockly.ScratchBlocks.ProcedureUtils.callerMutationToDom = function() {
 Blockly.ScratchBlocks.ProcedureUtils.callerDomToMutation = function(xmlElement) {
   this.procCode_ = xmlElement.getAttribute('proccode');
   this.argumentIds_ = JSON.parse(xmlElement.getAttribute('argumentids'));
-  this.warp_ = xmlElement.getAttribute('warp');
+  this.warp_ = JSON.parse(xmlElement.getAttribute('warp'));
   this.updateDisplay_();
 };
 
@@ -74,7 +74,7 @@ Blockly.ScratchBlocks.ProcedureUtils.definitionMutationToDom = function() {
   container.setAttribute('argumentnames', JSON.stringify(this.displayNames_));
   container.setAttribute('argumentdefaults',
       JSON.stringify(this.argumentDefaults_));
-  container.setAttribute('warp', this.warp_);
+  container.setAttribute('warp', JSON.stringify(this.warp_));
   return container;
 };
 
@@ -86,7 +86,7 @@ Blockly.ScratchBlocks.ProcedureUtils.definitionMutationToDom = function() {
  */
 Blockly.ScratchBlocks.ProcedureUtils.definitionDomToMutation = function(xmlElement) {
   this.procCode_ = xmlElement.getAttribute('proccode');
-  this.warp_ = xmlElement.getAttribute('warp');
+  this.warp_ = JSON.parse(xmlElement.getAttribute('warp'));
 
   this.argumentIds_ = JSON.parse(xmlElement.getAttribute('argumentids'));
   this.displayNames_ = JSON.parse(xmlElement.getAttribute('argumentnames'));
@@ -304,16 +304,24 @@ Blockly.ScratchBlocks.ProcedureUtils.attachShadow_ = function(input,
     argumentType) {
   if (argumentType == 'n' || argumentType == 's') {
     var blockType = argumentType == 'n' ? 'math_number' : 'text';
-    var newBlock = this.workspace.newBlock(blockType);
-    if (argumentType == 'n') {
-      newBlock.setFieldValue('1', 'NUM');
-    } else {
-      newBlock.setFieldValue('', 'TEXT');
+    Blockly.Events.disable();
+    try {
+      var newBlock = this.workspace.newBlock(blockType);
+      if (argumentType == 'n') {
+        newBlock.setFieldValue('1', 'NUM');
+      } else {
+        newBlock.setFieldValue('', 'TEXT');
+      }
+      newBlock.setShadow(true);
+      if (!this.isInsertionMarker()) {
+        newBlock.initSvg();
+        newBlock.render(false);
+      }
+    } finally {
+      Blockly.Events.enable();
     }
-    newBlock.setShadow(true);
-    if (!this.isInsertionMarker()) {
-      newBlock.initSvg();
-      newBlock.render(false);
+    if (Blockly.Events.isEnabled()) {
+      Blockly.Events.fire(new Blockly.Events.BlockCreate(newBlock));
     }
     newBlock.outputConnection.connect(input.connection);
   }
@@ -336,12 +344,20 @@ Blockly.ScratchBlocks.ProcedureUtils.createArgumentReporter_ = function(
   } else {
     var blockType = 'argument_reporter_boolean';
   }
-  var newBlock = this.workspace.newBlock(blockType);
-  newBlock.setShadow(true);
-  newBlock.setFieldValue(displayName, 'VALUE');
-  if (!this.isInsertionMarker()) {
-    newBlock.initSvg();
-    newBlock.render(false);
+  Blockly.Events.disable();
+  try {
+    var newBlock = this.workspace.newBlock(blockType);
+    newBlock.setShadow(true);
+    newBlock.setFieldValue(displayName, 'VALUE');
+    if (!this.isInsertionMarker()) {
+      newBlock.initSvg();
+      newBlock.render(false);
+    }
+  } finally {
+    Blockly.Events.enable();
+  }
+  if (Blockly.Events.isEnabled()) {
+    Blockly.Events.fire(new Blockly.Events.BlockCreate(newBlock));
   }
   return newBlock;
 };
@@ -484,16 +500,24 @@ Blockly.ScratchBlocks.ProcedureUtils.checkOldTypeMatches_ = function(oldBlock,
  */
 Blockly.ScratchBlocks.ProcedureUtils.createArgumentEditor_ = function(
     argumentType, displayName) {
-  if (argumentType == 'n' || argumentType == 's') {
-    var newBlock = this.workspace.newBlock('argument_editor_string_number');
-  } else {
-    var newBlock = this.workspace.newBlock('argument_editor_boolean');
+  Blockly.Events.disable();
+  try {
+    if (argumentType == 'n' || argumentType == 's') {
+      var newBlock = this.workspace.newBlock('argument_editor_string_number');
+    } else {
+      var newBlock = this.workspace.newBlock('argument_editor_boolean');
+    }
+    newBlock.setFieldValue(displayName, 'TEXT');
+    newBlock.setShadow(true);
+    if (!this.isInsertionMarker()) {
+      newBlock.initSvg();
+      newBlock.render(false);
+    }
+  } finally {
+    Blockly.Events.enable();
   }
-  newBlock.setFieldValue(displayName, 'TEXT');
-  newBlock.setShadow(true);
-  if (!this.isInsertionMarker()) {
-    newBlock.initSvg();
-    newBlock.render(false);
+  if (Blockly.Events.isEnabled()) {
+    Blockly.Events.fire(new Blockly.Events.BlockCreate(newBlock));
   }
   return newBlock;
 };
@@ -581,11 +605,29 @@ Blockly.ScratchBlocks.ProcedureUtils.addBooleanExternal = function() {
 Blockly.ScratchBlocks.ProcedureUtils.addStringNumberExternal = function() {
   Blockly.WidgetDiv.hide(true);
   this.procCode_ = this.procCode_ + ' %s';
-  this.displayNames_.push('string or number');
+  this.displayNames_.push('number or text');
   this.argumentIds_.push(Blockly.utils.genUid());
   this.argumentDefaults_.push('todo');
   this.updateDisplay_();
   this.focusLastEditor_();
+};
+
+/**
+ * Externally-visible function to get the warp on procedure declaration.
+ * @return {boolean} The value of the warp_ property.
+ * @public
+ */
+Blockly.ScratchBlocks.ProcedureUtils.getWarp = function() {
+  return this.warp_;
+};
+
+/**
+ * Externally-visible function to set the warp on procedure declaration.
+ * @param {boolean} warp The value of the warp_ property.
+ * @public
+ */
+Blockly.ScratchBlocks.ProcedureUtils.setWarp = function(warp) {
+  this.warp_ = warp;
 };
 
 /**
@@ -757,6 +799,8 @@ Blockly.Blocks['procedures_declaration'] = {
   // Only exist on procedures_declaration.
   createArgumentEditor_: Blockly.ScratchBlocks.ProcedureUtils.createArgumentEditor_,
   focusLastEditor_: Blockly.ScratchBlocks.ProcedureUtils.focusLastEditor_,
+  getWarp: Blockly.ScratchBlocks.ProcedureUtils.getWarp,
+  setWarp: Blockly.ScratchBlocks.ProcedureUtils.setWarp,
   addLabelExternal: Blockly.ScratchBlocks.ProcedureUtils.addLabelExternal,
   addBooleanExternal: Blockly.ScratchBlocks.ProcedureUtils.addBooleanExternal,
   addStringNumberExternal: Blockly.ScratchBlocks.ProcedureUtils.addStringNumberExternal,
