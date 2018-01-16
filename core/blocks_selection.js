@@ -382,7 +382,7 @@ Blockly.BlocksSelection.clearChosenBlocks = function () {
  * OB: Add the given block to 'chosen blocks' array, and set this block as 'chosen'
  * @param {!Blockly.Block} block The block to add and update.
  */
-Blockly.BlocksSelection.addToChosenBlocks = function (block) {
+Blockly.BlocksSelection.addToChosenBlocks = function (block, addInputBlocks) {
   if(!Blockly.BlocksSelection.blocks) {
     Blockly.BlocksSelection.blocks = [];
   }
@@ -390,6 +390,17 @@ Blockly.BlocksSelection.addToChosenBlocks = function (block) {
     block.setChosen(true);
     if(Blockly.BlocksSelection.blocks.indexOf(block) < 0) {
       Blockly.BlocksSelection.blocks.push(block);
+    }
+    // OB [CSI-702]: Add input blocks if user clicked on a block with input slots
+    if(addInputBlocks === true) {
+      for(var i = 0; i < block.inputList.length; i++) {
+        var input = block.inputList[i];
+        if (input && input.type === Blockly.INPUT_VALUE) {
+          if(input.connection && input.connection.targetConnection && input.connection.targetConnection.sourceBlock_) {
+            Blockly.BlocksSelection.addToChosenBlocks(input.connection.targetConnection.sourceBlock_, true);
+          }
+        }
+      }
     }
   }
 };
