@@ -412,17 +412,17 @@ Blockly.BlockSvg.prototype.getRelativeToSurfaceXY = function() {
   // or to the drag surface group.
   var x = 0;
   var y = 0;
+  var element = this.getSvgRoot();
 
   var dragSurfaceGroup = this.useDragSurface_ ?
       this.workspace.blockDragSurface_.getGroup() : null;
-  var outlineGroup = this.isChosen_ ?
+  // OB [CSI-678]: Some blocks (like number input) might be on outline layer, but not set as "chosen".
+  // --> Test for presence of block on outline layer.
+  var outlineGroup = (this.isChosen_ || (this.workspace.blocksOutlineSurface && this.workspace.blocksOutlineSurface.isInOutlineSurface(element))) ?
       this.workspace.blocksOutlineSurface.getGroup() : null;
 
-  var element = this.getSvgRoot();
   if (element) {
     do {
-      //console.log("\telement:");
-      //console.log(element);
       // Loop through this block and every parent.
       var xy = Blockly.utils.getRelativeXY(element);
       x += xy.x;
