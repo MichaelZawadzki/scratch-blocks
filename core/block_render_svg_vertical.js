@@ -1870,7 +1870,7 @@ Blockly.BlockSvg.getAlignedCursor_ = function(cursorX, input, rightEdge) {
 };
 
 /**
- * Update all of the connections on this block with the new locaitons calculated
+ * Update all of the connections on this block with the new locations calculated
  * in renderCompute, and move all of the connected blocks based on the new
  * connection locations.
  * @private
