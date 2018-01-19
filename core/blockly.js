@@ -251,9 +251,7 @@ Blockly.duplicate_ = function(block, opt_fromOutlineSurface) {
   // Save the clipboard.
   var clipboardXml = Blockly.clipboardXml_;
   var clipboardSource = Blockly.clipboardSource_;
-
-  console.log("Duplicate blocks; from outline surface: " + opt_fromOutlineSurface);
-
+  
   // Create a duplicate via a copy/paste operation.
   Blockly.copy_(block, opt_fromOutlineSurface);
   var newBlock = block.workspace.paste(Blockly.clipboardXml_);
