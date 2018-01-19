@@ -879,7 +879,7 @@ Blockly.BlocksSelection.duplicateBlocks = function () {
     var duplicatedTopBlock = null;
     var newBlocksList = null;
     if(topBlock) {
-      duplicatedTopBlock = Blockly.duplicate_(topBlock);
+      duplicatedTopBlock = Blockly.duplicate_(topBlock, true);
       if(duplicatedTopBlock) {
         Blockly.BlocksSelection.clearChosenBlocks();
         // We only have the block. Need to get all descendants of the top block.
