@@ -765,10 +765,6 @@ Blockly.Gesture.prototype.handleRightClick = function(e) {
     //this.bringBlockToFront_();
     Blockly.hideChaff(this.flyout_);
     //this.targetBlock_.showContextMenu_(e);
-
-    Blockly.BlocksSelection.duplicateBlocks();
-
-
   } else if (this.startWorkspace_ && !this.flyout_) {
     Blockly.hideChaff();
     //this.startWorkspace_.showContextMenu_(e);
