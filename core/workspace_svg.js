@@ -1063,8 +1063,8 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
     // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
     Blockly.utils.changeObscuredShadowIds(block);
     // Move the duplicate to original position.
-    var blockX = parseInt(xmlBlock.getAttribute('x'), 10);
-    var blockY = parseInt(xmlBlock.getAttribute('y'), 10);
+    var blockX = parseInt(xmlBlock.getAttribute('x'), 0);
+    var blockY = parseInt(xmlBlock.getAttribute('y'), 0);
     if (!isNaN(blockX) && !isNaN(blockY)) {
       if (this.RTL) {
         blockX = -blockX;
@@ -1112,6 +1112,8 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
     Blockly.Events.fire(new Blockly.Events.BlockCreate(block));
   }
   block.select();
+
+  return block;
 };
 
 /**

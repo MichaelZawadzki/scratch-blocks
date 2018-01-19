@@ -868,3 +868,29 @@ Blockly.BlocksSelection.restoreAfterBottomHierarchy = function (bottomBlock) {
 /**
  * --- END - OUTLINING USING 'CHANGE SVG TREE' ---
  */
+
+
+Blockly.BlocksSelection.duplicateBlocks = function () {
+
+  console.log("Duplicate highlighted blocks");
+
+  if(Blockly.BlocksSelection.hasBlocks() === true) {
+    var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+    var duplicatedTopBlock = null;
+    var newBlocksList = null;
+    if(topBlock) {
+      duplicatedTopBlock = Blockly.duplicate_(topBlock);
+      if(duplicatedTopBlock) {
+        Blockly.BlocksSelection.clearChosenBlocks();
+        // We only have the block. Need to get all descendants of the top block.
+        newBlocksList = duplicatedTopBlock.getDescendants(false);
+        if(newBlocksList) {
+          // Add all blocks to chosen block list; the adding function will take care of not adding shadow blocks.
+          Blockly.BlocksSelection.addMultipleToChosenBlocks(newBlocksList);
+          // Create outline on new chosen block list
+          Blockly.BlocksSelection.createOutline();
+        }
+      }
+    }
+  }
+};

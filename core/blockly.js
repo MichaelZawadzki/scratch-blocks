@@ -254,11 +254,13 @@ Blockly.duplicate_ = function(block) {
 
   // Create a duplicate via a copy/paste operation.
   Blockly.copy_(block);
-  block.workspace.paste(Blockly.clipboardXml_);
+  var newBlock = block.workspace.paste(Blockly.clipboardXml_);
 
   // Restore the clipboard.
   Blockly.clipboardXml_ = clipboardXml;
   Blockly.clipboardSource_ = clipboardSource;
+
+  return newBlock;
 };
 
 /**
