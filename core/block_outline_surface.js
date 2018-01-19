@@ -298,4 +298,11 @@ Blockly.BlockOutlineSurfaceSvg.prototype.translateLayer = function(x, y, scale) 
   // }
 };
 
+Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface = function (block) {
+  if(block && block.workspace.blocksOutlineSurface && block.workspace.blocksOutlineSurface.isInOutlineSurface(block.getSvgRoot()) ) {
+    return true;
+  }
+  return false;
+};
+
 

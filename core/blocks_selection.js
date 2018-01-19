@@ -870,10 +870,10 @@ Blockly.BlocksSelection.restoreAfterBottomHierarchy = function (bottomBlock) {
  */
 
 
+/**
+ * Duplicate currently chosen blocks.
+ */
 Blockly.BlocksSelection.duplicateBlocks = function () {
-
-  console.log("Duplicate highlighted blocks");
-
   if(Blockly.BlocksSelection.hasBlocks() === true) {
     var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
     var duplicatedTopBlock = null;
