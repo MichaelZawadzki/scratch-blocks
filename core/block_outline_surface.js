@@ -298,4 +298,16 @@ Blockly.BlockOutlineSurfaceSvg.prototype.translateLayer = function(x, y, scale) 
   // }
 };
 
+/**
+ * Static function to check if a block is on the outline layer. Checks for the existence of the layer, and if the block is on it.
+ * @param {Blockly.Block} block The block to check
+ * @return {boolean} TRUE if the block is on the outline surface; FALSE otherwise
+ */
+Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface = function (block) {
+  if(block && block.workspace.blocksOutlineSurface && block.workspace.blocksOutlineSurface.isInOutlineSurface(block.getSvgRoot()) ) {
+    return true;
+  }
+  return false;
+};
+
 

@@ -93,9 +93,10 @@ Blockly.Xml.blockToDomWithXY = function(block, opt_noId) {
  * Encode a block subtree as XML.
  * @param {!Blockly.Block} block The root block to encode.
  * @param {boolean} opt_noId True if the encoder should skip the block id.
+ * @param {boolean} opt_fromOutlineSurface True if the block we are encoding comes from the outline surface. This is important so that we encode ONLY the blocks on that surface [OB].
  * @return {!Element} Tree of XML elements.
  */
-Blockly.Xml.blockToDom = function(block, opt_noId) {
+Blockly.Xml.blockToDom = function(block, opt_noId, opt_fromOutlineSurface) {
   var element = goog.dom.createDom(block.isShadow() ? 'shadow' : 'block');
   element.setAttribute('type', block.type);
   if (!opt_noId) {
@@ -171,6 +172,7 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
       var childBlock = input.connection.targetBlock();
       if (input.type == Blockly.INPUT_VALUE) {
         container = goog.dom.createDom('value');
+        
       } else if (input.type == Blockly.NEXT_STATEMENT) {
         container = goog.dom.createDom('statement');
       }
@@ -178,8 +180,11 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
       if (shadow && (!childBlock || !childBlock.isShadow())) {
         container.appendChild(Blockly.Xml.cloneShadow_(shadow));
       }
-      if (childBlock) {
-        container.appendChild(Blockly.Xml.blockToDom(childBlock, opt_noId));
+      // OB [CSI-724] If the original block was flagged as 'on the outline surface', check if the child block to encode is also on the outline surface;
+      // If it isnt't, we stop the encoding so that only the blocks from the outline surface are encoded.
+      //var isChildOnSameSurface = ( !opt_fromOutlineSurface || (opt_fromOutlineSurface && Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface(childBlock)) );
+      if (childBlock && (!opt_fromOutlineSurface || (opt_fromOutlineSurface && Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface(childBlock)))) {
+        container.appendChild(Blockly.Xml.blockToDom(childBlock, opt_noId, opt_fromOutlineSurface));
         empty = false;
       }
     }
@@ -211,10 +216,15 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
   }
 
   var nextBlock = block.getNextBlock();
-  if (nextBlock) {
-    var container = goog.dom.createDom('next', null,
-        Blockly.Xml.blockToDom(nextBlock, opt_noId));
-    element.appendChild(container);
+  if (nextBlock && !opt_fromOutlineSurface || (opt_fromOutlineSurface && Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface(nextBlock))) {
+    // OB [CSI-724] If the original block was flagged as 'on the outline surface', check if the next block to encode is also on the outline surface;
+    // If it isnt't, we stop the encoding so that only the blocks from the outline surface are encoded.
+    //var isNextOnSameSurface = ( !opt_fromOutlineSurface || (opt_fromOutlineSurface && Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface(nextBlock)) );
+    //if(isNextOnSameSurface) {
+      var container = goog.dom.createDom('next', null,
+          Blockly.Xml.blockToDom(nextBlock, opt_noId, opt_fromOutlineSurface));
+      element.appendChild(container);
+    //}
   }
   var shadow = block.nextConnection && block.nextConnection.getShadowDom();
   if (shadow && (!nextBlock || !nextBlock.isShadow())) {

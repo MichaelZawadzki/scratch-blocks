@@ -120,6 +120,7 @@ Blockly.BlocksSelection.prototype.startSelection = function(e, mouseDownXY) {
  * @package
  */
 Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
+  var doCallback = false;
   if(this.workspace_ && this.workspace_.blocksSelectionLayer) {
     // Make sure everything is up to date.
     this.updateSelection(currentDragDeltaXY);
@@ -133,9 +134,14 @@ Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
       else {
         Blockly.BlocksSelection.addMultipleToChosenBlocks(intersectedBlocks);
       }
+      doCallback = true;
 
       Blockly.BlocksSelection.createOutline();
     }
+  }
+
+  if(doCallback && Blockly.BlocksSelection.onAddChosenBlocksCallback) {
+    Blockly.BlocksSelection.onAddChosenBlocksCallback();
   }
 };
 
@@ -352,6 +358,44 @@ Blockly.BlocksSelection.isIntersecting = function (rectA, rectB) {
 Blockly.BlocksSelection.blocks = null;
 
 /**
+ * OB: Callback for when chosen blocks are cleared
+ */
+Blockly.BlocksSelection.onClearChosenBlocksCallback = null;
+
+/**
+ * OB: Callback for when blocks are added to chosen blocks
+ */
+Blockly.BlocksSelection.onAddChosenBlocksCallback = null;
+
+/**
+ * OB: Function to set the callback for when blocks are cleared
+ */
+Blockly.BlocksSelection.setOnclearChosenBlocksCallback = function (_fn) {
+  Blockly.BlocksSelection.onClearChosenBlocksCallback = _fn;
+};
+
+/**
+ * OB: Function to set the callback for when blocks are added
+ */
+Blockly.BlocksSelection.setOnAddChosenBlocksCallback = function (_fn) {
+  Blockly.BlocksSelection.onAddChosenBlocksCallback = _fn;
+};
+
+/**
+ * OB: Choose and outline just one block at a time.
+ * Used when clicking on a block.
+ * @param {!Blockly.Block} block The block to add.
+ */
+Blockly.BlocksSelection.selectOneBlock = function (_block) {
+  Blockly.BlocksSelection.addToChosenBlocks(_block, true);
+  Blockly.BlocksSelection.createOutline();
+
+  if(Blockly.BlocksSelection.onAddChosenBlocksCallback) {
+    Blockly.BlocksSelection.onAddChosenBlocksCallback();
+  }
+};
+
+/**
  * Are there any selected blocks
  */
 Blockly.BlocksSelection.hasBlocks = function () {
@@ -365,6 +409,7 @@ Blockly.BlocksSelection.hasBlocks = function () {
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */
 Blockly.BlocksSelection.clearChosenBlocks = function () {
+  var doCallback = false;
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     Blockly.BlocksSelection.removeOutline();
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
@@ -372,10 +417,13 @@ Blockly.BlocksSelection.clearChosenBlocks = function () {
         Blockly.BlocksSelection.blocks[i].setChosen(false);
       }
     }
+    doCallback = true;
   }
-  //Blockly.BlocksSelection.removeOutline();
-
   Blockly.BlocksSelection.blocks = null;
+
+  if(doCallback && Blockly.BlocksSelection.onClearChosenBlocksCallback) {
+    Blockly.BlocksSelection.onClearChosenBlocksCallback();
+  }
 };
 
 /**
@@ -868,3 +916,33 @@ Blockly.BlocksSelection.restoreAfterBottomHierarchy = function (bottomBlock) {
 /**
  * --- END - OUTLINING USING 'CHANGE SVG TREE' ---
  */
+
+
+/**
+ * Duplicate currently chosen blocks.
+ */
+Blockly.BlocksSelection.duplicateBlocks = function () {
+  if(Blockly.BlocksSelection.hasBlocks() === true) {
+    var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+    var duplicatedTopBlock = null;
+    var newBlocksList = null;
+    if(topBlock) {
+      duplicatedTopBlock = Blockly.duplicate_(topBlock, true);
+      if(duplicatedTopBlock) {
+        Blockly.BlocksSelection.clearChosenBlocks();
+        // We only have the block. Need to get all descendants of the top block.
+        newBlocksList = duplicatedTopBlock.getDescendants(false);
+        if(newBlocksList) {
+          // Add all blocks to chosen block list; the adding function will take care of not adding shadow blocks.
+          Blockly.BlocksSelection.addMultipleToChosenBlocks(newBlocksList);
+          // Create outline on new chosen block list
+          Blockly.BlocksSelection.createOutline();
+        }
+      }
+      
+      if(Blockly.BlocksSelection.onAddChosenBlocksCallback) {
+        Blockly.BlocksSelection.onAddChosenBlocksCallback();
+      }
+    }
+  }
+};
