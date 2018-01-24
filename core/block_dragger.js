@@ -451,6 +451,7 @@ Blockly.BlockDragger.prototype.maybeDeleteBlock_ = function() {
       currentBlock = this.draggingBlock_;
     }
     currentBlock.dispose(false, true);
+    Blockly.BlocksSelection.clearChosenBlocks();
   } else if (trashcan) {
     // Make sure the trash can is closed.
     trashcan.close();
