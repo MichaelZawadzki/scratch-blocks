@@ -409,7 +409,6 @@ Blockly.BlocksSelection.hasBlocks = function () {
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */
 Blockly.BlocksSelection.clearChosenBlocks = function () {
-  var doCallback = false;
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     Blockly.BlocksSelection.removeOutline();
     for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
@@ -421,7 +420,7 @@ Blockly.BlocksSelection.clearChosenBlocks = function () {
   }
   Blockly.BlocksSelection.blocks = null;
 
-  if(doCallback && Blockly.BlocksSelection.onClearChosenBlocksCallback) {
+  if(Blockly.BlocksSelection.onClearChosenBlocksCallback) {
     Blockly.BlocksSelection.onClearChosenBlocksCallback();
   }
 };
