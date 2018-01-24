@@ -416,7 +416,6 @@ Blockly.BlocksSelection.clearChosenBlocks = function () {
         Blockly.BlocksSelection.blocks[i].setChosen(false);
       }
     }
-    doCallback = true;
   }
   Blockly.BlocksSelection.blocks = null;
 
