@@ -576,20 +576,18 @@ Blockly.BlocksSelection.isDraggingChosenBlocks = function () {
 
 
 
-
-
 Blockly.BlocksSelection.initBlockDragging = function() {
   Blockly.BlocksSelection.removeOutline();
 };
 
 /**
  * Disconnects chosen blocks from previous/next un-chosen blocks
+ * OB TODO: When a block has children, it doesn't properly unplug them as the default 'unplug' does; but ideally, it should.
  */
-Blockly.BlocksSelection.unplugBlocks = function(opt_healStack, opt_saveConnections) {
-
+// Change this to take a list of blocks as parameter
+Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
     var blocksToUnplug = Blockly.BlocksSelection.blocks.slice(0, Blockly.BlocksSelection.blocks.length);
-  
     var prevTarget = null;
     var nextTarget = null;
     var currentBlock = null;
@@ -944,5 +942,37 @@ Blockly.BlocksSelection.duplicateBlocks = function () {
         Blockly.BlocksSelection.onAddChosenBlocksCallback();
       }
     }
+  }
+};
+
+/**
+ * Delete currently chosen blocks
+ * @param {!boolean} doAnimate Animate or not the blocks when deleting them.
+ * 
+ */
+Blockly.BlocksSelection.deleteBlocks = function(doAnimate) {
+  if(Blockly.BlocksSelection.hasBlocks() === true) {
+    var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+    var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
+    // Remove from outline surface, to make sure blocks' hierarchy is sane
+    Blockly.BlocksSelection.removeOutline();
+    // Unplug blocks to disconnect from previous/next
+    // OB HACK: when only one block is selected, we use the default unplug function
+    if(Blockly.BlocksSelection.blocks.length == 1) {
+      Blockly.BlocksSelection.blocks[0].unplug(true);
+    } else {
+      Blockly.BlocksSelection.unplugBlocks(true);
+    }
+    // Starting from the end, go backwards in block stack and delete blocks;
+    // we don't need to check to see if block is 'chosen', since we disconnected them earlier
+    var curBlock = bottomBlock;
+    var prevBlock = null;
+    while(curBlock) {
+      prevBlock = curBlock.getPreviousBlock();
+      curBlock.dispose(false, doAnimate);
+      curBlock = prevBlock;
+    }
+    // Clear chosen blocks list
+    Blockly.BlocksSelection.clearChosenBlocks();
   }
 };
