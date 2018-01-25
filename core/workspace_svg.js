@@ -1050,7 +1050,7 @@ Blockly.WorkspaceSvg.prototype.reportValue = function(id, value) {
  * Paste the provided block onto the workspace.
  * @param {!Element} xmlBlock XML block element.
  */
-Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
+Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock, opt_outlinedBlocks) {
   if (!this.rendered) {
     return;
   }
@@ -1069,40 +1069,50 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
       if (this.RTL) {
         blockX = -blockX;
       }
-      // Offset block until not clobbering another block and not in connection
-      // distance with neighbouring blocks.
-      do {
-        var collide = false;
-        var allBlocks = this.getAllBlocks();
-        for (var i = 0, otherBlock; otherBlock = allBlocks[i]; i++) {
-          var otherXY = otherBlock.getRelativeToSurfaceXY();
-          if (Math.abs(blockX - otherXY.x) <= 1 &&
-              Math.abs(blockY - otherXY.y) <= 1) {
-            collide = true;
-            break;
-          }
-        }
-        if (!collide) {
-          // Check for blocks in snap range to any of its connections.
-          var connections = block.getConnections_(false);
-          for (var i = 0, connection; connection = connections[i]; i++) {
-            var neighbour = connection.closest(Blockly.SNAP_RADIUS,
-                new goog.math.Coordinate(blockX, blockY));
-            if (neighbour.connection) {
+      // OB [CSI-748]
+      // If blocks pasted are a copy of the outlined blocks, i.e. from the 'duplicate' action,
+      // move them by a specific amount
+      if(opt_outlinedBlocks === true) {
+        blockX += Blockly.OUTLINED_DUPLICATE_BUMP;
+        blockY += Blockly.OUTLINED_DUPLICATE_BUMP;
+      }
+      else {
+        // Offset block until not clobbering another block and not in connection
+        // distance with neighbouring blocks.
+        do {
+          var collide = false;
+          var allBlocks = this.getAllBlocks();
+          for (var i = 0, otherBlock; otherBlock = allBlocks[i]; i++) {
+            var otherXY = otherBlock.getRelativeToSurfaceXY();
+            if (Math.abs(blockX - otherXY.x) <= 1 &&
+                Math.abs(blockY - otherXY.y) <= 1) {
               collide = true;
               break;
             }
           }
-        }
-        if (collide) {
-          if (this.RTL) {
-            blockX -= Blockly.SNAP_RADIUS;
-          } else {
-            blockX += Blockly.SNAP_RADIUS;
+          if (!collide) {
+            // Check for blocks in snap range to any of its connections.
+            var connections = block.getConnections_(false);
+            for (var i = 0, connection; connection = connections[i]; i++) {
+              var neighbour = connection.closest(Blockly.SNAP_RADIUS,
+                  new goog.math.Coordinate(blockX, blockY));
+              if (neighbour.connection) {
+                collide = true;
+                break;
+              }
+            }
           }
-          blockY += Blockly.SNAP_RADIUS * 2;
-        }
-      } while (collide);
+          collide = false;
+          if (collide) {
+            if (this.RTL) {
+              blockX -= Blockly.SNAP_RADIUS;
+            } else {
+              blockX += Blockly.SNAP_RADIUS;
+            }
+            blockY += Blockly.SNAP_RADIUS * 2;
+          }
+        } while (collide);
+      }
       block.moveBy(blockX, blockY);
     }
   } finally {

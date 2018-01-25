@@ -370,3 +370,12 @@ Blockly.PROCEDURES_PROTOTYPE_BLOCK_TYPE = 'procedures_prototype';
  * @const {string}
  */
 Blockly.PROCEDURES_CALL_BLOCK_TYPE = 'procedures_call';
+
+
+/**
+ * OB [CSI-748]
+ * How much to bump the newly created blocks when using the 'duplicate' functionality
+ * on outlined blocks
+ * @const
+ */
+Blockly.OUTLINED_DUPLICATE_BUMP = 30;

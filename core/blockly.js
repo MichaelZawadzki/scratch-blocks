@@ -232,8 +232,8 @@ Blockly.onKeyDown_ = function(e) {
  * @param {!Blockly.Block} block Block to be copied.
  * @private
  */
-Blockly.copy_ = function(block, opt_fromOutlineSurface) {
-  var xmlBlock = Blockly.Xml.blockToDom(block, false, opt_fromOutlineSurface);
+Blockly.copy_ = function(block, opt_outlinedBlocks) {
+  var xmlBlock = Blockly.Xml.blockToDom(block, false, opt_outlinedBlocks);
   // Encode start position in XML.
   var xy = block.getRelativeToSurfaceXY();
   xmlBlock.setAttribute('x', block.RTL ? -xy.x : xy.x);
@@ -247,14 +247,14 @@ Blockly.copy_ = function(block, opt_fromOutlineSurface) {
  * @param {!Blockly.Block} block Block to be copied.
  * @private
  */
-Blockly.duplicate_ = function(block, opt_fromOutlineSurface) {
+Blockly.duplicate_ = function(block, opt_outlinedBlocks) {
   // Save the clipboard.
   var clipboardXml = Blockly.clipboardXml_;
   var clipboardSource = Blockly.clipboardSource_;
   
   // Create a duplicate via a copy/paste operation.
-  Blockly.copy_(block, opt_fromOutlineSurface);
-  var newBlock = block.workspace.paste(Blockly.clipboardXml_);
+  Blockly.copy_(block, opt_outlinedBlocks);
+  var newBlock = block.workspace.paste(Blockly.clipboardXml_, opt_outlinedBlocks);
 
   // Restore the clipboard.
   Blockly.clipboardXml_ = clipboardXml;
