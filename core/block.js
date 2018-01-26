@@ -526,6 +526,19 @@ Blockly.Block.prototype.getChildrenStack = function (opt_ignoreShadows) {
 };
 
 /**
+ * Find the value inputs of this current block, and append them to an array
+ * @param {!Array.<!Blockly.Block>} Array of blocks
+ */
+Blockly.Block.prototype.addValueInputToArray = function(inputValueArray) {
+  for (var i = 0, input; input = this.inputList[i]; i++) {
+    if(input && input.connection && input.connection.type === Blockly.INPUT_VALUE 
+      && input.connection.targetConnection && input.connection.targetConnection.getSourceBlock()) {
+        inputValueArray.push(input.connection.targetConnection.getSourceBlock());
+      }
+  }
+};
+
+/**
  * Change the previous connection of a block to a new one.
  * Will do the disconnect of the block's previous connection,
  * and of the new previous block if it is connected, and will then connect the two.
