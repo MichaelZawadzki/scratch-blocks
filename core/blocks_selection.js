@@ -793,9 +793,6 @@ Blockly.BlocksSelection.changeChildrenSubstackHierarchy = function (topBlock, to
   if(!topBlock || !topParentSvg) {
     return;
   }
-
-  console.log("Changing hierarchy starting with " + topBlock.type);
-
   var curBlock = topBlock;
   var childrenBlocks = null;
   Blockly.BlocksSelection.relToEnclosing = [];
