@@ -796,6 +796,7 @@ Blockly.BlocksSelection.changeChildrenSubstackHierarchy = function (topBlock, to
   var curBlock = topBlock;
   var childrenBlocks = null;
   Blockly.BlocksSelection.relToEnclosing = [];
+  var inputBlocks = [];
   // For each block, check if it has children
   while(curBlock) {
     var childrenBlocks = curBlock.getChildren();
@@ -803,7 +804,12 @@ Blockly.BlocksSelection.changeChildrenSubstackHierarchy = function (topBlock, to
     if(childrenBlocks && childrenBlocks.length > 0) {
       for(var i = 0; i < childrenBlocks.length; i++) {
         curChildBlock = childrenBlocks[i];
-        if(curChildBlock && !curChildBlock.isShadow() && curBlock.getNextBlock() != curChildBlock && !Blockly.BlocksSelection.isInChosenBlocks(curChildBlock)) {
+        // Find the inputs of the current child block, and add them to the list;
+        // we don't want to change the SVG hierarchy for value input blocks [CSI-718]
+        curChildBlock.addValueInputToArray(inputBlocks);
+        // Should we move the current block's SVG?
+        if( curChildBlock && !curChildBlock.isShadow() && curBlock.getNextBlock() != curChildBlock 
+            && !Blockly.BlocksSelection.isInChosenBlocks(curChildBlock) && !inputBlocks.includes(curChildBlock) ) {
           // Find and remember x/y relative to parent block
           // Is there a way to just re-calculate this instead of remembering it?
           var xyToEnclosingBlock = curChildBlock.getRelativeToElementXY(curBlock.getSvgRoot());
@@ -877,13 +883,18 @@ Blockly.BlocksSelection.restoreSvgHierarchy = function () {
 Blockly.BlocksSelection.restoreChildrenSubstackHierarchy = function (topBlock) {
   var curBlock = topBlock;
   var childrenBlocks = null;
+  var inputBlocks = [];
   while(curBlock) {
     var childrenBlocks = curBlock.getChildren();
     var curChildBlock = null;
     if(childrenBlocks && childrenBlocks.length > 0) {
       for(var i = 0; i < childrenBlocks.length; i++) {
         curChildBlock = childrenBlocks[i];
-        if(curChildBlock && curChildBlock.isShadow() === false && curBlock.getNextBlock() != curChildBlock && Blockly.BlocksSelection.isInChosenBlocks(curChildBlock) === false) {
+        // Find the inputs of the current child block, and add them to the list;
+        // we didnt change the SVG hierarchy for value input blocks [CSI-718]
+        curChildBlock.addValueInputToArray(inputBlocks);
+        if( curChildBlock && curChildBlock.isShadow() === false && curBlock.getNextBlock() != curChildBlock 
+            && Blockly.BlocksSelection.isInChosenBlocks(curChildBlock) === false && inputBlocks.includes(curChildBlock) === false ) {
           curChildBlock.clearTransformAttributes_();
           curBlock.getSvgRoot().appendChild(curChildBlock.getSvgRoot());
           var relXY = Blockly.BlocksSelection.relToEnclosing.pop();
