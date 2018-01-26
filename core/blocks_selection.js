@@ -580,50 +580,71 @@ Blockly.BlocksSelection.initBlockDragging = function() {
 
 /**
  * Disconnects chosen blocks from previous/next un-chosen blocks
- * OB TODO: When a block has children, it doesn't properly unplug them as the default 'unplug' does; but ideally, it should.
  */
 // Change this to take a list of blocks as parameter
 Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
   if(Blockly.BlocksSelection.blocks && Blockly.BlocksSelection.blocks.length > 0) {
-    var blocksToUnplug = Blockly.BlocksSelection.blocks.slice(0, Blockly.BlocksSelection.blocks.length);
+    var topBlock = Blockly.BlocksSelection.getTopChosenBlock();
+    var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
     var prevTarget = null;
     var nextTarget = null;
-    var currentBlock = null;
-    for(var i = 0; i < blocksToUnplug.length; i++) {
-      currentBlock = blocksToUnplug[i];
-      if(currentBlock) {
-        // 1- Find block atop this one that is not 'chosen'; disconnect
-        var lastChosenAbove = currentBlock;
-        var prevBlock = lastChosenAbove.getPreviousBlock();
-        while(lastChosenAbove && prevBlock && prevBlock.isChosen_) {
-          lastChosenAbove = prevBlock;
-          prevBlock = lastChosenAbove.getPreviousBlock();
-        }
 
-        if(lastChosenAbove) {
-          if(lastChosenAbove.previousConnection && lastChosenAbove.previousConnection.isConnected()) {
-            prevTarget = lastChosenAbove.previousConnection.targetConnection;
-            lastChosenAbove.previousConnection.disconnect();
-          }
-        }
+    // First, disconnect the top chosen block from the block before it;
+    // also save the NEXT connection of the block before it
+    if(topBlock) {
+      if(topBlock.previousConnection && topBlock.previousConnection.isConnected()) {
+        prevTarget = topBlock.previousConnection.targetConnection;
+        topBlock.previousConnection.disconnect();
+      }
+    }
 
-        // 2- Find block below this one that is not 'chosen'; disconnect
-        var lastChosenBelow = currentBlock;
-        var nextBlock = lastChosenBelow.getNextBlock();
-        while(lastChosenBelow && nextBlock && nextBlock.isChosen_) {
-          lastChosenBelow = nextBlock;
-          nextBlock = lastChosenBelow.getNextBlock();
-        }
-
-        if(lastChosenBelow) {
-          if(lastChosenBelow.nextConnection && lastChosenBelow.nextConnection.isConnected()) {
-            nextTarget = lastChosenBelow.nextConnection.targetConnection;
-            lastChosenBelow.nextConnection.disconnect();
+    // OB [CSI-719] Go through substacks of blocks and disconnect them if they aren't also chosen
+    // Then, look at all chosen blocks and check to see if any of them have an inner substack (like an IF block)
+    // of non-chosen blocks;
+    for(var i = 0; i < Blockly.BlocksSelection.blocks.length; i++) {
+      var curBlock = Blockly.BlocksSelection.blocks[i];
+      var subStackBlocks = curBlock.getSubstackBlocks();
+      if(subStackBlocks && subStackBlocks.length > 0) {
+        // There can be multiple substacks, in the case of an if/else type of block
+        for(var j = 0; j < subStackBlocks.length; j++) {
+          var curSubStack = subStackBlocks[j];
+          if(curSubStack) {
+            var firstSubStackBlock = subStackBlocks[j].first;
+            var lastSubStackBlock = subStackBlocks[j].last;
+            // Is the first block of the substack chosen or not? If it isn't, disconnect it
+            // We assume that ALL or NONE of the blocks of the substack are chosen
+            if(firstSubStackBlock && firstSubStackBlock.isChosen_ === false) {
+              if(firstSubStackBlock.previousConnection && firstSubStackBlock.previousConnection.isConnected()) {
+                firstSubStackBlock.previousConnection.disconnect();
+                // If healing the stack, connect the first sub-stack block the last higher up non-chosen blocks
+                if(opt_healStack && prevTarget) {
+                  prevTarget.connect(firstSubStackBlock.previousConnection);
+                }
+              }
+              // Disconnect the last block of the stubstack
+              if(lastSubStackBlock.nextConnection && lastSubStackBlock.nextConnection.isConnected()) {
+                lastSubStackBlock.nextConnection.disconnect();
+              }
+              // If healing the stack, make the last substack block as the last higher up non-chosen block.
+              // That was, next non-chosen blocks can connect to this one
+              if(opt_healStack) {
+                prevTarget = lastSubStackBlock.nextConnection;
+              }
+            }
           }
         }
       }
     }
-
+    // Disconnect the bottom chosen block from its next block;
+    // also save the PREVIOUS connection of this next block so we can heal the stack
+    if(bottomBlock) {
+      if(bottomBlock.nextConnection && bottomBlock.nextConnection.isConnected()) {
+        nextTarget = bottomBlock.nextConnection.targetConnection;
+        bottomBlock.nextConnection.disconnect();
+      }
+    }
+    // Finally, if we heal the stack, connect the last previously found non-chosen block to the
+    // first non-chosen block after the bottom of the chosen list
     if(opt_healStack && prevTarget && nextTarget) {
       prevTarget.connect(nextTarget);
     }
