@@ -358,6 +358,10 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
    Blockly.Events.clearPendingUndo();
    Blockly.Events.enable();
   }
+  // OB [CSI-621] Update dotted lines after a drag if block snaps back
+  if(snappedBack) {
+    this.workspace_.updateHighlightLayer();
+  }
 
   if (this.workspace_.toolbox_) {
     this.workspace_.toolbox_.removeDeleteStyle();
