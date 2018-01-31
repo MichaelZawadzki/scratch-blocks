@@ -1004,5 +1004,8 @@ Blockly.BlocksSelection.deleteBlocks = function(doAnimate) {
     }
     // Clear chosen blocks list
     Blockly.BlocksSelection.clearChosenBlocks();
+
+    // OB [CSI-785] Update dotted lines after outlined block deletion
+    Blockly.BlocksSelection.workspace.updateHighlightLayer();
   }
 };
