@@ -748,10 +748,36 @@ Blockly.BlocksSelection.getTopBlocksInList = function (_blockList) {
  */
 Blockly.BlocksSelection.createOutline = function() {
   Blockly.BlocksSelection.changeSvgHierarchy();
+  Blockly.BlocksSelection.fireOutlineEvent(true);
 };
 
+/**
+ * Remove the outline
+ */
 Blockly.BlocksSelection.removeOutline = function() {
   Blockly.BlocksSelection.restoreSvgHierarchy();
+  Blockly.BlocksSelection.fireOutlineEvent(false);
+};
+
+/**
+ * UI event for creating outline / removing outline
+ */
+Blockly.BlocksSelection.fireOutlineEvent = function (isCreateOutline) {
+  // enable events
+  var eventsEnabled = Blockly.Events.isEnabled();
+  if(eventsEnabled === false) {
+    Blockly.Events.enable();
+  }
+
+  var event = new Blockly.Events.Ui(null, isCreateOutline ? 'createoutline' : 'removeoutline', undefined, undefined);
+  event.workspaceId = Blockly.BlocksSelection.workspace.id;
+  Blockly.Events.fire(event);
+  
+  // restore events state
+  if(eventsEnabled === false) {
+    Blockly.Events.disable();
+  }
+
 };
 
 
