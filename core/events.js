@@ -206,6 +206,14 @@ Blockly.Events.fireNow_ = function() {
   }
 };
 
+Blockly.Events.printQueue = function(queue) {
+  console.log("--- Event Queue start");
+  for (var i = 0, event; event = queue[i]; i++) {
+    console.log(event);
+  }
+  console.log(" Event Queue end ---");
+};
+
 /**
  * Filter the queued events and merge duplicates.
  * @param {!Array.<!Blockly.Events.Abstract>} queueIn Array of events.
