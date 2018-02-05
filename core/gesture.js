@@ -640,14 +640,7 @@ Blockly.Gesture.prototype.handleUp = function(e) {
 
   var shouldEndGesture = true;
   if (this.isDraggingBlock_) {
-    // OB TEMP: Can't end dragging of chosen blocks for now
-    // if(Blockly.BlocksSelection.isDraggingChosenBlocks()) {
-    //   shouldEndGesture = false;
-    // }
-    // else 
-    {
-      shouldEndGesture = this.shouldEndBlockDrag(e);
-    }
+    shouldEndGesture = this.shouldEndBlockDrag(e);
   }
   else if (this.isDraggingWorkspace_) {
     shouldEndGesture = this.shouldEndWorkspaceDrag(e);
@@ -683,8 +676,6 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     e.stopPropagation();
 
     this.dispose();
-
-
 
 
     if (this.isDraggingBlock_ && Blockly.BlocksSelection.isDraggingChosenBlocks()) {
