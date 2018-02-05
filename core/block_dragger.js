@@ -297,7 +297,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   // OB: When dragging multiple blocks, we night need to make sure we check all the blocks if they are procedures?
   var isDeletingProcDef = this.wouldDeleteBlock_ &&
       (this.draggingBlock_.type == Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE);
-  
+
   //this.draggingBlock_.moveOffDragSurface_(newLoc);
   currentBlock.moveOffDragSurface_(newLoc);
   

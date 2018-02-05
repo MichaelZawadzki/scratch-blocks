@@ -589,9 +589,13 @@ Blockly.BlocksSelection.unplugBlocks = function(opt_healStack) {
     var prevTarget = null;
     var nextTarget = null;
 
-    // First, disconnect the top chosen block from the block before it;
-    // also save the NEXT connection of the block before it
     if(topBlock) {
+      // First, disconnect from any superior block.
+      // OB [CSI-788]: If we don't disconnect input blocks from their superior block, wonky things happen
+      if (topBlock.outputConnection && topBlock.outputConnection.isConnected()) {
+        topBlock.outputConnection.disconnect();
+      }
+      // Also disconnect the top chosen block from the block before it
       if(topBlock.previousConnection && topBlock.previousConnection.isConnected()) {
         prevTarget = topBlock.previousConnection.targetConnection;
         topBlock.previousConnection.disconnect();
@@ -770,8 +774,11 @@ Blockly.BlocksSelection.fireOutlineEvent = function (isCreateOutline) {
   }
 
   var event = new Blockly.Events.Ui(null, isCreateOutline ? 'createoutline' : 'removeoutline', undefined, undefined);
-  event.workspaceId = Blockly.BlocksSelection.workspace.id;
-  Blockly.Events.fire(event);
+  // OB TEMP: Find workspace ID another way if current workspace is null
+  if(Blockly.BlocksSelection.workspace) {
+    event.workspaceId = Blockly.BlocksSelection.workspace.id;
+    Blockly.Events.fire(event);
+  }
   
   // restore events state
   if(eventsEnabled === false) {
@@ -811,7 +818,7 @@ Blockly.BlocksSelection.changeSvgHierarchy = function () {
     blockCanvasSvg = Blockly.BlocksSelection.workspace.getCanvas();
     topSvg = topBlock.getSvgRoot();
     topParentSvg = topSvg.parentNode;
-
+    
     // 1- Move non-chosen children out of chosen hierarchy
     Blockly.BlocksSelection.changeChildrenSubstackHierarchy(topBlock, topParentSvg);
     // 2- Move post chosen stack out of chosen hierarchy
@@ -823,6 +830,7 @@ Blockly.BlocksSelection.changeSvgHierarchy = function () {
     // OB: Don't translate the outline surface; instead, translate the top block inside the surface
     // Translating the surface was causing issues
     //Blockly.BlocksSelection.workspace.blocksOutlineSurface.translateSurface(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
+    //Blockly.BlocksSelection.surfaceTranslate = new goog.math.Coordinate(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
     Blockly.BlocksSelection.surfaceTranslate = new goog.math.Coordinate(xyToCanvas.x - xyToParent.x, xyToCanvas.y - xyToParent.y);
     topBlock.translateBy(Blockly.BlocksSelection.surfaceTranslate.x, Blockly.BlocksSelection.surfaceTranslate.y);
   }
