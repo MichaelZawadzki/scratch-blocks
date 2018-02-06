@@ -40,6 +40,7 @@ Blockly.BlocksSelection = function(workspace) {
    * @private
    */
   this.workspace_ = workspace;
+  Blockly.BlocksSelection.workspace = this.workspace_;
 
   // /**
   //  * The workspace's metrics object at the beginning of the drag.  Contains size
@@ -774,7 +775,6 @@ Blockly.BlocksSelection.fireOutlineEvent = function (isCreateOutline) {
   }
 
   var event = new Blockly.Events.Ui(null, isCreateOutline ? 'createoutline' : 'removeoutline', undefined, undefined);
-  // OB TEMP: Find workspace ID another way if current workspace is null
   if(Blockly.BlocksSelection.workspace) {
     event.workspaceId = Blockly.BlocksSelection.workspace.id;
     Blockly.Events.fire(event);
