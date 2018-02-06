@@ -212,6 +212,8 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
             } else if (orphanBlock.previousConnection) {
               orphanBlock.previousConnection.bumpAwayFrom_(parentConnection);
             }
+            // OB [CSI-514]: Bring the bumped out block to front, instead of having the connected block overlap it.
+            orphanBlock.bringToFront();
             Blockly.Events.setGroup(false);
           }
         }, Blockly.BUMP_DELAY);
