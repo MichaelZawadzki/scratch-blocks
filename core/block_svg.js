@@ -706,10 +706,11 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
 
   if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true && this.isConnectedToHatBlock() === true) {
       // only care about connection blocks.
-      if (this.nextConnection || this.previousConnection) {
+      if (this.nextConnection || this.previousConnection || this.forceTopLineSegmentHighlight === true || this.forceBottomLineSegmentHighlight === true)
+      {
         var blockRect = this.getBoundingRectangle();
         var subStacks = [];
-        if (this.previousConnection) {
+        if (this.previousConnection || this.forceTopLineSegmentHighlight === true) {
           blockHighlight.lineSegments.push(   //LINE AT TOP OF THE FIRST BLOCK
             {
               x : blockRect.topLeft.x,
@@ -744,7 +745,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
           
           if (substack.renderHeight) {
             // empty sub stack add the line.
-            if (!substack.connection.targetConnection) { 
+            if (!substack.connection.targetConnection || this.forceBottomLineSegmentHighlight === true) {
               offsetY = substack.connection.offsetInBlock_.y; //This is the height of the top of the 'C'
               blockHighlight.lineSegments.push(//LINE AT BOTTOM OF AN EMPTY C BLOCK
                 {
@@ -1766,4 +1767,12 @@ Blockly.BlockSvg.prototype.scheduleSnapAndBump = function() {
  */
 Blockly.BlockSvg.prototype.setIsConnectedToHatBlock = function(isConnected) {
   Blockly.BlockSvg.superClass_.setIsConnectedToHatBlock.call(this, isConnected);
+};
+
+Blockly.BlockSvg.prototype.setForceTopLineSegmentHighlight = function (force) {
+  Blockly.Block.prototype.forceTopLineSegmentHighlight = force;
+};
+
+Blockly.BlockSvg.prototype.setForceBottomLineSegmentHighlight = function (force) {
+  Blockly.Block.prototype.forceBottomLineSegmentHighlight = force;
 };

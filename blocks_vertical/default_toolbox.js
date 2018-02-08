@@ -30,6 +30,9 @@ goog.require('Blockly.Blocks');
 
 Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: none">'+
   '<category name="Motion" colour="#4C97FF" secondaryColour="#3373CC">'+
+
+    '<block type="event_whenflagclicked_animate" id="event_whenflagclicked_animate"></block>'+
+
     '<block type="motion_movesteps" id="motion_movesteps">'+
       '<value name="STEPS">'+
         '<shadow type="math_number">'+

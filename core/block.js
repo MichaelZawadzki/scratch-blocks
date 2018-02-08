@@ -313,6 +313,14 @@ Blockly.Block.prototype.colourQuaternary_ = undefined;
 Blockly.Block.prototype.colourQuaternaryAlt_ = undefined;
 
 /**
+ * Alternate quaternary colour of the block in '#RRGGBB' format.
+ * @type {string}
+ * @private
+ */
+Blockly.Block.prototype.forceTopLineSegmentHighlight = false;
+Blockly.Block.prototype.forceBottomLineSegmentHighlight = false;
+
+/**
  * Dispose of this block.
  * @param {boolean} healStack If true, then try to heal any gap by connecting
  *     the next statement with the previous statement.  Otherwise, dispose of
