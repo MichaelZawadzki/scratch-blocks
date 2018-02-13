@@ -61,6 +61,12 @@ Blockly.Workspace = function(opt_options) {
    */
   this.listeners_ = [];
 
+  /**
+   * @type {!Array.<!Function>}
+   * @private
+   */
+  this.undoRedoListeners_ = [];
+
   /** @type {!Array.<!Function>} */
   this.tapListeners_ = [];
 
@@ -137,6 +143,7 @@ Blockly.Workspace.prototype.refreshToolboxSelection_ = function() {
  */
 Blockly.Workspace.prototype.dispose = function() {
   this.listeners_.length = 0;
+  this.undoRedoListeners_.length = 0;
   this.clear();
   // Remove from workspace database.
   delete Blockly.Workspace.WorkspaceDB_[this.id];
@@ -403,6 +410,8 @@ Blockly.Workspace.prototype.undo = function(redo) {
   try {
     for (var i = 0, event; event = events[i]; i++) {
       event.run(redo);
+      this.fireUndoRedoChangeListener(event);
+      
     }
   }
   finally {
@@ -459,6 +468,26 @@ Blockly.Workspace.prototype.removeChangeListener = function(func) {
 };
 
 /**
+ * When an Undo or Redo makes this workspace change, call a function.
+ * @param {!Function} func Function to call.
+ * @return {!Function} Function that can be passed to
+ *     removeUndoRedoChangeListener.
+ */
+Blockly.Workspace.prototype.addUndoRedoChangeListener = function(func) {
+  this.undoRedoListeners_.push(func);
+  return func;
+};
+
+/**
+ * Stop listening for this workspace's undo/redo changes.
+ * @param {Function} func Function to stop calling.
+ */
+Blockly.Workspace.prototype.removeUndoRedoChangeListener = function(func) {
+  goog.array.remove(this.undoRedoListeners_, func);
+};
+
+
+/**
  * Fire a change event.
  * @param {!Blockly.Events.Abstract} event Event to fire.
  */
@@ -472,6 +501,19 @@ Blockly.Workspace.prototype.fireChangeListener = function(event) {
   }
   // Copy listeners in case a listener attaches/detaches itself.
   var currentListeners = this.listeners_.slice();
+  for (var i = 0, func; func = currentListeners[i]; i++) {
+    func(event);
+  }
+};
+
+
+/**
+ * Fire a change event for an UNDO/REDO action.
+ * @param {!Blockly.Events.Abstract} event Event to fire.
+ */
+Blockly.Workspace.prototype.fireUndoRedoChangeListener = function(event) {
+  // Copy listeners in case a listener attaches/detaches itself.
+  var currentListeners = this.undoRedoListeners_.slice();
   for (var i = 0, func; func = currentListeners[i]; i++) {
     func(event);
   }
