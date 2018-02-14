@@ -590,7 +590,7 @@ Blockly.Gesture.prototype.handleMove = function(e) {
   }
   else if (this.isSelectingBlocks_) {
 
-    if(this.startWorkspace_) {
+    if(this.startWorkspace_ && this.startWorkspace_.options.verticalScrollAtEdges === true) {
       // Right now, this only triggers when mouse is moved.
       // Find a way to call it every frame or every X seconds, until mouse is up again ?
       var wsDelta = this.startWorkspace_.maybeScrollWorkspaceVertical(e, this.currentDragDeltaXY_.y < 0, this.currentDragDeltaXY_.y > 0);

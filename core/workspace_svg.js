@@ -1838,9 +1838,6 @@ Blockly.WorkspaceSvg.prototype.scroll = function(x, y) {
 
   var scrollToX = -x - metrics.contentLeft;
   var scrollToY = -y - metrics.contentTop;
-
-  console.log("\t# Set scrollbar to x: " + scrollToX + "; y: " + scrollToY);
-
   this.scrollbar.set(scrollToX, scrollToY);
 };
 
