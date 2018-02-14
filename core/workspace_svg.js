@@ -477,8 +477,8 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       'fill' : '#ff0000',
       'stroke' : '#ff0000',
       'stroke-width' : '0',
-      'fill-opacity' : '0.3',
-      'stroke-opacity' : '0.3',
+      'fill-opacity' : '0', //'0.3',
+      'stroke-opacity' : '0', //'0.3',
       'class': 'scrollRect',
       'visibility' : 'visible',
     }, this.svgGroup_, this);
@@ -490,8 +490,9 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       'height': Blockly.WORKSPACE_EDGE_SCROLL_AREA_SIZE,
       'fill' : '#ff0000',
       'stroke' : '#ff0000',
-      'fill-opacity' : '0.3',
-      'stroke-opacity' : '0',
+      'stroke-width' : '0',
+      'fill-opacity' : '0', //'0.3',
+      'stroke-opacity' : '0', //'0',
       'class': 'scrollRect',
       'visibility' : 'visible',
     }, this.svgGroup_, this);
@@ -1352,15 +1353,9 @@ Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
     Blockly.WidgetDiv.hide(true);
     Blockly.DropDownDiv.hideWithoutAnimation();
 
-    console.log("Mouse wheel scroll, current scroll: "+ this.scrollX + " ; " + this.scrollY);
-    console.log("delta: "+ e.deltaX + " ; " + e.deltaY);
-
     var x = this.scrollX - e.deltaX;
     var y = this.scrollY - e.deltaY;
     this.startDragMetrics = this.getMetrics();
-
-    console.log("\tMetrics:");
-    console.log(this.startDragMetrics);
 
     if (this.options.hideHorizontalScrollbar === true) {
       x = undefined;
