@@ -468,14 +468,12 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
   }
   this.recordDeleteAreas();
 
-  if(Blockly.WorkspaceSvg.SCROLL_VERTICAL_AT_EDGES === true) {
-    //this.svgTopScrollArea_ = Blockly.utils.createSvgElement('g',
-    //  {'class': 'scrollArea top'}, this.svgGroup_, this);
+  if(this.options.verticalScrollAtEdges === true) {
     this.svgTopScrollArea = Blockly.utils.createSvgElement('rect',{
       'x': 0,
       'y': 0,
       'width': 0,
-      'height': 30,
+      'height': Blockly.WORKSPACE_EDGE_SCROLL_AREA_SIZE,
       'fill' : '#ff0000',
       'stroke' : '#ff0000',
       'stroke-width' : '0',
@@ -485,18 +483,11 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       'visibility' : 'visible',
     }, this.svgGroup_, this);
 
-    // var tempX = 302;
-    // var tempY = 0;
-    // var transform = 'translate(' + tempX + 'px,' + tempY + 'px)';
-    // Blockly.utils.setCssTransform(this.svgTopScrollArea_, transform);
-
-    // this.svgBottomScrollArea_ = Blockly.utils.createSvgElement('g',
-    //    {'class': 'scrollArea bottom'}, this.svgGroup_, this);
     this.svgBottomScrollArea = Blockly.utils.createSvgElement('rect',{
       'x': 0,
       'y': 0,
       'width': 0,
-      'height': 30,
+      'height': Blockly.WORKSPACE_EDGE_SCROLL_AREA_SIZE,
       'fill' : '#ff0000',
       'stroke' : '#ff0000',
       'fill-opacity' : '0.3',
@@ -504,19 +495,6 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       'class': 'scrollRect',
       'visibility' : 'visible',
     }, this.svgGroup_, this);
-
-    // tempX = 302;
-    // tempY = 630;
-    // transform = 'translate(' + tempX + 'px,' + tempY + 'px)';
-    // Blockly.utils.setCssTransform(this.svgBottomScrollArea_, transform);
-
-    // // Bind events to these areas
-    // Blockly.bindEventWithChecks_(topRect, 'mouseover', this,
-    //   this.onMouseOverScrollArea_);
-    // Blockly.bindEventWithChecks_(bottomRect, 'mouseover', this,
-    //   this.onMouseOverScrollArea_);
-
-
   }
 
 
@@ -732,11 +710,8 @@ Blockly.WorkspaceSvg.prototype.resize = function() {
     var height = this.getParentSvg().getAttribute("height");
     this.workspaceHighlightLayer.resize(width, height);
   }
-  if(Blockly.WorkspaceSvg.SCROLL_VERTICAL_AT_EDGES) {
-    //if(this.svgBottomScrollArea_)
-    {
+  if(this.options.verticalScrollAtEdges === true) {
       this.resizeScrollAreas();
-    }
   }
   this.updateScreenCalculations_();
 };
@@ -1300,13 +1275,6 @@ Blockly.WorkspaceSvg.prototype.onMouseOverScrollArea_ = function(e) {
  * @private
  */
 Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
-
-  // OB TEMP
-  if(Blockly.WorkspaceSvg.SCROLL_VERTICAL_AT_EDGES === true) {
-    //this.maybeScrollWorkspaceVertical(e);
-  }
-
-
   var isMultiTouch = (e.isMultiTouch === true);
   var gesture = this.getGesture(e);
   if (gesture) {
@@ -2329,24 +2297,8 @@ Blockly.WorkspaceSvg.prototype['setVisible'] =
 
 
 Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, checkTop, checkBottom) {
-
-  //var offset = this.getOriginOffsetInPixels();
-  //console.log("WS offset: "+ offset);
-  //console.log("Maybe scroll WS...");
-
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
       this.getInverseScreenCTM());
-  // console.log("Event point: ");
-  // console.log(e.clientX + "; " + e.clientY);
-  //console.log("\tsvg point: ");
-  //console.log(point);
-
-  // Fix scale of mouse event.
-  //point.x /= this.scale;
-  //point.y /= this.scale;
-
-  var SCROLL_SPEED = 3;//0.05;
-
   var x = 0;
   var y = 0;
   var deltaX = 0;
@@ -2361,28 +2313,21 @@ Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, check
   var bottomAreaY = this.svgBottomScrollArea.getAttribute('y');
   if(checkTop && point.x > topAreaX && point.y < topAreaY + topAreaHeight) {
     deltaX = 0;
-    deltaY = -SCROLL_SPEED;
+    deltaY = -Blockly.WORKSPACE_EDGE_SCROLL_SPEED;
   }
   else if(checkBottom && point.x > bottomAreaX && point.y > bottomAreaY) {
     deltaX = 0;
-    deltaY = SCROLL_SPEED;
+    deltaY = Blockly.WORKSPACE_EDGE_SCROLL_SPEED;
   }
 
   if(deltaX != 0 || deltaY != 0) {
     x = currentScrollX - deltaX;
     y = currentScrollY - deltaY;
-    console.log("delta: " + deltaX + " ; " + deltaY);
-    console.log("\tcurrent scroll: " + currentScrollX  + " ; " + currentScrollY);
     this.startDragMetrics = this.getMetrics();
-
-    //console.log("\tMetrics:");
-    //console.log(this.startDragMetrics);
 
     if (this.options.hideHorizontalScrollbar === true) {
       x = undefined;
     }
-
-    //console.log("---> Delta scroll: " + deltaX + " " + deltaY);
     this.scroll(x, y);
 
     if(currentScrollX == this.scrollX) {
@@ -2391,8 +2336,6 @@ Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, check
     if(currentScrollY == this.scrollY) {
       deltaY = 0;
     }
-
-    // need to cap it!
   }
 
   e.preventDefault();
@@ -2419,40 +2362,3 @@ Blockly.WorkspaceSvg.prototype.resizeScrollAreas = function () {
   this.svgBottomScrollArea.setAttribute('y', scrollAreaY);
   this.svgBottomScrollArea.setAttribute('width', scrollAreaWidth);
 };
-
-/*
-Blockly.WorkspaceDragger.prototype.drag = function(currentDragDeltaXY) {
-  var metrics = this.startDragMetrics_;
-  var newXY = goog.math.Coordinate.sum(this.startScrollXY_, currentDragDeltaXY);
-
-  // Bound the new XY based on workspace bounds.
-  var x = Math.min(newXY.x, -metrics.contentLeft);
-  var y = Math.min(newXY.y, -metrics.contentTop);
-  x = Math.max(x, metrics.viewWidth - metrics.contentLeft -
-               metrics.contentWidth);
-  y = Math.max(y, metrics.viewHeight - metrics.contentTop -
-               metrics.contentHeight);
-
-  x = -x - metrics.contentLeft;
-  y = -y - metrics.contentTop;
-
-  this.updateScroll_(x, y);
-};
-Blockly.WorkspaceDragger.prototype.updateScroll_ = function(x, y) {
-  
-  // [Amplify MMZ] - Option to disable hozizontal scrolling
-  if (this.workspace_.options.hideHorizontalScrollbar === true) {
-    x = undefined;
-  }
-
-  this.workspace_.scrollbar.set(x, y);
-};
-
-
-*/
-
-
-
-
-
-Blockly.WorkspaceSvg.SCROLL_VERTICAL_AT_EDGES = true;

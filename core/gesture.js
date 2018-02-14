@@ -585,40 +585,19 @@ Blockly.Gesture.prototype.handleMove = function(e) {
       // Set touch IDs to for workspace drag gesture
       this.setBlockDragTouchID(e);
     }
-
-    // OB: For some reason, this is making the workspace go crazy
-    // var wsDelta = new goog.math.Coordinate(0, 0);
-    // if(this.startWorkspace_) {
-    //   wsDelta = this.startWorkspace_.maybeScrollWorkspaceVertical(e);
-
-    //   // console.log("current delta: " + this.currentDragDeltaXY_);
-    //   // console.log("ws delta: " + wsDelta);
-    //   //this.currentDragDeltaXY_.x += wsDelta.x;
-    //   //this.currentDragDeltaXY_.y += wsDelta.y;
-
-    //   // console.log("final delta: " + this.currentDragDeltaXY_);
-    // }
-
     this.blockDragger_.dragBlock(this.mostRecentEvent_,
         this.currentDragDeltaXY_);
-
   }
   else if (this.isSelectingBlocks_) {
 
     if(this.startWorkspace_) {
       // Right now, this only triggers when mouse is moved.
-      // Find a way to call it every frame or every X seconds, until mouse is up again
+      // Find a way to call it every frame or every X seconds, until mouse is up again ?
       var wsDelta = this.startWorkspace_.maybeScrollWorkspaceVertical(e, this.currentDragDeltaXY_.y < 0, this.currentDragDeltaXY_.y > 0);
-
-      //console.log("Scroll WS");
-      //console.log("\tcurrent delta: " + this.currentDragDeltaXY_);
-
       this.mouseDownXY_.x -= wsDelta.x;
       this.mouseDownXY_.y -= wsDelta.y;
       this.currentDragDeltaXY_.x += wsDelta.x;
       this.currentDragDeltaXY_.y += wsDelta.y;
-
-      //console.log("\tnew delta: " + this.currentDragDeltaXY_);
     }
 
     this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
@@ -636,8 +615,6 @@ Blockly.Gesture.prototype.setBlockDragTouchID = function(e) {
     this.touchIDs_ = [];
     this.touchIDs_.push(e.changedTouches[0].identifier);
   }
-  //console.log("-> Setting BLOCK drag touch:");
-  //console.log(this.touchIDs_[0]);
 };
 
 /**
