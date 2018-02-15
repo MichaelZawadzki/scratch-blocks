@@ -118,6 +118,8 @@ Blockly.ScratchBlocks.VerticalExtensions.SHAPE_HAT_STATEMENT_END = function() {
   //this.setPreviousStatement(!true, null);
   this.setForceTopLineSegmentHighlight(!false);
   this.setForceBottomLineSegmentHighlight(true);
+
+  this.setDragKeepSubstack(true);
 };
 
 
