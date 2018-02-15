@@ -234,7 +234,7 @@ Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
  * Glow the workspace behind this particular block, to highlight it visually as if it's running.
  * @param {boolean} isGlowingBlock Whether the block should glow.
  */
-Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
+Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock, highlightCBlockEnd) {
   var highlightBlockObject = this.getBlockHighlightObject();
   var scale = this.workspace.scale;
   var width = this.workspace.getParentSvg().getAttribute("width"); //do NOT apply scale!
@@ -243,16 +243,25 @@ Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
   var visible = false; 
   var topY = 0;
   var height = 0;
-  
+  var lineIdxToHighlight;
   if(highlightBlockObject.lineSegments !== 'undefined' &&
      highlightBlockObject.lineSegments.length !== 0)
   {
     visible = isGlowingBlock;
-    topY = highlightBlockObject.lineSegments[0].y * scale;
-    height = Blockly.BlockSvg.MIN_BLOCK_Y * scale;
+    if(highlightCBlockEnd === true) {
+      lineIdxToHighlight = 2;
+      goog.asserts.assert(highlightBlockObject.lineSegments.length > lineIdxToHighlight, 'Not enough line segments to highlight');
+      topY = highlightBlockObject.lineSegments[lineIdxToHighlight].y * scale;
+      height = Blockly.BlockSvg.MIN_BLOCK_Y * scale;
+    }
+    else {
+      lineIdxToHighlight = 0;
+      topY = highlightBlockObject.lineSegments[lineIdxToHighlight].y * scale;
+      height = Blockly.BlockSvg.MIN_BLOCK_Y * scale;
+    }
   }
 
-  this.workspace.workspaceHighlightLayer.UpdateHighlightRect(visible, 0, topY, width, height);
+  this.workspace.workspaceHighlightLayer.updateHighlightRect(visible, 0, topY, width, height);
 };
 
 /**
@@ -710,10 +719,11 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
 
   if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true && this.isConnectedToHatBlock() === true) {
       // only care about connection blocks.
-      if (this.nextConnection || this.previousConnection || this.forceTopLineSegmentHighlight === true || this.forceBottomLineSegmentHighlight === true)
-      {
+      if (this.nextConnection || this.previousConnection || 
+         this.forceTopLineSegmentHighlight === true || this.forceBottomLineSegmentHighlight === true) {
         var blockRect = this.getBoundingRectangle();
         var subStacks = [];
+        // If block has a previous connection, or if we explicitely force it to have dotted lines at the top, add lines
         if (this.previousConnection || this.forceTopLineSegmentHighlight === true) {
           blockHighlight.lineSegments.push(   //LINE AT TOP OF THE FIRST BLOCK
             {
@@ -723,7 +733,7 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
         }
     
         // always render the last line
-        if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) {
+        if (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection) || this.forceBottomLineSegmentHighlight === true) {
           var bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
           blockHighlight.lineSegments.push( // VERY LAST LINE
             {
@@ -1774,9 +1784,9 @@ Blockly.BlockSvg.prototype.setIsConnectedToHatBlock = function(isConnected) {
 };
 
 Blockly.BlockSvg.prototype.setForceTopLineSegmentHighlight = function (force) {
-  Blockly.Block.prototype.forceTopLineSegmentHighlight = force;
+  this.forceTopLineSegmentHighlight = force;
 };
 
 Blockly.BlockSvg.prototype.setForceBottomLineSegmentHighlight = function (force) {
-  Blockly.Block.prototype.forceBottomLineSegmentHighlight = force;
+  this.forceBottomLineSegmentHighlight = force;
 };

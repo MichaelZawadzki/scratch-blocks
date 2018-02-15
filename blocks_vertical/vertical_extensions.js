@@ -116,7 +116,7 @@ Blockly.ScratchBlocks.VerticalExtensions.SHAPE_HAT_STATEMENT_END = function() {
   this.setInputsInline(true);
   //this.setNextStatement(true, null);
   //this.setPreviousStatement(!true, null);
-  this.setForceTopLineSegmentHighlight(!false);
+  this.setForceTopLineSegmentHighlight(false);
   this.setForceBottomLineSegmentHighlight(true);
 
   this.setDragKeepSubstack(true);

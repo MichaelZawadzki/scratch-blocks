@@ -321,8 +321,8 @@ Blockly.Block.prototype.colourQuaternary_ = undefined;
 Blockly.Block.prototype.colourQuaternaryAlt_ = undefined;
 
 /**
- * Alternate quaternary colour of the block in '#RRGGBB' format.
- * @type {string}
+ * OB: Explicitly force the block to have dotted lines above or below it, no matter what
+ * @type {boolean}
  * @private
  */
 Blockly.Block.prototype.forceTopLineSegmentHighlight = false;
