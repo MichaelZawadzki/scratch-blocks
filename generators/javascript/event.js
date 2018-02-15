@@ -38,20 +38,4 @@ Blockly.JavaScript['event_whenflagclicked_animate'] = function(block) {
 
   var code = 'flagClicked();\n{\n' + branch + '}\n';
   return code;
-
-
-/*
-  // Get substack
-  var branch = Blockly.JavaScript.statementToCode(block, 'SUBSTACK');
-  branch = Blockly.JavaScript.addLoopTrap(branch, block.id);
-
-  // Make the code
-  var code = '';
-  var loopVar = Blockly.JavaScript.variableDB_.getDistinctName('count', Blockly.Variables.NAME_TYPE);
-  
-  code += 'while (true) {\n' + branch + '}\n';
-
-  return code;
-*/
-
 };

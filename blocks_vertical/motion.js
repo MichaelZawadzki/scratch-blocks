@@ -27,39 +27,6 @@ goog.require('Blockly.Colours');
 goog.require('Blockly.constants');
 goog.require('Blockly.ScratchBlocks.VerticalExtensions');
 
-Blockly.Blocks['event_whenflagclicked_animate'] = {
-  init: function() {
-    this.jsonInit({
-      "id": "event_whenflagclicked_animate",
-      "message0": "when Play clicked",
-      "message1": "%1", // Statement
-      "message2": "%1", // Icon
-      //"lastDummyAlign2": "RIGHT",
-      "args1": [
-        {
-          "type": "input_statement",
-          "name": "SUBSTACK"
-        }
-      ],
-      "args2": [
-        {
-          "type": "field_label",
-          "text": "animate",
-        },
-        // {
-        //       "type": "field_image",
-        //       "src": Blockly.mainWorkspace.options.pathToMedia + "repeat.svg",
-        //       "width": 54,
-        //       "height": 54,
-        // }
-      ],
-
-      "category": Blockly.Categories.motion,
-      "extensions": ["colours_event", "shape_hat_statement_end"]
-    });
-  }
-};
-
 Blockly.Blocks['motion_movesteps'] = {
   /**
    * Block to move steps.
