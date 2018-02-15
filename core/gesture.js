@@ -589,9 +589,17 @@ Blockly.Gesture.prototype.handleMove = function(e) {
         this.currentDragDeltaXY_);
   }
   else if (this.isSelectingBlocks_) {
-    //if(wasSelectingBlocks === false) {
-    // OB: Register touch IDs
-    //}
+
+    if(this.startWorkspace_ && this.startWorkspace_.options.verticalScrollAtEdges === true) {
+      // Right now, this only triggers when mouse is moved.
+      // Find a way to call it every frame or every X seconds, until mouse is up again ?
+      var wsDelta = this.startWorkspace_.maybeScrollWorkspaceVertical(e, this.currentDragDeltaXY_.y < 0, this.currentDragDeltaXY_.y > 0);
+      this.mouseDownXY_.x -= wsDelta.x;
+      this.mouseDownXY_.y -= wsDelta.y;
+      this.currentDragDeltaXY_.x += wsDelta.x;
+      this.currentDragDeltaXY_.y += wsDelta.y;
+    }
+
     this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
   }
   e.preventDefault();
@@ -607,8 +615,6 @@ Blockly.Gesture.prototype.setBlockDragTouchID = function(e) {
     this.touchIDs_ = [];
     this.touchIDs_.push(e.changedTouches[0].identifier);
   }
-  //console.log("-> Setting BLOCK drag touch:");
-  //console.log(this.touchIDs_[0]);
 };
 
 /**

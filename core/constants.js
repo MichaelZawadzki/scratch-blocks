@@ -381,7 +381,6 @@ Blockly.PROCEDURES_PROTOTYPE_BLOCK_TYPE = 'procedures_prototype';
  */
 Blockly.PROCEDURES_CALL_BLOCK_TYPE = 'procedures_call';
 
-
 /**
  * OB [CSI-748]
  * How much to bump the newly created blocks when using the 'duplicate' functionality
@@ -389,3 +388,17 @@ Blockly.PROCEDURES_CALL_BLOCK_TYPE = 'procedures_call';
  * @const
  */
 Blockly.OUTLINED_DUPLICATE_BUMP = 30;
+
+/**
+ * OB [CSI-804]
+ * Size of the area where a scroll is detected, at the top of the workspace
+ * @const
+ */
+Blockly.WORKSPACE_EDGE_SCROLL_AREA_SIZE = 40;
+
+/**
+ * OB [CSI-804]
+ * Speed of workspace scrolling
+ * @const
+ */
+Blockly.WORKSPACE_EDGE_SCROLL_SPEED = 3;

@@ -158,6 +158,7 @@ Blockly.Options = function(options) {
   this.preventWorkspaceDragging = options['preventWorkspaceDragging'];
   this.multiTouchScroll = options['multiTouchScroll'];
   this.dragSingleBlock = options['dragSingleBlock'];
+  this.verticalScrollAtEdges = options['verticalScrollAtEdges'];
 
   // OB: Special option: new font. Directly set the CSS constant
   Blockly.Css.font = options['font'];
