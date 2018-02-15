@@ -201,6 +201,7 @@ Blockly.BlockSvg.prototype.select = function() {
   Blockly.selected = this;
   this.addSelect();
 
+  console.log("Select: " + this.type);
   // OB [CSI-671]: Clicking on a block sets it as 'chosen' and creates the highlight 
   if(this.canChoose() && this.workspace.locked === false && this.workspace.blocksSelectionLayer && Blockly.BlocksSelection.hasBlocks() === false) {
     Blockly.BlocksSelection.selectOneBlock(this);
