@@ -654,6 +654,16 @@ Blockly.Gesture.prototype.handleUp = function(e) {
   else if (this.isSelectingBlocks_) {
     shouldEndGesture = this.shouldEndSelectingBlocks(e);
   }
+  // OB [CSI-811]: Outline this block when other blocks were outline, but there was no actual drag of anything performed
+  else if(this.startBlock_) {
+    if(Blockly.BlocksSelection.hasBlocks() && Blockly.BlocksSelection.getNumBlocks() > 1) {
+      Blockly.BlocksSelection.clearChosenBlocks();
+      // We need to explicitly uneselect the block, because it was already set as selected
+      this.startBlock_.unselect();
+      this.startBlock_.select();
+    }
+    //this.startBlock_.select();
+  }
   this.isEnding_ = shouldEndGesture;
 
   if(this.isEnding_ === true) {
