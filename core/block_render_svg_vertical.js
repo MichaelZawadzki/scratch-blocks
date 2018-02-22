@@ -651,16 +651,18 @@ Blockly.BlockSvg.prototype.highlightShapeForInput = function(conn, add) {
  * and any blocks stacked below it.
  * @return {!{height: number, width: number}} Object with height and width properties.
  */
-Blockly.BlockSvg.prototype.getHeightWidth = function() {
+Blockly.BlockSvg.prototype.getHeightWidth = function(opt_thisBlockOnly) {
   var height = this.height;
   var width = this.width;
-  // Recursively add size of subsequent blocks.
-  var nextBlock = this.getNextBlock();
-  if (nextBlock) {
-    var nextHeightWidth = nextBlock.getHeightWidth();
-    height += nextHeightWidth.height;
-    height -= Blockly.BlockSvg.NOTCH_HEIGHT; // Exclude height of connected notch.
-    width = Math.max(width, nextHeightWidth.width);
+  if(!opt_thisBlockOnly) {
+    // Recursively add size of subsequent blocks.
+    var nextBlock = this.getNextBlock();
+    if (nextBlock) {
+      var nextHeightWidth = nextBlock.getHeightWidth();
+      height += nextHeightWidth.height;
+      height -= Blockly.BlockSvg.NOTCH_HEIGHT; // Exclude height of connected notch.
+      width = Math.max(width, nextHeightWidth.width);
+    }
   }
   return {height: height, width: width};
 };

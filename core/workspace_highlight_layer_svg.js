@@ -192,15 +192,21 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
     for(b = 0; b < lineSegmentsInfo[i].lineSegments.length; b++) {
       var lineSegment = lineSegmentsInfo[i].lineSegments[b];
 
-      // skip the new line if there is a line already occupying the Y position.
-      if (previousY !== lineSegment.y) {
+      // OB Skip this test for now... TODO Fix it
+      // // skip the new line if there is a line already occupying the Y position.
+      // if (previousY !== lineSegment.y)
+      {
         this.lineSegments_[lineIndex].setAttribute('y1', lineSegment.y);
         this.lineSegments_[lineIndex].setAttribute('y2', lineSegment.y);
         this.lineSegments_[lineIndex].setAttribute('x2', lineSegment.width);
-        this.lineSegments_[lineIndex].setAttribute('visibility', 'visible');
+        var visibility = (lineSegment.visible ? 'visible' : 'hidden');
+        this.lineSegments_[lineIndex].setAttribute('visibility', visibility);
+
         previousY = lineSegment.y;
+        //prevVisible = lineSegment.visible;
         lineIndex +=1;
       }
+
     }
   }
   
