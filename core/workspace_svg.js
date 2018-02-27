@@ -952,6 +952,7 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
     var width = this.getParentSvg().getAttribute("width");
     for(var j = 0; j < activeBlocks.length; j++) {
       var blockHighlight = activeBlocks[j].getBlockHighlightObject();
+
       for(var i = 0; i < blockHighlight.lineSegments.length; i++) {
         blockHighlight.lineSegments[i].x *= this.scale;
         blockHighlight.lineSegments[i].y *= this.scale;
