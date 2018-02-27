@@ -1028,7 +1028,7 @@ Blockly.BlockSvg.prototype.computeInputHeight_ = function(input, row,
     return Blockly.BlockSvg.MIN_STATEMENT_INPUT_HEIGHT;
   } else if (previousRow && previousRow.type == Blockly.NEXT_STATEMENT) {
     // Extra row for below statement input.
-    return Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y;
+    return (this.extendEnd ? Blockly.BlockSvg.MIN_BLOCK_Y : Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y);
   } else {
     // If this is an extension block, and it has a previous connection,
     // make it taller.

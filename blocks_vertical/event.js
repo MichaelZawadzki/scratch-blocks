@@ -70,7 +70,7 @@ Blockly.Blocks['event_whenflagclicked_animate'] = {
         // }
       ],
 
-      "category": Blockly.Categories.motion,
+      "category": Blockly.Categories.event,
       "extensions": ["colours_event", "shape_hat_statement_end"]
     });
   }
