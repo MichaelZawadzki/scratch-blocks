@@ -733,18 +733,20 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     var blockRect = this.getBoundingRectangle(true);
     var subStacks = [];
 
-    // 1- LINE AT TOP OF THE BLOCK
+    // 1- Line at the top of the block
+    var displayTop = 
+        ((this.isInsertionMarker() === false || this.isInsertionMarker() === true && isPrevBlockConnected) && (this.previousConnection !== null))
+        || this.forceTopLineSegmentHighlight;
     blockHighlight.lineSegments.push(
       {
         x : blockRect.topLeft.x,
         y : blockRect.topLeft.y,
-        visible: (this.previousConnection !== null) || this.forceTopLineSegmentHighlight // only display if it is connected to a previous block
+        visible: displayTop
       });
       
     // 2- Look at inputs of block, if any
     for(var i = 0; i < this.inputList.length; i++) {
       var input = this.inputList[i];
-      
       // Render substack lines if:
       // - The block's input type is Blockly.NEXT_STATEMENT (ex: inside a C-shaped block)
       // - It is a a normal block OR it is an insertion marker that is connected to a block above and below it.
@@ -783,11 +785,11 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
 
     // 3- The line at the bottom of the block.
     // Display it if:
+    // - It has a next connection
     // - It is a normal block OR if it is an insertion marker that is connected to a block below it
     // - It is a normal block and it isn't connected to a block below it (it would be the last line of the block stack)
     var displayBottom = 
-        ( this.isInsertionMarker() === false || this.isInsertionMarker() === true
-          && isNextBlockConnected) && (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection) ) 
+        ((this.isInsertionMarker() === false || this.isInsertionMarker() === true && isNextBlockConnected) && (this.nextConnection && !this.nextConnection.targetConnection))
         || this.forceBottomLineSegmentHighlight === true;
     var bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
       // VERY LAST LINE OF THE BLOCK
