@@ -49,8 +49,7 @@ Blockly.Blocks['event_whenflagclicked_animate'] = {
       "id": "event_whenflagclicked_animate",
       "message0": "when Play clicked",
       "message1": "%1", // Statement
-      "message2": "%1", // Icon
-      //"lastDummyAlign2": "RIGHT",
+      "message2": "%1", // End label
       "args1": [
         {
           "type": "input_statement",
@@ -62,14 +61,7 @@ Blockly.Blocks['event_whenflagclicked_animate'] = {
           "type": "field_label",
           "text": "animate",
         },
-        // {
-        //       "type": "field_image",
-        //       "src": Blockly.mainWorkspace.options.pathToMedia + "repeat.svg",
-        //       "width": 54,
-        //       "height": 54,
-        // }
       ],
-
       "category": Blockly.Categories.event,
       "extensions": ["colours_event", "shape_hat_statement_end"]
     });
