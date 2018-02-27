@@ -959,6 +959,7 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
       }
       lineSegmentInfo.push(blockHighlight);
     }
+
     this.workspaceHighlightLayer.updateHighlightLayer(lineSegmentInfo);
   }
 };

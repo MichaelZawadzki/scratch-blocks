@@ -233,6 +233,8 @@ Blockly.InsertionMarkerManager.prototype.update = function(dxy, deleteArea) {
     this.maybeHidePreview_(candidate);
     this.maybeShowPreview_(candidate);
     Blockly.Events.enable();
+    // OB [CSI-797]: Update highlight layer when insertion marker gets updated
+    this.workspace_.updateHighlightLayer();
   }
 };
 
