@@ -225,7 +225,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
  * @param {!element} width, width of the workspace.
  * @param {!element} height, height of the highlighted block.
  */
-Blockly.WorkspaceHighlightLayerSvg.prototype.UpdateHighlightRect = function(visible, x, y, width, height)
+Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightRect = function(visible, x, y, width, height)
 {
   if(visible){
     this.highlightRect_.setAttribute('visibility', 'visible');

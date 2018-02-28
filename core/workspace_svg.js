@@ -1051,11 +1051,24 @@ Blockly.WorkspaceSvg.prototype.glowBlockBG = function(id, isGlowingBlock) {
       throw 'Tried to glow block bg that does not exist.';
     }
     block.setGlowBlockBG(isGlowingBlock);
-  }else if(isGlowingBlock == false)
-  {
-    this.workspaceHighlightLayer.UpdateHighlightRect(false);
   }
- 
+  else if(isGlowingBlock == false) {
+    this.workspaceHighlightLayer.updateHighlightRect(false);
+  }
+};
+
+Blockly.WorkspaceSvg.prototype.glowCBlockEnd = function(id, isGlowingBlock) {
+  var block = null;
+  if (id) {
+    block = this.getBlockById(id);
+    if (!block) {
+      throw 'Tried to glow c-block end bg that does not exist.';
+    }
+    block.setGlowBlockBG(isGlowingBlock, true);
+  }
+  else if(isGlowingBlock == false) {
+    this.workspaceHighlightLayer.updateHighlightRect(false);
+  }
 };
 
 /**

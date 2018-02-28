@@ -234,7 +234,7 @@ Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
  * Glow the workspace behind this particular block, to highlight it visually as if it's running.
  * @param {boolean} isGlowingBlock Whether the block should glow.
  */
-Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
+Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock, highlightCBlockEnd) {
   var highlightBlockObject = this.getBlockHighlightObject();
   var scale = this.workspace.scale;
   var width = this.workspace.getParentSvg().getAttribute("width"); //do NOT apply scale!
@@ -243,17 +243,22 @@ Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock) {
   var visible = false; 
   var topY = 0;
   var height = 0;
-  
+  var lineIdxToHighlight;
   if(highlightBlockObject.lineSegments !== 'undefined' &&
      highlightBlockObject.lineSegments.length > 1)
   {
     visible = isGlowingBlock;
-    topY = highlightBlockObject.lineSegments[0].y * scale;
-    height = (highlightBlockObject.lineSegments[1].y - highlightBlockObject.lineSegments[0].y) * scale;
+    if(highlightCBlockEnd === true) {
+      lineIdxToHighlight = 2;
+    }
+    else {
+      lineIdxToHighlight = 0;
+    }
+
+    topY = highlightBlockObject.lineSegments[lineIdxToHighlight].y * scale;
+    height = (highlightBlockObject.lineSegments[lineIdxToHighlight + 1].y - highlightBlockObject.lineSegments[lineIdxToHighlight].y) * scale;
+    this.workspace.workspaceHighlightLayer.updateHighlightRect(visible, 0, topY, width, height);
   }
-
-
-  this.workspace.workspaceHighlightLayer.UpdateHighlightRect(visible, 0, topY, width, height);
 };
 
 /**
@@ -281,6 +286,10 @@ Blockly.BlockSvg.prototype.setChosen = function(isChosen) {
   } else {
     this.removeChosen();
   }
+};
+
+Blockly.BlockSvg.prototype.setDragKeepSubstack = function(_keepSubStack) {
+  this.dragKeepSubStack_ = _keepSubStack;
 };
 
 /**
@@ -716,96 +725,82 @@ Blockly.BlockSvg.prototype.getBlockHighlightObject = function() {
     }
   }
 
-  if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging') && this.rendered === true && (this.isConnectedToHatBlock() === true || createLinesForMarkerBlock))  {
-      // only care about connection blocks.
-      if ( (this.isInsertionMarker() === false || this.isInsertionMarker() === true && isPrevBlockConnected)
-          &&
-          (this.nextConnection || this.previousConnection) ) {
-        var blockRect = this.getBoundingRectangle(true);
-        var subStacks = [];
-        // LINE AT TOP OF THE BLOCK
-        blockHighlight.lineSegments.push(
+  if (!Blockly.utils.hasClass(/** @type {!Element} */ (this.svgGroup_), 'blocklyDragging')
+      && this.rendered === true 
+      && (this.isConnectedToHatBlock() === true || createLinesForMarkerBlock)
+      && this.isShadow() === false)  {
+
+    var blockRect = this.getBoundingRectangle(true);
+    var subStacks = [];
+
+    // 1- Line at the top of the block
+    var displayTop = 
+        ((this.isInsertionMarker() === false || this.isInsertionMarker() === true && isPrevBlockConnected) && (this.previousConnection !== null))
+        || this.forceTopLineSegmentHighlight;
+    blockHighlight.lineSegments.push(
+      {
+        x : blockRect.topLeft.x,
+        y : blockRect.topLeft.y,
+        visible: displayTop
+      });
+      
+    // 2- Look at inputs of block, if any
+    for(var i = 0; i < this.inputList.length; i++) {
+      var input = this.inputList[i];
+      // Render substack lines if:
+      // - The block's input type is Blockly.NEXT_STATEMENT (ex: inside a C-shaped block)
+      // - It is a a normal block OR it is an insertion marker that is connected to a block above and below it.
+      if (input.type === Blockly.NEXT_STATEMENT 
+        && (this.isInsertionMarker() === false || this.isInsertionMarker() === true && isPrevBlockConnected && isNextBlockConnected)
+        ) {
+        subStacks.push(input);
+      }
+    }
+  
+    var offsetY = TOP_OFFSET;
+    // go through all the substacks and add lines where appropriate.
+    for(var j = 0; j < subStacks.length; j++) {
+      var substack = subStacks[j];
+      if (substack.renderHeight) {
+        offsetY = substack.connection.offsetInBlock_.y; //This is the height of the top of the 'C'
+        blockHighlight.lineSegments.push(//LINE AT BOTTOM OF AN EMPTY C BLOCK
           {
             x : blockRect.topLeft.x,
-            y : blockRect.topLeft.y,
-            visible: (this.previousConnection !== null) // only display if it is connected to a previous block
+            y : blockRect.topLeft.y + offsetY,
+            visible: !substack.connection.targetConnection
           });
-            
-        
-        // Look at inputs of block
-        for(var i = 0; i < this.inputList.length; i++) {
-          var input = this.inputList[i];
-          // Render substack lines if:
-          // - The block's input type is Blockly.NEXT_STATEMENT (ex: inside a C-shaped block)
-          // - It is a a normal block OR it is an insertion marker that is connected to a block above and below it.
-          if (input.type === Blockly.NEXT_STATEMENT 
-            && (this.isInsertionMarker() === false || this.isInsertionMarker() === true && isPrevBlockConnected && isNextBlockConnected)
-            ) {
-            subStacks.push(input);
-          }
-        }
-    
-        var offsetY = TOP_OFFSET;
-        
-        // go through all the substacks and add lines where appropriate.
-        for(var j = 0; j < subStacks.length; j++) {
-          var substack = subStacks[j];
-          
-          if (substack.renderHeight) {
-            offsetY = substack.connection.offsetInBlock_.y; //This is the height of the top of the 'C'
-            blockHighlight.lineSegments.push(//LINE AT BOTTOM OF AN EMPTY C BLOCK
-              {
-                x : blockRect.topLeft.x,
-                y : blockRect.topLeft.y + offsetY,
-                visible: !substack.connection.targetConnection
-              });
-    
-            offsetY += substack.renderHeight;
-    
-            blockHighlight.lineSegments.push( //LINE AT TOP OF THE BOTTOM OF THE 'C'
-              {
-                x : blockRect.topLeft.x,
-                y : blockRect.topLeft.y + offsetY,
-                visible: !substack.connection.targetConnection
-              });
-    
-            offsetY += EMPTY_CONTROL_BLOCK_PADDING;
-          }
-        }
 
+        offsetY += substack.renderHeight;
 
-    
-        // Render the line at the bottom of the block.
-        // Render it if:
-        // - It is a normal block OR if it is an insertion marker that is connected to a block below it
-        // - It is a normal block and it isn't connected to a block below it (it would be the last line of the block stack)
-        var bottomOffset;
-        if ( (this.isInsertionMarker() === false || this.isInsertionMarker() === true && isNextBlockConnected)
-            && 
-            (!this.nextConnection || (this.nextConnection && !this.nextConnection.targetConnection)) ) {
-          bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
-           // VERY LAST LINE OF THE BLOCK
-          blockHighlight.lineSegments.push(
-            {
-              x : blockRect.bottomRight.x,
-              y : blockRect.bottomRight.y - bottomOffset,
-              visible: true
-            });
-        }
-        else {
-          bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
-          // VERY LAST LINE OF THE BLOCK
-          blockHighlight.lineSegments.push(
-            {
-              x : blockRect.bottomRight.x,
-              y : blockRect.bottomRight.y - bottomOffset,
-              visible: false
-            });
-        }
+        blockHighlight.lineSegments.push( //LINE AT TOP OF THE BOTTOM OF THE 'C'
+          {
+            x : blockRect.topLeft.x,
+            y : blockRect.topLeft.y + offsetY,
+            visible: !substack.connection.targetConnection
+          });
 
+        offsetY += EMPTY_CONTROL_BLOCK_PADDING;
       }
     }
 
+    // 3- The line at the bottom of the block.
+    // Display it if:
+    // - It has a next connection
+    // - It is a normal block OR if it is an insertion marker that is connected to a block below it
+    // - It is a normal block and it isn't connected to a block below it (it would be the last line of the block stack)
+    var displayBottom = 
+        ((this.isInsertionMarker() === false || this.isInsertionMarker() === true && isNextBlockConnected) && (this.nextConnection && !this.nextConnection.targetConnection))
+        || this.forceBottomLineSegmentHighlight === true;
+    var bottomOffset = this.nextConnection ? Blockly.BlockSvg.NOTCH_HEIGHT : 0;
+      // VERY LAST LINE OF THE BLOCK
+    blockHighlight.lineSegments.push(
+      {
+        x : blockRect.bottomRight.x,
+        y : blockRect.bottomRight.y - bottomOffset,
+        visible: displayBottom
+      });
+    }
+    
   return blockHighlight;
 };
 
@@ -1803,4 +1798,12 @@ Blockly.BlockSvg.prototype.scheduleSnapAndBump = function() {
  */
 Blockly.BlockSvg.prototype.setIsConnectedToHatBlock = function(isConnected) {
   Blockly.BlockSvg.superClass_.setIsConnectedToHatBlock.call(this, isConnected);
+};
+
+Blockly.BlockSvg.prototype.setForceTopLineSegmentHighlight = function (force) {
+  this.forceTopLineSegmentHighlight = force;
+};
+
+Blockly.BlockSvg.prototype.setForceBottomLineSegmentHighlight = function (force) {
+  this.forceBottomLineSegmentHighlight = force;
 };

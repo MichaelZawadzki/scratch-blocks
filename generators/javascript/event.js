@@ -32,3 +32,10 @@ Blockly.JavaScript['event_whenflagclicked'] = function(block) {
   var code = 'flagClicked();\n';
   return code;
 };
+
+Blockly.JavaScript['event_whenflagclicked_animate'] = function(block) {
+  var branch = Blockly.JavaScript.statementToCode(block, 'SUBSTACK');
+
+  var code = 'flagClicked();\n{\n' + branch + '}\n';
+  return code;
+};
