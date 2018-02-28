@@ -107,8 +107,9 @@ Blockly.ScratchBlocks.VerticalExtensions.SHAPE_END = function() {
 
 
 /**
- * OB
- * Bleeh blaah blooh
+ * OB:
+ * Extension to have the start of a block shaped as a hat block,
+ * and the end of a block shaped as an end block.
  * @this {Blockly.Block}
  * @readonly
  */
