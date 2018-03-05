@@ -156,7 +156,7 @@ Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE = 2 * Blockly.BlockSvg.GRID_UNIT;
  * Width of a dummy input block (used to display text acting like a reflowable block)
  * @const
  */
-Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 0 * Blockly.BlockSvg.GRID_UNIT;
+Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 2 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Height of a dummy input block (used to display text acting like a reflowable block)

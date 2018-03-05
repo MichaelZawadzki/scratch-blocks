@@ -238,7 +238,7 @@ Blockly.Blocks['operator_and'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "%1 and %2",
+      "message0": "%1 and%3 %2",
       "args0": [
         {
           "type": "input_value",
@@ -249,6 +249,11 @@ Blockly.Blocks['operator_and'] = {
           "type": "input_value",
           "name": "OPERAND2",
           "check": "Boolean"
+        },
+        {
+          "type": "input_value",
+          "name": "DUMMY_REFLOW_INPUT",
+          "check": "DUMMY_NO_INPUT",
         }
       ],
       "category": Blockly.Categories.operators,
