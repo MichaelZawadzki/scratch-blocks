@@ -154,7 +154,6 @@ Blockly.BlocksSelection.prototype.endSelection = function(currentDragDeltaXY) {
  * @package
  */
 Blockly.BlocksSelection.prototype.updateSelection = function(currentDragDeltaXY) {
-  //var metrics = this.startDragMetrics_;
   if(this.workspace_ && this.workspace_.blocksSelectionLayer) {
     var selectWidth = currentDragDeltaXY.x;
     var selectHeight = currentDragDeltaXY.y;

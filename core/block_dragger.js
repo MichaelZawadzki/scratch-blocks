@@ -104,6 +104,7 @@ Blockly.BlockDragger = function(block, workspace) {
   this.dragIconData_ = Blockly.BlockDragger.initIconData_(block);
 
   this.isDraggingChosenBlocks = false;
+  
 };
 
 /**
@@ -167,6 +168,11 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
      var event = new Blockly.Events.StartDrag(this.draggingBlock_);
      Blockly.Events.fire(event);
   }
+
+  // OB [CSI-876]
+  // Cache metrics before starting to drag, or else it gets messed up once dragging is started.
+  // Pass down the cached metrics
+  this.workspace_.startDragMetrics = this.workspace_.getMetrics();
 
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
@@ -246,7 +252,7 @@ Blockly.BlockDragger.prototype.dragBlock = function(e, currentDragDeltaXY) {
   this.dragIcons_(delta);
 
   this.deleteArea_ = this.workspace_.isDeleteArea(e);
-  
+
   // // OB TEMP: Insertion marker is messing up the dragging, so disable it for now
   // if(this.isDraggingChosenBlocks === false)
   {

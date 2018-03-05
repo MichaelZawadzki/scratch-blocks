@@ -118,6 +118,11 @@ Blockly.WorkspaceDragSurfaceSvg.prototype.translateSurface = function(x, y) {
     'translate3d(' + x + 'px, ' + y + 'px, 0px)');
 };
 
+Blockly.WorkspaceDragSurfaceSvg.prototype.translateSurfaceBy = function(dx, dy) {
+  var currentXY = this.getSurfaceTranslation();
+  this.translateSurface(currentXY.x + dx, currentXY.y + dy);
+};
+
 /**
  * Reports the surface translation in scaled workspace coordinates.
  * Use this when finishing a drag to return blocks to the correct position.
