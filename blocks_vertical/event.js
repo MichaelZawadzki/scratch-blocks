@@ -43,6 +43,31 @@ Blockly.Blocks['event_whenflagclicked'] = {
   }
 };
 
+Blockly.Blocks['event_whenflagclicked_animate'] = {
+  init: function() {
+    this.jsonInit({
+      "id": "event_whenflagclicked_animate",
+      "message0": "when Play clicked",
+      "message1": "%1", // Statement
+      "message2": "%1", // End label
+      "args1": [
+        {
+          "type": "input_statement",
+          "name": "SUBSTACK"
+        }
+      ],
+      "args2": [
+        {
+          "type": "field_label",
+          "text": "animate",
+        },
+      ],
+      "category": Blockly.Categories.event,
+      "extensions": ["colours_event", "shape_hat_statement_end"]
+    });
+  }
+};
+
 Blockly.Blocks['event_whenthisspriteclicked'] = {
   /**
    * Block for when this sprite clicked.

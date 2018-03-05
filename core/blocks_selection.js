@@ -405,6 +405,13 @@ Blockly.BlocksSelection.hasBlocks = function () {
   return false;
 };
 
+Blockly.BlocksSelection.getNumBlocks = function () {
+  if(Blockly.BlocksSelection.blocks != null) {
+    return Blockly.BlocksSelection.blocks.length;
+  }
+  return 0;
+};
+
 /**
  * OB: Clear the array of selected blocks, and set those blocks as 'not chosen'
  */

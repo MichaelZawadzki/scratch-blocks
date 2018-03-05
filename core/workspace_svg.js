@@ -968,6 +968,7 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
     var width = this.getParentSvg().getAttribute("width");
     for(var j = 0; j < activeBlocks.length; j++) {
       var blockHighlight = activeBlocks[j].getBlockHighlightObject();
+
       for(var i = 0; i < blockHighlight.lineSegments.length; i++) {
         blockHighlight.lineSegments[i].x *= this.scale;
         blockHighlight.lineSegments[i].y *= this.scale;
@@ -975,6 +976,7 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
       }
       lineSegmentInfo.push(blockHighlight);
     }
+
     this.workspaceHighlightLayer.updateHighlightLayer(lineSegmentInfo);
   }
 };
@@ -1065,11 +1067,24 @@ Blockly.WorkspaceSvg.prototype.glowBlockBG = function(id, isGlowingBlock) {
       throw 'Tried to glow block bg that does not exist.';
     }
     block.setGlowBlockBG(isGlowingBlock);
-  }else if(isGlowingBlock == false)
-  {
-    this.workspaceHighlightLayer.UpdateHighlightRect(false);
   }
- 
+  else if(isGlowingBlock == false) {
+    this.workspaceHighlightLayer.updateHighlightRect(false);
+  }
+};
+
+Blockly.WorkspaceSvg.prototype.glowCBlockEnd = function(id, isGlowingBlock) {
+  var block = null;
+  if (id) {
+    block = this.getBlockById(id);
+    if (!block) {
+      throw 'Tried to glow c-block end bg that does not exist.';
+    }
+    block.setGlowBlockBG(isGlowingBlock, true);
+  }
+  else if(isGlowingBlock == false) {
+    this.workspaceHighlightLayer.updateHighlightRect(false);
+  }
 };
 
 /**

@@ -104,6 +104,27 @@ Blockly.ScratchBlocks.VerticalExtensions.SHAPE_END = function() {
   this.setPreviousStatement(true, null);
 };
 
+
+
+/**
+ * OB:
+ * Extension to have the start of a block shaped as a hat block,
+ * and the end of a block shaped as an end block.
+ * @this {Blockly.Block}
+ * @readonly
+ */
+Blockly.ScratchBlocks.VerticalExtensions.SHAPE_HAT_STATEMENT_END = function() {
+  this.setInputsInline(true);
+  this.setForceTopLineSegmentHighlight(false);
+  this.setForceBottomLineSegmentHighlight(true);
+  this.setDragKeepSubstack(true);
+  // OB [CSI-872]: Field only used for this!
+  this.extendEnd = true;
+};
+
+
+
+
 /**
  * Extension to make represent a number reporter in Scratch-Blocks.
  * That means the block has inline inputs, a round output shape, and a 'Number'
@@ -245,6 +266,9 @@ Blockly.ScratchBlocks.VerticalExtensions.registerAll = function() {
       Blockly.ScratchBlocks.VerticalExtensions.SHAPE_HAT);
   Blockly.Extensions.register('shape_end',
       Blockly.ScratchBlocks.VerticalExtensions.SHAPE_END);
+
+  Blockly.Extensions.register('shape_hat_statement_end',
+    Blockly.ScratchBlocks.VerticalExtensions.SHAPE_HAT_STATEMENT_END);
 
   // Output shapes and types are related.
   Blockly.Extensions.register('output_number',

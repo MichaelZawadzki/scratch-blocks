@@ -188,6 +188,14 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
    */
   this.isChosen_ = false;
 
+  /**
+   * OB [CSI-856]
+   * When dragging this block, its substack stays attached to it.
+   * FALSE by default.
+   * @type {boolean}
+   */
+  this.dragKeepSubStack_ = false;
+
   // Copy the type-specific functions and data from the prototype.
   if (prototypeName) {
     /** @type {string} */
@@ -313,6 +321,14 @@ Blockly.Block.prototype.colourQuaternary_ = undefined;
 Blockly.Block.prototype.colourQuaternaryAlt_ = undefined;
 
 /**
+ * OB: Explicitly force the block to have dotted lines above or below it, no matter what
+ * @type {boolean}
+ * @private
+ */
+Blockly.Block.prototype.forceTopLineSegmentHighlight = false;
+Blockly.Block.prototype.forceBottomLineSegmentHighlight = false;
+
+/**
  * Dispose of this block.
  * @param {boolean} healStack If true, then try to heal any gap by connecting
  *     the next statement with the previous statement.  Otherwise, dispose of
@@ -429,7 +445,7 @@ Blockly.Block.prototype.unplug = function(opt_healStack) {
   };
 
   // Move sub-stack blocks from C-blocks so that they connect to previous/next blocks
-  if(this.workspace.options.dragSingleBlock && opt_healStack) {
+  if(this.workspace.options.dragSingleBlock && opt_healStack && !this.dragKeepSubStack_) {
     var subStackBlocks = this.getSubstackBlocks();
     if(subStackBlocks) {
       var numSubStacks = subStackBlocks.length;

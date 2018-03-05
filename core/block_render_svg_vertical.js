@@ -156,7 +156,7 @@ Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE = 2 * Blockly.BlockSvg.GRID_UNIT;
  * Width of a dummy input block (used to display text acting like a reflowable block)
  * @const
  */
-Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 0 * Blockly.BlockSvg.GRID_UNIT;
+Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 2 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Height of a dummy input block (used to display text acting like a reflowable block)
@@ -651,16 +651,18 @@ Blockly.BlockSvg.prototype.highlightShapeForInput = function(conn, add) {
  * and any blocks stacked below it.
  * @return {!{height: number, width: number}} Object with height and width properties.
  */
-Blockly.BlockSvg.prototype.getHeightWidth = function() {
+Blockly.BlockSvg.prototype.getHeightWidth = function(opt_thisBlockOnly) {
   var height = this.height;
   var width = this.width;
-  // Recursively add size of subsequent blocks.
-  var nextBlock = this.getNextBlock();
-  if (nextBlock) {
-    var nextHeightWidth = nextBlock.getHeightWidth();
-    height += nextHeightWidth.height;
-    height -= Blockly.BlockSvg.NOTCH_HEIGHT; // Exclude height of connected notch.
-    width = Math.max(width, nextHeightWidth.width);
+  if(!opt_thisBlockOnly) {
+    // Recursively add size of subsequent blocks.
+    var nextBlock = this.getNextBlock();
+    if (nextBlock) {
+      var nextHeightWidth = nextBlock.getHeightWidth();
+      height += nextHeightWidth.height;
+      height -= Blockly.BlockSvg.NOTCH_HEIGHT; // Exclude height of connected notch.
+      width = Math.max(width, nextHeightWidth.width);
+    }
   }
   return {height: height, width: width};
 };
@@ -1026,7 +1028,7 @@ Blockly.BlockSvg.prototype.computeInputHeight_ = function(input, row,
     return Blockly.BlockSvg.MIN_STATEMENT_INPUT_HEIGHT;
   } else if (previousRow && previousRow.type == Blockly.NEXT_STATEMENT) {
     // Extra row for below statement input.
-    return Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y;
+    return (this.extendEnd ? Blockly.BlockSvg.MIN_BLOCK_Y : Blockly.BlockSvg.EXTRA_STATEMENT_ROW_Y);
   } else {
     // If this is an extension block, and it has a previous connection,
     // make it taller.

@@ -192,15 +192,21 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
     for(b = 0; b < lineSegmentsInfo[i].lineSegments.length; b++) {
       var lineSegment = lineSegmentsInfo[i].lineSegments[b];
 
-      // skip the new line if there is a line already occupying the Y position.
-      if (previousY !== lineSegment.y) {
+      // OB Skip this test for now... TODO Fix it
+      // // skip the new line if there is a line already occupying the Y position.
+      // if (previousY !== lineSegment.y)
+      {
         this.lineSegments_[lineIndex].setAttribute('y1', lineSegment.y);
         this.lineSegments_[lineIndex].setAttribute('y2', lineSegment.y);
         this.lineSegments_[lineIndex].setAttribute('x2', lineSegment.width);
-        this.lineSegments_[lineIndex].setAttribute('visibility', 'visible');
+        var visibility = (lineSegment.visible ? 'visible' : 'hidden');
+        this.lineSegments_[lineIndex].setAttribute('visibility', visibility);
+
         previousY = lineSegment.y;
+        //prevVisible = lineSegment.visible;
         lineIndex +=1;
       }
+
     }
   }
   
@@ -219,7 +225,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
  * @param {!element} width, width of the workspace.
  * @param {!element} height, height of the highlighted block.
  */
-Blockly.WorkspaceHighlightLayerSvg.prototype.UpdateHighlightRect = function(visible, x, y, width, height)
+Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightRect = function(visible, x, y, width, height)
 {
   if(visible){
     this.highlightRect_.setAttribute('visibility', 'visible');

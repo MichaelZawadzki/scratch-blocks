@@ -46,7 +46,7 @@ Blockly.Xml.workspaceToDom = function(workspace, opt_noId, requireTriggerBlock) 
   xml.appendChild(Blockly.Xml.variablesToDom(workspace.getAllVariables()));
   var blocks = workspace.getTopBlocks(true);
   for (var i = 0, block; block = blocks[i]; i++) {
-    if(requireTriggerBlock !== true ||  block.type === "event_whenflagclicked") {
+    if(requireTriggerBlock !== true || block.type === "event_whenflagclicked" || block.type === "event_whenflagclicked_animate") {
       xml.appendChild(Blockly.Xml.blockToDomWithXY(block, opt_noId));
     }
   }
