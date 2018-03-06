@@ -1063,6 +1063,7 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
     var inputWidth = (input.renderWidth === undefined ? 0 : input.renderWidth);
     if(input.name == "OPERAND1" && input.sourceBlock_.childBlocks_.length > 0)
     {
+      //Maxim: why isnt this paddingStart persisting? OPERAND1 is always somehow being set to "8" even though this code is running. 
       inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[0].width);
     }else if(input.name == "OPERAND2" && input.sourceBlock_.childBlocks_.length > 1)
     {
@@ -1476,7 +1477,13 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
         // In renderFields_, the field is further centered
         // by its own rendered height.
         var fieldY = cursorY + row.height / 2;
-
+        
+        //Maxim: This is a temporary fix to keep the left side of the first field from overlapping the reflowed input boundary. 
+        //why is the row.paddingStart not being applied properly? (There's a note in that section as well prefaced by "Maxim: why isnt this paddingStart persisting?")
+        if(this.isReflowed)
+        {
+          cursorX = Math.max(cursorX, Blockly.BlockSvg.BASE_REFLOWED_PADDING);
+        }
         var fieldX = Blockly.BlockSvg.getAlignedCursor_(cursorX, input,
             inputRows.rightEdge);
 
