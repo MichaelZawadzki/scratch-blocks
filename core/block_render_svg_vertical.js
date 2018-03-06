@@ -1106,11 +1106,6 @@ Blockly.BlockSvg.prototype.getMaxInputSiblingWidth = function(input)
 Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
   var edge = curEdge;
  
-  if(this.isReflowed)
-  {
-    console.log("reflow!"); 
-  }
- 
   if (this.previousConnection || this.nextConnection) {
     // Blocks with notches
     edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X);
@@ -1603,10 +1598,6 @@ Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
       inputShapeX = -x - inputShapeInfo.width;
     } else {
       inputShapeX = x;
-    }
-    if(this.isReflowed)
-    {
-      console.log("reflowed!"); 
     }
     inputShapeY = y - (Blockly.BlockSvg.INPUT_SHAPE_HEIGHT / 2);
     inputShape.setAttribute('d', inputShapeInfo.path);
