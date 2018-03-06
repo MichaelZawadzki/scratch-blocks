@@ -1054,7 +1054,8 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
     row.type = input.type;
   }
   row.height = 0;
-  // Default padding for a block: same as separators between fields/inputs.
+  //Maxim if the block is reflowed, we need to calculate the width and padding earlier than the normal flow in order to size the input outline
+  //and position the inner fields. 
   if(this.isReflowed)
   {
     //To center the inputs we need to determine the widest sibling in the block
@@ -1063,7 +1064,6 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
     var inputWidth = (input.renderWidth === undefined ? 0 : input.renderWidth);
     if(input.name == "OPERAND1" && input.sourceBlock_.childBlocks_.length > 0)
     {
-      //Maxim: why isnt this paddingStart persisting? OPERAND1 is always somehow being set to "8" even though this code is running. 
       inputWidth = Math.max(inputWidth, input.sourceBlock_.childBlocks_[0].width);
     }else if(input.name == "OPERAND2" && input.sourceBlock_.childBlocks_.length > 1)
     {
@@ -1079,8 +1079,10 @@ Blockly.BlockSvg.prototype.createRowForInput_ = function(input) {
     row.paddingStart += widthDiff;
   }else
   {
+    // Default padding for a block: same as separators between fields/inputs.
     row.paddingStart = Blockly.BlockSvg.SEP_SPACE_X;
   }
+  
   row.paddingEnd = Blockly.BlockSvg.SEP_SPACE_X;
   return row;
 };
@@ -1227,16 +1229,17 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
     return;
   }
   // Blocks with outputs must have single row to be padded.
-  //Maxim: What?? Why? This just makes things break! This code checks if extra padding is needed
-  //when the height of the content is greater than the height of the generic height...which it is ESPECIALLY
-  //when a block grows to multiple rows! 
-  // if (inputRows.length > 1) {
-  // return;
-  // }
+   if (this.isReflowed === false && inputRows.length > 1) {
+   return;
+  }
   var row = inputRows[0];
   var shape = this.getOutputShape();
   // Reset any padding: it's about to be set.
-  row.paddingStart = 0;
+  // Maxim: If we have reflowed, we have overidden the starting area in order to center the reflowed content when we added the row initially. 
+  if(this.isReflowed === false)
+  {
+    row.paddingStart = 0;
+  }
   row.paddingEnd = 0;
   // Start row padding: based on first input or first field.
   var firstInput = row[0];
@@ -1266,7 +1269,10 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
       row.paddingStart += deltaHeight / 2;
     }
   }
-  row.paddingStart += Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING[shape][otherShape];
+  if(this.isReflowed === false)
+  {
+      row.paddingStart += Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING[shape][otherShape];
+  }
   // End row padding: based on last input or last field.
   var lastInput = row[row.length - 1];
   // In checking the right/end side, any value input takes precedence over any field.
@@ -1477,13 +1483,6 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
         // In renderFields_, the field is further centered
         // by its own rendered height.
         var fieldY = cursorY + row.height / 2;
-        
-        //Maxim: This is a temporary fix to keep the left side of the first field from overlapping the reflowed input boundary. 
-        //why is the row.paddingStart not being applied properly? (There's a note in that section as well prefaced by "Maxim: why isnt this paddingStart persisting?")
-        if(this.isReflowed)
-        {
-          cursorX = Math.max(cursorX, Blockly.BlockSvg.BASE_REFLOWED_PADDING);
-        }
         var fieldX = Blockly.BlockSvg.getAlignedCursor_(cursorX, input,
             inputRows.rightEdge);
 
