@@ -156,7 +156,7 @@ Blockly.BlockSvg.STATEMENT_INPUT_INNER_SPACE = 2 * Blockly.BlockSvg.GRID_UNIT;
  * Width of a dummy input block (used to display text acting like a reflowable block)
  * @const
  */
-Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 2 * Blockly.BlockSvg.GRID_UNIT;
+Blockly.BlockSvg.DUMMY_INPUT_WIDTH = 0 * Blockly.BlockSvg.GRID_UNIT;
 
 /**
  * Height of a dummy input block (used to display text acting like a reflowable block)
@@ -1102,6 +1102,12 @@ Blockly.BlockSvg.prototype.getMaxInputSiblingWidth = function(input)
  */
 Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
   var edge = curEdge;
+ 
+  if(this.isReflowed)
+  {
+    console.log("reflow!"); 
+  }
+ 
   if (this.previousConnection || this.nextConnection) {
     // Blocks with notches
     edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X);
@@ -1112,6 +1118,10 @@ Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
     } else {
       // Reporters
       edge = Math.max(edge, Blockly.BlockSvg.MIN_BLOCK_X_OUTPUT);
+      if(this.isReflowed)
+      {
+        edge += Blockly.BlockSvg.getWidestInput_(this.inputList);
+      }
     }
   }
   if (hasStatement) {
@@ -1126,6 +1136,19 @@ Blockly.BlockSvg.prototype.computeRightEdge_ = function(curEdge, hasStatement) {
   return edge;
 
 
+};
+
+Blockly.BlockSvg.getWidestInput_ = function(inputList)
+{
+    var currentWidth = 0; 
+    for(var i = 0; i < inputList.length; i++)
+    {
+        if(inputList[i].renderWidth > currentWidth)
+        {
+          currentWidth = inputList[i].renderWidth;
+        }
+    }
+    return currentWidth;
 };
 
 
@@ -1575,6 +1598,10 @@ Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
     } else {
       inputShapeX = x;
     }
+    if(this.isReflowed)
+    {
+      console.log("reflowed!"); 
+    }
     inputShapeY = y - (Blockly.BlockSvg.INPUT_SHAPE_HEIGHT / 2);
     inputShape.setAttribute('d', inputShapeInfo.path);
     inputShape.setAttribute('transform',
@@ -1591,7 +1618,7 @@ Blockly.BlockSvg.prototype.renderInputShape_ = function(input, x, y) {
  * @param {number} cursorY Height of block.
  * @private
  */
-Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, cursorY) {
+Blockly.BlockSvg.prototype.renderDrawBottom_ = function(steps, cursorY) {  
   this.height = cursorY;
   if (!this.edgeShape_) {
     steps.push(Blockly.BlockSvg.BOTTOM_RIGHT_CORNER);
