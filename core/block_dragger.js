@@ -172,7 +172,13 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   // OB [CSI-876]
   // Cache metrics before starting to drag, or else it gets messed up once dragging is started.
   // Pass down the cached metrics
-  this.workspace_.startDragMetrics = this.workspace_.getMetrics();
+  // OB [CSI-908] If block is on the workspace, get metrics now.
+  // If it originates from the flyout, actually save metrics right after setting blocks to "dragged".
+  // Why? Not sure...
+  var savedMetrics = null;
+  if(!this.draggingBlock_.isFromFlyout_) {
+    savedMetrics = this.workspace_.getMetrics();
+  }
 
   this.workspace_.setResizesEnabled(false);
   Blockly.BlockSvg.disconnectUiStop_();
@@ -194,6 +200,11 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
     topBlock.disconnectUiEffect();
 
     topBlock.setDragging(true);
+    // OB [CSI-908]
+    // Need get metrics AFTER 'setDragging' is set, because getting metrics checks if blocks are dragged or not
+    if(!savedMetrics)
+      savedMetrics = this.workspace_.getMetrics();
+
     topBlock.moveToDragSurface_();
 
     if(this.draggingBlock_ != topBlock) {
@@ -219,6 +230,10 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
     }
 
     this.draggingBlock_.setDragging(true);
+    // OB [CSI-908]
+    // Need get metrics AFTER 'setDragging' is set, because getting metrics checks if blocks are dragged or not
+    if(!savedMetrics)
+      savedMetrics = this.workspace_.getMetrics();
     // For future consideration: we may be able to put moveToDragSurface inside
     // the block dragger, which would also let the block not track the block drag
     // surface.
@@ -231,6 +246,8 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   if (this.workspace_.toolbox_) {
     this.workspace_.toolbox_.addDeleteStyle();
   }
+
+  this.workspace_.startDragMetrics = savedMetrics;
 
   this.workspace_.updateHighlightLayer();
 };

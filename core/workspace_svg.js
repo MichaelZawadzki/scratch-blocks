@@ -1410,12 +1410,18 @@ Blockly.WorkspaceSvg.prototype.getBlocksBoundingBox = function() {
   if (!topBlocks.length) {
     return {x: 0, y: 0, width: 0, height: 0};
   }
-
-  // Initialize boundary using the first block.
-  var boundary = topBlocks[0].getBoundingRectangle();
-
-  // Start at 1 since the 0th block was used for initialization
-  for (var i = 1; i < topBlocks.length; i++) {
+  
+  var boundary = null;
+  for (var i = 0; i < topBlocks.length; i++) {
+    // OB [CSI-908] Skip dragged blocks; messes up the metrics real bad when scrolling workspace
+    if(topBlocks[i].isDragged_ === true) {
+      continue;
+    }
+    // Init boundary object
+    if(!boundary) {
+      boundary = topBlocks[i].getBoundingRectangle();
+      continue;
+    }
     var blockBoundary = topBlocks[i].getBoundingRectangle();
     if (blockBoundary.topLeft.x < boundary.topLeft.x) {
       boundary.topLeft.x = blockBoundary.topLeft.x;
@@ -2017,7 +2023,6 @@ Blockly.WorkspaceSvg.getContentDimensionsBounded_ = function(ws, svgSize) {
  * @this Blockly.WorkspaceSvg
  */
 Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
-
   var toolboxDimensions =
       Blockly.WorkspaceSvg.getDimensionsPx_(this.toolbox_);
   var flyoutDimensions =
@@ -2026,7 +2031,7 @@ Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
   // Contains height and width in CSS pixels.
   // svgSize is equivalent to the size of the injectionDiv at this point.
   var svgSize = Blockly.svgSize(this.getParentSvg());
-  if (this.toolbox_) {
+  if (this.toolbox_) { 
     if (this.toolboxPosition == Blockly.TOOLBOX_AT_TOP ||
         this.toolboxPosition == Blockly.TOOLBOX_AT_BOTTOM) {
       svgSize.height -= toolboxDimensions.height;
@@ -2080,6 +2085,7 @@ Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
 
     toolboxPosition: this.toolboxPosition
   };
+
   return metrics;
 };
 
@@ -2362,6 +2368,9 @@ Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, check
     if(currentScrollY == this.scrollY) {
       deltaY = 0;
     }
+
+    // console.log("Check top? " + checkTop + " ; Check bottom? "+ checkBottom);
+    // console.log("WS Scroll: "+ this.scrollX + " " + this.scrollY);
   }
 
   e.preventDefault();
@@ -2407,32 +2416,6 @@ Blockly.WorkspaceSvg.prototype.scrollWS = function (e, checkTop, checkBottom) {
 
   return new goog.math.Coordinate(deltaX, deltaY);
 };
-
-
-// Blockly.WorkspaceSvg.prototype.scrollWorkspaceBy = function (initialScrollX, initialScrollY, deltaX, deltaY) {
-//   var x = 0;
-//   var y = 0;
-//   var currentScrollX = initialScrollX;
-//   var currentScrollY = initialScrollY;
-
-//   if(deltaX != 0 || deltaY != 0) {
-//     x = currentScrollX - deltaX;
-//     y = currentScrollY - deltaY;
-//     this.startDragMetrics = this.getMetrics();
-
-//     if (this.options.hideHorizontalScrollbar === true) {
-//       x = undefined;
-//     }
-//     this.scroll(x, y);
-
-//     if(currentScrollX == this.scrollX) {
-//       deltaX = 0;
-//     }
-//     if(currentScrollY == this.scrollY) {
-//       deltaY = 0;
-//     }
-//   }
-// };
 
 Blockly.WorkspaceSvg.prototype.resizeScrollAreas = function () {
   var hostMetrics = this.getMetrics();

@@ -354,6 +354,7 @@ Blockly.Gesture.prototype.updateIsDraggingFromFlyout_ = function() {
     // The start block is no longer relevant, because this is a drag.
     this.startBlock_ = null;
     this.targetBlock_ = this.flyout_.createBlock(this.targetBlock_);
+    this.targetBlock_.isFromFlyout_ = true;
     this.targetBlock_.select();
     return true;
   }
