@@ -421,6 +421,8 @@ Blockly.Workspace.prototype.undo = function(redo) {
   if (Blockly.DropDownDiv && Blockly.DropDownDiv.isVisible() === true) {
       Blockly.DropDownDiv.hideWithoutAnimation();
   }
+  //Clear out the saved events. 
+  Blockly.Events.fireSavedEvents();
 };
 
 /**
