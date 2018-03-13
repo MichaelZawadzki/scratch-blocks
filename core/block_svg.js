@@ -1114,6 +1114,7 @@ Blockly.BlockSvg.prototype.moveConnections_ = function(dx, dy) {
  * @package
  */
 Blockly.BlockSvg.prototype.setDragging = function(adding) {
+  this.isDragged_ = adding;
   if (adding) {
     var group = this.getSvgRoot();
     group.translate_ = '';
@@ -1126,6 +1127,8 @@ Blockly.BlockSvg.prototype.setDragging = function(adding) {
     Blockly.draggingConnections_ = [];
     Blockly.utils.removeClass(/** @type {!Element} */ (this.svgGroup_),
                          'blocklyDragging');
+
+    this.isFromFlyout_ = false;
   }
   // Recurse through all blocks attached under this one.
   for (var i = 0; i < this.childBlocks_.length; i++) {

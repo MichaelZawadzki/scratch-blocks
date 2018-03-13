@@ -148,7 +148,7 @@ Blockly.ScrollbarPair.prototype.resize = function() {
  * @param {number} x Horizontal scroll value.
  * @param {number} y Vertical scroll value.
  */
-Blockly.ScrollbarPair.prototype.set = function(x, y) {
+Blockly.ScrollbarPair.prototype.set = function(x, y, _metrics) {
   // This function is equivalent to:
   //   this.hScroll.set(x);
   //   this.vScroll.set(y);
@@ -167,7 +167,7 @@ Blockly.ScrollbarPair.prototype.set = function(x, y) {
   var vBarLength = this.vScroll.scrollViewSize_;
   xyRatio.y = this.getRatio_(vHandlePosition, vBarLength);
 
-  this.workspace_.setMetrics(xyRatio);
+  this.workspace_.setMetrics(xyRatio, _metrics);
 
   if (xyRatio.x !== undefined) {
     this.hScroll.setHandlePosition(hHandlePosition);

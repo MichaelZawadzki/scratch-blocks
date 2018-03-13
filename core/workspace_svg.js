@@ -477,8 +477,8 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       'fill' : '#ff0000',
       'stroke' : '#ff0000',
       'stroke-width' : '0',
-      'fill-opacity' : '0', //'0.3',
-      'stroke-opacity' : '0', //'0.3',
+      'fill-opacity' : '0', //'0.3', //
+      'stroke-opacity' : '0', //'0.3', //
       'class': 'scrollRect',
       'visibility' : 'visible',
     }, this.svgGroup_, this);
@@ -491,15 +491,13 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       'fill' : '#ff0000',
       'stroke' : '#ff0000',
       'stroke-width' : '0',
-      'fill-opacity' : '0', //'0.3',
-      'stroke-opacity' : '0', //'0',
+      'fill-opacity' : '0', //'0.3', //
+      'stroke-opacity' : '0', //'0', //
       'class': 'scrollRect',
       'visibility' : 'visible',
     }, this.svgGroup_, this);
   }
-
-
-
+  
   return this.svgGroup_;
 };
 
@@ -797,6 +795,24 @@ Blockly.WorkspaceSvg.prototype.translate = function(x, y) {
   
   if (this.blocksOutlineSurface) {
     this.blocksOutlineSurface.translateAndScaleGroup(x, y, this.scale);
+  }
+};
+
+Blockly.WorkspaceSvg.prototype.translateBy = function(dx, dy) {
+  if (this.useWorkspaceDragSurface_ && this.isDragSurfaceActive_) {
+    this.workspaceDragSurface_.translateSurfaceBy(dx, dy);
+  } 
+  else {
+    var blockCanvasXY = Blockly.utils.getRelativeXY(this.svgBlockCanvas_);
+    //var bubbleCanvasXY = Blockly.utils.getRelativeXY(this.svgBubbleCanvas_);
+    var newX = blockCanvasXY.x + dx;
+    var newY = blockCanvasXY.y + dy;
+    this.translate(newX, newY);
+
+    // var translation = 'translate(' + (blockCanvasXY.x + dx) + ',' + (blockCanvasXY.y + dy) + ') ' +
+    //     'scale(' + this.scale + ')';
+    // this.svgBlockCanvas_.setAttribute('transform', translation);
+    // this.svgBubbleCanvas_.setAttribute('transform', translation);
   }
 };
 
@@ -1394,12 +1410,18 @@ Blockly.WorkspaceSvg.prototype.getBlocksBoundingBox = function() {
   if (!topBlocks.length) {
     return {x: 0, y: 0, width: 0, height: 0};
   }
-
-  // Initialize boundary using the first block.
-  var boundary = topBlocks[0].getBoundingRectangle();
-
-  // Start at 1 since the 0th block was used for initialization
-  for (var i = 1; i < topBlocks.length; i++) {
+  
+  var boundary = null;
+  for (var i = 0; i < topBlocks.length; i++) {
+    // OB [CSI-908] Skip dragged blocks; messes up the metrics real bad when scrolling workspace
+    if(topBlocks[i].isDragged_ === true) {
+      continue;
+    }
+    // Init boundary object
+    if(!boundary) {
+      boundary = topBlocks[i].getBoundingRectangle();
+      continue;
+    }
     var blockBoundary = topBlocks[i].getBoundingRectangle();
     if (blockBoundary.topLeft.x < boundary.topLeft.x) {
       boundary.topLeft.x = blockBoundary.topLeft.x;
@@ -1832,8 +1854,8 @@ Blockly.WorkspaceSvg.prototype.setScale = function(newScale) {
  * @param {number} x Target X to scroll to
  * @param {number} y Target Y to scroll to
  */
-Blockly.WorkspaceSvg.prototype.scroll = function(x, y) {
-  var metrics = this.startDragMetrics; // Cached values
+Blockly.WorkspaceSvg.prototype.scroll = function(x, y, _metrics) {
+  var metrics = _metrics ? _metrics : this.startDragMetrics; // Cached values
   x = Math.min(x, -metrics.contentLeft);
   y = Math.min(y, -metrics.contentTop);
   x = Math.max(x, metrics.viewWidth - metrics.contentLeft -
@@ -1848,7 +1870,7 @@ Blockly.WorkspaceSvg.prototype.scroll = function(x, y) {
 
   var scrollToX = -x - metrics.contentLeft;
   var scrollToY = -y - metrics.contentTop;
-  this.scrollbar.set(scrollToX, scrollToY);
+  this.scrollbar.set(scrollToX, scrollToY, _metrics);
 };
 
 /**
@@ -2001,7 +2023,6 @@ Blockly.WorkspaceSvg.getContentDimensionsBounded_ = function(ws, svgSize) {
  * @this Blockly.WorkspaceSvg
  */
 Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
-
   var toolboxDimensions =
       Blockly.WorkspaceSvg.getDimensionsPx_(this.toolbox_);
   var flyoutDimensions =
@@ -2010,7 +2031,7 @@ Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
   // Contains height and width in CSS pixels.
   // svgSize is equivalent to the size of the injectionDiv at this point.
   var svgSize = Blockly.svgSize(this.getParentSvg());
-  if (this.toolbox_) {
+  if (this.toolbox_) { 
     if (this.toolboxPosition == Blockly.TOOLBOX_AT_TOP ||
         this.toolboxPosition == Blockly.TOOLBOX_AT_BOTTOM) {
       svgSize.height -= toolboxDimensions.height;
@@ -2064,6 +2085,7 @@ Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
 
     toolboxPosition: this.toolboxPosition
   };
+
   return metrics;
 };
 
@@ -2074,11 +2096,11 @@ Blockly.WorkspaceSvg.getTopLevelWorkspaceMetrics_ = function() {
  * @private
  * @this Blockly.WorkspaceSvg
  */
-Blockly.WorkspaceSvg.setTopLevelWorkspaceMetrics_ = function(xyRatio) {
+Blockly.WorkspaceSvg.setTopLevelWorkspaceMetrics_ = function(xyRatio, _metrics) {
   if (!this.scrollbar) {
     throw 'Attempt to set top level workspace scroll without scrollbars.';
   }
-  var metrics = this.getMetrics();
+  var metrics = _metrics ? _metrics : this.getMetrics();
   if (goog.isNumber(xyRatio.x)) {
     this.scrollX = -metrics.contentWidth * xyRatio.x - metrics.contentLeft;
   }
@@ -2303,7 +2325,7 @@ Blockly.WorkspaceSvg.prototype['setVisible'] =
 
 
 
-Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, checkTop, checkBottom) {
+Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, checkTop, checkBottom, useCachedMetrics) {
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
       this.getInverseScreenCTM());
   var x = 0;
@@ -2312,17 +2334,18 @@ Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, check
   var deltaY = 0;
   var currentScrollX = this.scrollX;
   var currentScrollY = this.scrollY;
-  
+
   var topAreaX = this.svgTopScrollArea.getAttribute('x');
   var topAreaY = this.svgTopScrollArea.getAttribute('y');
   var topAreaHeight = this.svgTopScrollArea.getAttribute('height');
   var bottomAreaX = this.svgBottomScrollArea.getAttribute('x');
   var bottomAreaY = this.svgBottomScrollArea.getAttribute('y');
-  if(checkTop && point.x > topAreaX && point.y < topAreaY + topAreaHeight) {
+  
+  if(checkTop && this.isInTopScrollArea(point.x, point.y)) {
     deltaX = 0;
     deltaY = -Blockly.WORKSPACE_EDGE_SCROLL_SPEED;
   }
-  else if(checkBottom && point.x > bottomAreaX && point.y > bottomAreaY) {
+  else if(checkBottom && this.isInBottomScrollArea(point.x, point.y)) {
     deltaX = 0;
     deltaY = Blockly.WORKSPACE_EDGE_SCROLL_SPEED;
   }
@@ -2330,12 +2353,58 @@ Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, check
   if(deltaX != 0 || deltaY != 0) {
     x = currentScrollX - deltaX;
     y = currentScrollY - deltaY;
-    this.startDragMetrics = this.getMetrics();
+    if(!useCachedMetrics) {
+      this.startDragMetrics = this.getMetrics();
+    }
 
     if (this.options.hideHorizontalScrollbar === true) {
       x = undefined;
     }
-    this.scroll(x, y);
+    this.scroll(x, y, useCachedMetrics ? this.startDragMetrics : null);
+    // Cap scroll values, since no actual scroll was performed
+    if(currentScrollX == this.scrollX) {
+      deltaX = 0;
+    }
+    if(currentScrollY == this.scrollY) {
+      deltaY = 0;
+    }
+
+    // console.log("Check top? " + checkTop + " ; Check bottom? "+ checkBottom);
+    // console.log("WS Scroll: "+ this.scrollX + " " + this.scrollY);
+  }
+
+  e.preventDefault();
+
+  return new goog.math.Coordinate(deltaX, deltaY);
+  
+};
+
+Blockly.WorkspaceSvg.prototype.currentRatio = {x:0, y:0.0};
+
+Blockly.WorkspaceSvg.prototype.scrollWS = function (e, checkTop, checkBottom) {
+  var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
+        this.getInverseScreenCTM());
+  var x = 0;
+  var y = 0;
+  var deltaX = 0;
+  var deltaY = 0;
+  var currentScrollX = this.scrollX;
+  var currentScrollY = this.scrollY;
+
+  if(checkTop && this.isInTopScrollArea(point.x, point.y)) {
+    deltaX = 0;
+    deltaY = -Blockly.WORKSPACE_EDGE_SCROLL_SPEED;
+  }
+  else if(checkBottom && this.isInBottomScrollArea(point.x, point.y)) {
+    deltaX = 0;
+    deltaY = Blockly.WORKSPACE_EDGE_SCROLL_SPEED;
+  }
+
+  if(deltaX != 0 || deltaY != 0) {
+
+    x = currentScrollX - deltaX;
+    y = currentScrollY - deltaY;
+    this.scroll(x, y, this.startDragMetrics);
 
     if(currentScrollX == this.scrollX) {
       deltaX = 0;
@@ -2344,8 +2413,6 @@ Blockly.WorkspaceSvg.prototype.maybeScrollWorkspaceVertical = function (e, check
       deltaY = 0;
     }
   }
-
-  e.preventDefault();
 
   return new goog.math.Coordinate(deltaX, deltaY);
 };
@@ -2368,4 +2435,23 @@ Blockly.WorkspaceSvg.prototype.resizeScrollAreas = function () {
   this.svgBottomScrollArea.setAttribute('x', scrollAreaX);
   this.svgBottomScrollArea.setAttribute('y', scrollAreaY);
   this.svgBottomScrollArea.setAttribute('width', scrollAreaWidth);
+};
+
+Blockly.WorkspaceSvg.prototype.isInTopScrollArea = function (x, y) {
+  var topAreaX = this.svgTopScrollArea.getAttribute('x');
+  var topAreaY = this.svgTopScrollArea.getAttribute('y');
+  var topAreaHeight = this.svgTopScrollArea.getAttribute('height');
+  if(x > topAreaX && y < topAreaY + topAreaHeight) {
+    return true;
+  }
+  return false;
+};
+
+Blockly.WorkspaceSvg.prototype.isInBottomScrollArea = function (x, y) {
+  var bottomAreaX = this.svgBottomScrollArea.getAttribute('x');
+  var bottomAreaY = this.svgBottomScrollArea.getAttribute('y');
+  if(x > bottomAreaX && y > bottomAreaY) {
+    return true;
+  }
+  return false;
 };

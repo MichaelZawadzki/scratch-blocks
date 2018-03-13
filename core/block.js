@@ -181,6 +181,16 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   /** @type {boolean} */
   this.isConnectedToHatBlock_ = false;
 
+
+
+  /** OB: Is this block being dragged? */
+  /** @type {boolean} */
+  this.isDragged_ = false;
+
+  /** OB: Is this block originating from the flyout? Only TRUE when it is being draggd right after it was created */
+  /** @type {boolean} */
+  this.isFromFlyout_ = false;
+
   /**
    * OB: To indicate if the block was selected by the user for use in drag and drop or copy operations
    * Needs a different name than "selected", to prevent confusion with 'Blockly.selected'
