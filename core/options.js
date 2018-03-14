@@ -159,6 +159,7 @@ Blockly.Options = function(options) {
   this.multiTouchScroll = options['multiTouchScroll'];
   this.dragSingleBlock = options['dragSingleBlock'];
   this.verticalScrollAtEdges = options['verticalScrollAtEdges'];
+  this.useLeftDeleteArea = options['useLeftDeleteArea'];
 
   // OB: Special option: new font. Directly set the CSS constant
   Blockly.Css.font = options['font'];
