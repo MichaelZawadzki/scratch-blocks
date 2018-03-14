@@ -1410,11 +1410,15 @@ Blockly.WorkspaceSvg.prototype.getBlocksBoundingBox = function() {
   if (!topBlocks.length) {
     return {x: 0, y: 0, width: 0, height: 0};
   }
-  
+
   var boundary = null;
   for (var i = 0; i < topBlocks.length; i++) {
     // OB [CSI-908] Skip dragged blocks; messes up the metrics real bad when scrolling workspace
     if(topBlocks[i].isDragged_ === true) {
+      // When there's only the dragged block, return empty rect
+      if(topBlocks.length === 1) {
+        return {x: 0, y: 0, width: 0, height: 0};
+      }
       continue;
     }
     // Init boundary object
