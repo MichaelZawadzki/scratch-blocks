@@ -1260,6 +1260,29 @@ Blockly.WorkspaceSvg.prototype.createVariable = function(name, opt_type, opt_id)
   return newVar;
 };
 
+
+Blockly.WorkspaceSvg.prototype.getLeftOfWorkspaceClientRect = function() {
+  if (!this.svgGroup_) {
+    return null;
+  }
+
+  var wsRect = this.svgGroup_.getBoundingClientRect();
+  // BIG_NUM is offscreen padding so that blocks dragged beyond the shown flyout
+  // area are still deleted.  Must be larger than the largest screen size,
+  // but be smaller than half Number.MAX_SAFE_INTEGER (not available on IE).
+  var BIG_NUM = 1000000000;
+  var x = wsRect.left;
+  var width = wsRect.width;
+
+  // OB [CSI-544] There might be more combinations of RTL and toolboxPosition to handle,
+  // but that is for another time!
+  if(this.RTL || !this.RTL && this.toolboxPosition == Blockly.TOOLBOX_AT_RIGHT) {
+    return new goog.math.Rect(x - BIG_NUM, -BIG_NUM, BIG_NUM, BIG_NUM * 2);
+  } else {
+    return new goog.math.Rect(x + width, -BIG_NUM, BIG_NUM, BIG_NUM * 2);
+  }
+};
+
 /**
  * Make a list of all the delete areas for this workspace.
  */
@@ -1275,6 +1298,11 @@ Blockly.WorkspaceSvg.prototype.recordDeleteAreas = function() {
     this.deleteAreaToolbox_ = this.toolbox_.getClientRect();
   } else {
     this.deleteAreaToolbox_ = null;
+  }
+  // OB [CSI-544] There might be more combinations of RTL and toolboxPosition to handle,
+  // but that is for another time!
+  if(!this.RTL && this.toolboxPosition == Blockly.TOOLBOX_AT_RIGHT) {
+    this.deleteAreaLeft_ = this.getLeftOfWorkspaceClientRect();
   }
 };
 
@@ -1292,13 +1320,10 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
   if (this.deleteAreaToolbox_ && this.deleteAreaToolbox_.contains(xy)) {
     return Blockly.DELETE_AREA_TOOLBOX;
   }
+  if(this.options.useLeftDeleteArea && this.deleteAreaLeft_ && this.deleteAreaLeft_.contains(xy)) {
+    return Blockly.DELETE_AREA_LEFT;
+  }
   return Blockly.DELETE_AREA_NONE;
-};
-
-Blockly.WorkspaceSvg.prototype.onMouseOverScrollArea_ = function(e) {
-  console.log("In area");
-  //console.log(e);
-  //setInterval(this.onMouseOverScrollArea_, 30, e);
 };
 
 /**

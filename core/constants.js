@@ -297,6 +297,13 @@ Blockly.DELETE_AREA_TRASH = 1;
 Blockly.DELETE_AREA_TOOLBOX = 2;
 
 /**
+ * OB [CSI-544]
+ * ENUM representing that an event is in the delete area of the left side of the WS
+ * @const
+ */
+Blockly.DELETE_AREA_LEFT = 3;
+
+/**
  * String for use in the "custom" attribute of a category in toolbox xml.
  * This string indicates that the category should be dynamically populated with
  * variable blocks.
