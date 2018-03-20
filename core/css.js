@@ -298,6 +298,7 @@ Blockly.Css.CONTENT = [
     'box-shadow: 0px 0px 8px 1px ' + Blockly.Colours.dropDownShadow + ';',
     'padding: 4px;',
     '-webkit-user-select: none;',
+    'min-height: 26px',
   '}',
 
   '.blocklyDropDownContent {',
@@ -480,6 +481,10 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDragging.blocklyDraggingDelete {',
     'cursor: url("<<<PATH>>>/handdelete.cur"), auto;',
+  '}',
+
+  '.blocklyDragging.blocklyDraggingMouseThrough {',
+    'pointer-events: none;',
   '}',
 
   '.blocklyToolboxDelete {',
@@ -887,7 +892,7 @@ Blockly.Css.CONTENT = [
   '.blocklyDropDownDiv .goog-slider-horizontal .goog-slider-thumb {',
     'width: 26px;',
     'height: 26px;',
-    'margin-top: -1px;',
+    'top: -1px;',
     'position: absolute;',
     'background-color: white;',
     'border-radius: 100%;',
