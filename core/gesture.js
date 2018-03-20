@@ -581,6 +581,8 @@ Blockly.Gesture.prototype.handleMove = function(e) {
       this.setWorkspaceDragTouchIDs(e);
     }
     this.workspaceDragger_.drag(this.currentDragDeltaXY_);
+    e.preventDefault();
+    e.stopPropagation();
   } else if (this.isDraggingBlock_) {
     if(wasDraggingBlock === false) {
       // Set touch IDs to for workspace drag gesture
@@ -595,8 +597,11 @@ Blockly.Gesture.prototype.handleMove = function(e) {
       this.currentDragDeltaXY_.y += wsDelta.y;
     }
 
-    this.blockDragger_.dragBlock(this.mostRecentEvent_,
-        this.currentDragDeltaXY_);
+    if (!this.blockDragger_.dragBlock(
+      this.mostRecentEvent_, this.currentDragDeltaXY_)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   }
   else if (this.isSelectingBlocks_) {
 
@@ -611,9 +616,10 @@ Blockly.Gesture.prototype.handleMove = function(e) {
     }
 
     this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
+
+    e.preventDefault();
+    e.stopPropagation();
   }
-  e.preventDefault();
-  e.stopPropagation();
 };
 
 /**
