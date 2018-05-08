@@ -254,6 +254,9 @@ Blockly.Xml.blockToDom = function(block, opt_noId, opt_outlinedBlocks) {
   if (!block.isEditable()) {
     element.setAttribute('editable', false);
   }
+  if (block.shouldChooseChildren() && !block.isShadow()) {
+    element.setAttribute('chooseChildren', true);
+  }
 
   var nextBlock = block.getNextBlock();
   if (nextBlock && !opt_outlinedBlocks || (opt_outlinedBlocks && Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface(nextBlock))) {
@@ -768,6 +771,11 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   var canChoose = xmlBlock.getAttribute('canChoose')
   if (canChoose) {
     block.setCanChoose(canChoose == 'true');
+  } 
+  // OB: 
+  var chooseChildren = xmlBlock.getAttribute('chooseChildren')
+  if (chooseChildren) {
+    block.setChooseChildren(chooseChildren == 'true');
   } 
 
 

@@ -387,8 +387,16 @@ Blockly.BlocksSelection.setOnAddChosenBlocksCallback = function (_fn) {
  * @param {!Blockly.Block} block The block to add.
  */
 Blockly.BlocksSelection.selectOneBlock = function (_block) {
-  Blockly.BlocksSelection.addToChosenBlocks(_block, true);
-  Blockly.BlocksSelection.createOutline();
+  if(_block.shouldChooseChildren() === true) {
+    var blockList = [];
+    blockList.push(_block);
+    Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(_block, blockList, true);
+    Blockly.BlocksSelection.createOutline();
+  }
+  else {
+    Blockly.BlocksSelection.addToChosenBlocks(_block, true);
+    Blockly.BlocksSelection.createOutline();
+  }
 
   if(Blockly.BlocksSelection.onAddChosenBlocksCallback) {
     Blockly.BlocksSelection.onAddChosenBlocksCallback();
