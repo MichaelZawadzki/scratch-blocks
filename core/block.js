@@ -117,11 +117,18 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
    */
   this.alwaysAvailable_ = false;
   
-    /**
-     * @type {boolean}
-     * @private
-     */
-    this.canChoose_ = true;
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.canChoose_ = true;
+
+  /**
+   * @type {boolean}
+   * @private
+   * When this block is selected, also select all of its children (for C-blocks)
+   */
+  this.chooseChildren_ = false;
 
   /**
    * @type {boolean}
@@ -887,6 +894,22 @@ Blockly.Block.prototype.setAlwaysAvailable = function(alwaysAvailable) {
   this.alwaysAvailable_ = alwaysAvailable;
 };
 
+/**
+ * OB: Get whether, when choosing this block, its children stack should also be chosen.
+ * @return {boolean} True if always available.
+ */
+Blockly.Block.prototype.shouldChooseChildren = function() {
+  return this.chooseChildren_ && !this.isShadow_ &&
+      !(this.workspace && this.workspace.options.readOnly);
+};
+
+/**
+ * Set whether, when choosing this block, its children stack should also be chosen.
+ * @param {boolean} movable True if is always available.
+ */
+Blockly.Block.prototype.setChooseChildren = function(chooseChildren) {
+  this.chooseChildren_ = chooseChildren;
+};
 
 
 /**
