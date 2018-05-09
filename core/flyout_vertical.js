@@ -76,10 +76,10 @@ Blockly.VerticalFlyout.prototype.autoClose = false;
 
 /**
  * The width of the flyout, if not otherwise specified.
- * OB TODO: Change this, or make it a variable so we can change the toolbox width if needed
+ * OB TODO: Definately make this a variable so we can change it when instantiating the workspace
  * @type {number}
  */
-Blockly.VerticalFlyout.prototype.DEFAULT_WIDTH = 250;
+Blockly.VerticalFlyout.prototype.DEFAULT_WIDTH = 207;
 
 /**
  * Size of a checkbox next to a variable reporter.
