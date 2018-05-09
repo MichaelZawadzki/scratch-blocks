@@ -896,11 +896,10 @@ Blockly.Block.prototype.setAlwaysAvailable = function(alwaysAvailable) {
 
 /**
  * OB: Get whether, when choosing this block, its children stack should also be chosen.
- * @return {boolean} True if always available.
+ * @return {boolean} True if its children stack should also be chosen.
  */
 Blockly.Block.prototype.shouldChooseChildren = function() {
-  return this.chooseChildren_ && !this.isShadow_ &&
-      !(this.workspace && this.workspace.options.readOnly);
+  return this.chooseChildren_ && !this.isShadow_;
 };
 
 /**
