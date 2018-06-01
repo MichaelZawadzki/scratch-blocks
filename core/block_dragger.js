@@ -301,7 +301,10 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   this.dragBlock(e, currentDragDeltaXY);
   this.dragIconData_ = [];
   var isOutside = this.wasOutside_;
-  this.fireEndDragEvent_(isOutside);
+  var eventNewDragCoordinate = {x: this.startXY_.x + currentDragDeltaXY.x, y: this.startXY_.y + currentDragDeltaXY.y};
+  
+  
+  
   this.draggingBlock_.setMouseThroughStyle(false);
 
   Blockly.BlockSvg.disconnectUiStop_();
@@ -365,6 +368,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     currentBlock.setDragging(false);
     this.draggedConnectionManager_.applyConnections();
 
+    this.fireEndDragEvent_(isOutside, eventNewDragCoordinate);
     //If we moved the block, but didnt change it's parent AND if it isnt a new block then we dont want to 
     //add the event to the undo/redo stack
     //var currentParent = this.draggingBlock_.parentBlock_;
@@ -475,8 +479,9 @@ Blockly.BlockDragger.prototype.fireDragOutsideEvent_ = function(isOutside) {
  * @param {?boolean} isOutside True if the drag is going outside the visible area.
  * @private
  */
-Blockly.BlockDragger.prototype.fireEndDragEvent_ = function(isOutside) {
+Blockly.BlockDragger.prototype.fireEndDragEvent_ = function(isOutside, newCoordinate) {
   var event = new Blockly.Events.BlockEndDrag(this.draggingBlock_, isOutside);
+  event.newCoordinate = newCoordinate;
   Blockly.Events.fire(event);
 };
 

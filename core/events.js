@@ -1005,6 +1005,10 @@ Blockly.Events.EndDrag = function(block, isOutside) {
   }
   Blockly.Events.EndDrag.superClass_.constructor.call(this, block);
   this.isOutside = isOutside;
+  var location = this.currentLocation_();
+  this.oldParentId = location.parentId;
+  this.oldInputName = location.inputName;
+  this.oldCoordinate = location.coordinate;
   // If drag ends outside the blocks workspace, send the block XML
   if (isOutside) {
     this.xml = Blockly.Xml.blockToDom(block, true /* opt_noId */);
@@ -1057,6 +1061,84 @@ Blockly.Events.EndDrag.prototype.fromJson = function(json) {
  */
 Blockly.Events.EndDrag.prototype.isNull = function() {
   return false;
+};
+
+/**
+ * Run an end drag event.
+ * @param {boolean} forward True if run forward, false if run backward (undo).
+ */
+Blockly.Events.EndDrag.prototype.run = function(forward) {
+  var workspace = this.getEventWorkspace_();
+  var block = workspace.getBlockById(this.blockId);
+  if (!block) {
+    console.warn("Can't move non-existant block: " + this.blockId);
+    return;
+  }
+  // MAXIM: Commented out code is copied from the ...Move.prototype.run function
+  //        However it's not working as intended and is sometimes mixed
+  //        with an actual Move.run event. We need to look deeper into 
+  //        EVERY case where undo and run can be called and make sure each 
+  //        event is doinf exactly what (and ONLY what) it needs to do. 
+  // var parentId = forward ? this.newParentId : this.oldParentId;
+  // var inputName = forward ? this.newInputName : this.oldInputName;
+  var coordinate = forward ? this.newCoordinate : undefined;
+  
+  // var parentBlock = null;
+  // if (parentId) {
+  //   parentBlock = workspace.getBlockById(parentId);
+  //   if (!parentBlock) {
+  //     console.warn("Can't connect to non-existant block: " + parentId);
+  //     return;
+  //   }
+  // }
+  // if (block.getParent()) {
+  //   block.unplug();
+  // }
+
+  if (coordinate) {
+    var xy = block.getRelativeToSurfaceXY();
+    block.moveBy(coordinate.x - xy.x, coordinate.y - xy.y);
+  } 
+  // else {
+  //   var blockConnection = block.outputConnection || block.previousConnection;
+  //   var parentConnection;
+  //   if (inputName) {
+  //     var input = parentBlock.getInput(inputName);
+  //     if (input) {
+  //       parentConnection = input.connection;
+  //     }
+  //   } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
+  //     parentConnection = parentBlock.nextConnection;
+  //   }
+  //   if (parentConnection) {
+  //     blockConnection.connect(parentConnection);
+  //   } else {
+  //     //console.warn("Can't connect to non-existant input: " + inputName);
+  //   }
+  // }
+};
+
+/**
+ * Returns the parentId and input if the block is connected,
+ *   or the XY location if disconnected.
+ * @return {!Object} Collection of location info.
+ * @private
+ */
+Blockly.Events.EndDrag.prototype.currentLocation_ = function() {
+  var workspace = Blockly.Workspace.getById(this.workspaceId);
+  var block = workspace.getBlockById(this.blockId);
+  var location = {};
+  var parent = block.getParent();
+  if (parent) {
+    location.parentId = parent.id;
+    var input = parent.getInputWithBlock(block);
+    if (input) {
+      location.inputName = input.name;
+    }
+  } else {
+    location.coordinate = block.getRelativeToSurfaceXY();
+  }
+  return location;
 };
 
 /**
@@ -1400,13 +1482,14 @@ Blockly.Events.StartDrag.prototype.run = function(forward) {
       if (input) {
         parentConnection = input.connection;
       }
-    } else if (blockConnection.type == Blockly.PREVIOUS_STATEMENT && parentBlock) {
+    } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
       parentConnection = parentBlock.nextConnection;
     }
     if (parentConnection) {
       blockConnection.connect(parentConnection);
     } else {
-      console.warn("Can't connect to non-existant input: " + inputName);
+      //Maxim: This is fine if moving an unconnected block to an non-connecting space
+     // console.warn("Can't connect to non-existant input: " + inputName);
     }
   }
 };
