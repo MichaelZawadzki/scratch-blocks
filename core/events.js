@@ -1005,6 +1005,10 @@ Blockly.Events.EndDrag = function(block, isOutside) {
   }
   Blockly.Events.EndDrag.superClass_.constructor.call(this, block);
   this.isOutside = isOutside;
+  var location = this.currentLocation_();
+  this.oldParentId = location.parentId;
+  this.oldInputName = location.inputName;
+  this.oldCoordinate = location.coordinate;
   // If drag ends outside the blocks workspace, send the block XML
   if (isOutside) {
     this.xml = Blockly.Xml.blockToDom(block, true /* opt_noId */);
@@ -1070,13 +1074,65 @@ Blockly.Events.EndDrag.prototype.run = function(forward) {
     console.warn("Can't move non-existant block: " + this.blockId);
     return;
   }
+  var parentId = forward ? this.newParentId : this.oldParentId;
+  var inputName = forward ? this.newInputName : this.oldInputName;
   var coordinate = forward ? this.newCoordinate : undefined;
   
+  var parentBlock = null;
+  if (parentId) {
+    parentBlock = workspace.getBlockById(parentId);
+    if (!parentBlock) {
+      console.warn("Can't connect to non-existant block: " + parentId);
+      return;
+    }
+  }
+  if (block.getParent()) {
+    block.unplug();
+  }
+
   if (coordinate) {
     var xy = block.getRelativeToSurfaceXY();
     block.moveBy(coordinate.x - xy.x, coordinate.y - xy.y);
-  } 
-  
+  } else {
+    var blockConnection = block.outputConnection || block.previousConnection;
+    var parentConnection;
+    if (inputName) {
+      var input = parentBlock.getInput(inputName);
+      if (input) {
+        parentConnection = input.connection;
+      }
+    } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
+      parentConnection = parentBlock.nextConnection;
+    }
+    if (parentConnection) {
+      blockConnection.connect(parentConnection);
+    } else {
+      //console.warn("Can't connect to non-existant input: " + inputName);
+    }
+  }
+};
+
+/**
+ * Returns the parentId and input if the block is connected,
+ *   or the XY location if disconnected.
+ * @return {!Object} Collection of location info.
+ * @private
+ */
+Blockly.Events.EndDrag.prototype.currentLocation_ = function() {
+  var workspace = Blockly.Workspace.getById(this.workspaceId);
+  var block = workspace.getBlockById(this.blockId);
+  var location = {};
+  var parent = block.getParent();
+  if (parent) {
+    location.parentId = parent.id;
+    var input = parent.getInputWithBlock(block);
+    if (input) {
+      location.inputName = input.name;
+    }
+  } else {
+    location.coordinate = block.getRelativeToSurfaceXY();
+  }
+  return location;
 };
 
 /**

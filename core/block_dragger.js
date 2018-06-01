@@ -303,7 +303,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   var isOutside = this.wasOutside_;
   var eventNewDragCoordinate = {x: this.startXY_.x + currentDragDeltaXY.x, y: this.startXY_.y + currentDragDeltaXY.y};
   
-  this.fireEndDragEvent_(isOutside, eventNewDragCoordinate);
+  
   
   this.draggingBlock_.setMouseThroughStyle(false);
 
@@ -368,6 +368,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     currentBlock.setDragging(false);
     this.draggedConnectionManager_.applyConnections();
 
+    this.fireEndDragEvent_(isOutside, eventNewDragCoordinate);
     //If we moved the block, but didnt change it's parent AND if it isnt a new block then we dont want to 
     //add the event to the undo/redo stack
     //var currentParent = this.draggingBlock_.parentBlock_;
@@ -482,7 +483,6 @@ Blockly.BlockDragger.prototype.fireEndDragEvent_ = function(isOutside, newCoordi
   var event = new Blockly.Events.BlockEndDrag(this.draggingBlock_, isOutside);
   event.newCoordinate = newCoordinate;
   Blockly.Events.fire(event);
-  return event;
 };
 
 /**
