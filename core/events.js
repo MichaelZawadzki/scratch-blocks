@@ -1074,42 +1074,48 @@ Blockly.Events.EndDrag.prototype.run = function(forward) {
     console.warn("Can't move non-existant block: " + this.blockId);
     return;
   }
-  var parentId = forward ? this.newParentId : this.oldParentId;
-  var inputName = forward ? this.newInputName : this.oldInputName;
+  // MAXIM: Commented out code is copied from the ...Move.prototype.run function
+  //        However it's not working as intended and is sometimes mixed
+  //        with an actual Move.run event. We need to look deeper into 
+  //        EVERY case where undo and run can be called and make sure each 
+  //        event is doinf exactly what (and ONLY what) it needs to do. 
+  // var parentId = forward ? this.newParentId : this.oldParentId;
+  // var inputName = forward ? this.newInputName : this.oldInputName;
   var coordinate = forward ? this.newCoordinate : undefined;
   
-  var parentBlock = null;
-  if (parentId) {
-    parentBlock = workspace.getBlockById(parentId);
-    if (!parentBlock) {
-      console.warn("Can't connect to non-existant block: " + parentId);
-      return;
-    }
-  }
-  if (block.getParent()) {
-    block.unplug();
-  }
+  // var parentBlock = null;
+  // if (parentId) {
+  //   parentBlock = workspace.getBlockById(parentId);
+  //   if (!parentBlock) {
+  //     console.warn("Can't connect to non-existant block: " + parentId);
+  //     return;
+  //   }
+  // }
+  // if (block.getParent()) {
+  //   block.unplug();
+  // }
 
   if (coordinate) {
     var xy = block.getRelativeToSurfaceXY();
     block.moveBy(coordinate.x - xy.x, coordinate.y - xy.y);
-  } else {
-    var blockConnection = block.outputConnection || block.previousConnection;
-    var parentConnection;
-    if (inputName) {
-      var input = parentBlock.getInput(inputName);
-      if (input) {
-        parentConnection = input.connection;
-      }
-    } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
-      parentConnection = parentBlock.nextConnection;
-    }
-    if (parentConnection) {
-      blockConnection.connect(parentConnection);
-    } else {
-      //console.warn("Can't connect to non-existant input: " + inputName);
-    }
-  }
+  } 
+  // else {
+  //   var blockConnection = block.outputConnection || block.previousConnection;
+  //   var parentConnection;
+  //   if (inputName) {
+  //     var input = parentBlock.getInput(inputName);
+  //     if (input) {
+  //       parentConnection = input.connection;
+  //     }
+  //   } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
+  //     parentConnection = parentBlock.nextConnection;
+  //   }
+  //   if (parentConnection) {
+  //     blockConnection.connect(parentConnection);
+  //   } else {
+  //     //console.warn("Can't connect to non-existant input: " + inputName);
+  //   }
+  // }
 };
 
 /**
