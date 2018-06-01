@@ -1060,6 +1060,26 @@ Blockly.Events.EndDrag.prototype.isNull = function() {
 };
 
 /**
+ * Run an end drag event.
+ * @param {boolean} forward True if run forward, false if run backward (undo).
+ */
+Blockly.Events.EndDrag.prototype.run = function(forward) {
+  var workspace = this.getEventWorkspace_();
+  var block = workspace.getBlockById(this.blockId);
+  if (!block) {
+    console.warn("Can't move non-existant block: " + this.blockId);
+    return;
+  }
+  var coordinate = forward ? this.newCoordinate : undefined;
+  
+  if (coordinate) {
+    var xy = block.getRelativeToSurfaceXY();
+    block.moveBy(coordinate.x - xy.x, coordinate.y - xy.y);
+  } 
+  
+};
+
+/**
  * Class for a UI event.
  * @param {Blockly.Block} block The affected block.
  * @param {string} element One of 'selected', 'comment', 'mutator', etc.
@@ -1400,13 +1420,14 @@ Blockly.Events.StartDrag.prototype.run = function(forward) {
       if (input) {
         parentConnection = input.connection;
       }
-    } else if (blockConnection.type == Blockly.PREVIOUS_STATEMENT && parentBlock) {
+    } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
       parentConnection = parentBlock.nextConnection;
     }
     if (parentConnection) {
       blockConnection.connect(parentConnection);
     } else {
-      console.warn("Can't connect to non-existant input: " + inputName);
+      //Maxim: This is fine if moving an unconnected block to an non-connecting space
+     // console.warn("Can't connect to non-existant input: " + inputName);
     }
   }
 };
