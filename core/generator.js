@@ -213,16 +213,18 @@ Blockly.Generator.prototype.blockToCode = function(block) {
     return [this.scrub_(block, code[0]), code[1]];
   } else if (goog.isString(code)) {
     var id = block.id.replace(/\$/g, '$$$$');  // Issue 251.
-    
-    if (this.BLOCK_HOOK_BEFORE) {
+
+    // OB [CSI-1056]: Code hooks are inserted conditionally.
+
+    if (this.BLOCK_HOOK_BEFORE && block.insertCodeHookBefore === true) {
       code = this.BLOCK_HOOK_BEFORE.replace(/%1/g, '\'' + id + '\'') + code;
     }
 
-    if (this.STATEMENT_PREFIX) {
+    if (this.STATEMENT_PREFIX && block.insertCodeStatementPrefix === true) {
       code = this.STATEMENT_PREFIX.replace(/%1/g, '\'' + id + '\'') + code;
     }
 
-    if (this.BLOCK_HOOK_AFTER) {
+    if (this.BLOCK_HOOK_AFTER && block.insertCodeHookAfter === true) {
       code = code + this.BLOCK_HOOK_AFTER.replace(/%1/g, '\'' + id + '\'');
     }
 

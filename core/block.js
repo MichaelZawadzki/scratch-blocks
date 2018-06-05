@@ -213,6 +213,16 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
    */
   this.dragKeepSubStack_ = false;
 
+  /**
+   * OB [CSI-1056]
+   * Does the block's code generation have the before/after hooks
+   * TRUE by default.
+   * @type {boolean}
+   */
+  this.insertCodeHookBefore = true;
+  this.insertCodeHookAfter = true;
+  this.insertCodeStatementPrefix = true;
+
   // Copy the type-specific functions and data from the prototype.
   if (prototypeName) {
     /** @type {string} */
@@ -989,6 +999,25 @@ Blockly.Block.prototype.setEditable = function(editable) {
     for (var j = 0, field; field = input.fieldRow[j]; j++) {
       field.updateEditable();
     }
+  }
+};
+
+/**
+* OB [CSI-1056]
+* Set flags for the block's code generation have the before/after hooks
+*/
+Blockly.Block.prototype.setInsertCodeHooks = function(_useHookBefore, _useHookAfter) {
+  if(_useHookBefore != null && _useHookBefore != undefined) {
+    this.insertCodeHookBefore = _useHookBefore;
+  }
+  if(_useHookAfter != null && _useHookAfter != undefined) {
+    this.insertCodeHookAfter = _useHookAfter;
+  }
+};
+
+Blockly.Block.prototype.setInsertCodeStatementPrefix = function(_usePrefix) {
+  if(_usePrefix != null && _usePrefix != undefined) {
+    this.insertCodeStatementPrefix = _usePrefix;
   }
 };
 
