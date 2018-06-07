@@ -31,6 +31,7 @@ goog.provide('Blockly.WorkspaceAudio');
  * Class for loading, storing, and playing audio for a workspace.
  * @param {Blockly.WorkspaceSvg} parentWorkspace The parent of the workspace
  *     this audio object belongs to, or null.
+ * @constructor
  */
 Blockly.WorkspaceAudio = function(parentWorkspace) {
 
@@ -122,7 +123,6 @@ Blockly.WorkspaceAudio.prototype.preload = function() {
        
       });
     }
-
     // iOS can only process one sound at a time.  Trying to load more than one
     // corrupts the earlier ones.  Just load one and leave the others uncached.
     if (goog.userAgent.IPAD || goog.userAgent.IPHONE) {
