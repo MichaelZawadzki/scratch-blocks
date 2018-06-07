@@ -26,6 +26,10 @@
 
 goog.provide('Blockly.BlockDragger');
 
+goog.require('Blockly.BlockAnimations');
+goog.require('Blockly.Events.BlockMove');
+goog.require('Blockly.Events.DragBlockOutside');
+goog.require('Blockly.Events.EndBlockDrag');
 goog.require('Blockly.InsertionMarkerManager');
 
 goog.require('goog.math.Coordinate');
@@ -35,7 +39,7 @@ goog.require('goog.asserts');
 /**
  * Class for a block dragger.  It moves blocks around the workspace when they
  * are being dragged by a mouse or touch.
- * @param {!Blockly.Block} block The block to drag.
+ * @param {!Blockly.BlockSvg} block The block to drag.
  * @param {!Blockly.WorkspaceSvg} workspace The workspace to drag on.
  * @constructor
  */
@@ -142,7 +146,7 @@ Blockly.BlockDragger.prototype.dispose = function() {
 Blockly.BlockDragger.initIconData_ = function(block) {
   // Build a list of icons that need to be moved and where they started.
   var dragIconData = [];
-  var descendants = block.getDescendants();
+  var descendants = block.getDescendants(false);
   for (var i = 0, descendant; descendant = descendants[i]; i++) {
     var icons = descendant.getIcons();
     for (var j = 0; j < icons.length; j++) {
@@ -189,7 +193,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   }
 
   this.workspace_.setResizesEnabled(false);
-  Blockly.BlockSvg.disconnectUiStop_();
+  Blockly.BlockAnimations.disconnectUiStop();
 
   // OB: If we only drag one chosen block at a time, do dragging like it used to be
   this.isDraggingChosenBlocks = (Blockly.BlocksSelection.isDraggingChosenBlocks() && Blockly.BlocksSelection.blocks.length > 1);
@@ -205,7 +209,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
     var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
     var relativeToTopXY = this.draggingBlock_.getRelativeToElementXY(topBlock.svgGroup_);
     topBlock.translate(newLoc.x, newLoc.y);
-    topBlock.disconnectUiEffect();
+    Blockly.BlockAnimations.disconnectUiEffect(topBlock);
 
     topBlock.setDragging(true);
     // OB [CSI-908]
@@ -234,7 +238,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
       var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
       
       this.draggingBlock_.translate(newLoc.x, newLoc.y);
-      this.draggingBlock_.disconnectUiEffect();
+      Blockly.BlockAnimations.disconnectUiEffect(this.draggingBlock_);
     }
 
     this.draggingBlock_.setDragging(true);
@@ -251,8 +255,12 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
     this.draggedConnectionManager_ = new Blockly.InsertionMarkerManager(this.draggingBlock_);
   }
 
-  if (this.workspace_.toolbox_) {
-    this.workspace_.toolbox_.addDeleteStyle();
+  // OB MERGE: To check
+  var toolbox = this.workspace_.getToolbox();
+  if (toolbox) {
+    var style = this.draggingBlock_.isDeletable() ? 'blocklyToolboxDelete' :
+        'blocklyToolboxGrab';
+    toolbox.addStyle(style);
   }
 
   this.workspace_.startDragMetrics = savedMetrics;
@@ -307,7 +315,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   
   this.draggingBlock_.setMouseThroughStyle(false);
 
-  Blockly.BlockSvg.disconnectUiStop_();
+  Blockly.BlockAnimations.disconnectUiStop();
 
   var delta;
   var newLoc;
@@ -389,11 +397,12 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
 
   this.workspace_.setResizesEnabled(true);
 
-  //We have released the block, so if it's a NEW block from the flyout, let the flyout know. 
+  // We have released the block, so if it's a NEW block from the flyout, let the flyout know. 
   if(this.workspace_.flyout_ && this.workspace_.flyout_.hasPendingNewBlock()){
     this.workspace_.flyout_.clearPendingNewBlock();
   }
 
+  // MAS: If we drag from the toolbar, and then back into it (deleting it), we don't want to trigger an undoable event
   if(snappedBack || deletedNewBlock) {//(!changedParent && !deleted) {
    Blockly.Events.clearPendingUndo();
    Blockly.Events.enable();
@@ -402,9 +411,13 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   if(snappedBack) {
     this.workspace_.updateHighlightLayer();
   }
-
-  if (this.workspace_.toolbox_) {
-    this.workspace_.toolbox_.removeDeleteStyle();
+  
+  // OB MERGE: Check which block to change style of
+  var toolbox = this.workspace_.getToolbox();
+  if (toolbox) {
+    var style = this.draggingBlock_.isDeletable() ? 'blocklyToolboxDelete' :
+        'blocklyToolboxGrab';
+    toolbox.removeStyle(style);
   }
   Blockly.Events.setGroup(false);
 
@@ -469,7 +482,7 @@ Blockly.BlockDragger.prototype.maybeSnapBackBlock_ = function(e) {
  * @private
  */
 Blockly.BlockDragger.prototype.fireDragOutsideEvent_ = function(isOutside) {
-  var event = new Blockly.Events.BlockDragOutside(this.draggingBlock_);
+  var event = new Blockly.Events.DragBlockOutside(this.draggingBlock_);
   event.isOutside = isOutside;
   Blockly.Events.fire(event);
 };
@@ -477,10 +490,11 @@ Blockly.BlockDragger.prototype.fireDragOutsideEvent_ = function(isOutside) {
 /**
  * Fire an end drag event at the end of a block drag.
  * @param {?boolean} isOutside True if the drag is going outside the visible area.
+ * @param {?coordinate} newCoordinate The coordinate where the block ends up [MAS]
  * @private
  */
 Blockly.BlockDragger.prototype.fireEndDragEvent_ = function(isOutside, newCoordinate) {
-  var event = new Blockly.Events.BlockEndDrag(this.draggingBlock_, isOutside);
+  var event = new Blockly.Events.EndBlockDrag(this.draggingBlock_, isOutside);
   event.newCoordinate = newCoordinate;
   Blockly.Events.fire(event);
 };

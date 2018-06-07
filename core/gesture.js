@@ -27,11 +27,14 @@
 
 goog.provide('Blockly.Gesture');
 
+goog.require('Blockly.BlockAnimations');
 goog.require('Blockly.BlockDragger');
 goog.require('Blockly.BlocksSelection');
+goog.require('Blockly.BubbleDragger');
 goog.require('Blockly.constants');
-goog.require('Blockly.Events');
+goog.require('Blockly.Events.Ui');
 goog.require('Blockly.FlyoutDragger');
+goog.require('Blockly.scratchBlocksUtils');
 goog.require('Blockly.Tooltip');
 goog.require('Blockly.Touch');
 goog.require('Blockly.WorkspaceDragger');
@@ -67,9 +70,17 @@ Blockly.Gesture = function(e, creatorWorkspace) {
    * How far the mouse has moved during this drag, in pixel units.
    * (0, 0) is at this.mouseDownXY_.
    * @type {goog.math.Coordinate}
-   * private
+   * @private
    */
-  this.currentDragDeltaXY_ = new goog.math.Coordinate(0, 0);
+  this.currentDragDeltaXY_ = null;
+
+  /**
+   * The bubble that the gesture started on, or null if it did not start on a
+   * bubble.
+   * @type {Blockly.Bubble}
+   * @private
+   */
+  this.startBubble_ = null;
 
   /**
    * The field that the gesture started on, or null if it did not start on a
@@ -147,6 +158,13 @@ Blockly.Gesture = function(e, creatorWorkspace) {
     this.isSelectingBlocks_ = false;
 
   /**
+   * Whether the bubble is currently being dragged.
+   * @type {boolean}
+   * @private
+   */
+  this.isDraggingBubble_ = false;
+
+  /**
    * The event that most recently updated this gesture.
    * @type {!Event}
    * @private
@@ -168,6 +186,13 @@ Blockly.Gesture = function(e, creatorWorkspace) {
    * @private
    */
   this.onUpWrapper_ = null;
+
+  /**
+   * The object tracking a bubble drag, or null if none is in progress.
+   * @type {Blockly.BubbleDragger}
+   * @private
+   */
+  this.bubbleDragger_ = null;
 
   /**
    * The object tracking a block drag, or null if none is in progress.
@@ -282,6 +307,10 @@ Blockly.Gesture.prototype.dispose = function() {
     this.blocksSelection_.dispose();
     this.blocksSelection_ = null;
   }
+  if (this.bubbleDragger_) {
+    this.bubbleDragger_.dispose();
+    this.bubbleDragger_ = null;
+  }
 };
 
 /**
@@ -297,7 +326,7 @@ Blockly.Gesture.prototype.updateFromEvent_ = function(e) {
   var currentXY = new goog.math.Coordinate(e.clientX, e.clientY);
   var changed = this.updateDragDelta_(currentXY);
   // Exceeded the drag radius for the first time.
-  if (changed){
+  if (changed) {
     this.updateIsDragging_(e.isMultiTouch);
     Blockly.longStop_();
   }
@@ -359,6 +388,25 @@ Blockly.Gesture.prototype.updateIsDraggingFromFlyout_ = function() {
     return true;
   }
   return false;
+};
+
+/**
+ * Update this gesture to record whether a bubble is being dragged.
+ * This function should be called on a mouse/touch move event the first time the
+ * drag radius is exceeded.  It should be called no more than once per gesture.
+ * If a bubble should be dragged this function creates the necessary
+ * BubbleDragger and starts the drag.
+ * @return {boolean} true if a bubble is being dragged.
+ * @private
+ */
+Blockly.Gesture.prototype.updateIsDraggingBubble_ = function() {
+  if (!this.startBubble_) {
+    return false;
+  }
+
+  this.isDraggingBubble_ = true;
+  this.startDraggingBubble_();
+  return true;
 };
 
 /**
@@ -453,6 +501,11 @@ Blockly.Gesture.prototype.updateIsDragging_ = function(multiTouch) {
     this.updateIsDraggingWorkspace_(true);
   }
 
+  // Second, check if it was a bubble drag.  Bubbles always sit on top of blocks.
+  if (this.updateIsDraggingBubble_()) {
+    return;
+  }
+
   // Then check if it was a block drag.
   if (multiTouch === false && this.updateIsDraggingBlock_()) {
     return;
@@ -495,6 +548,18 @@ Blockly.Gesture.prototype.startDraggingBlock_ = function() {
 };
 
 /**
+ * Create a bubble dragger and start dragging the selected bubble.
+ * TODO (fenichel): Possibly combine this and startDraggingBlock_.
+ * @private
+ */
+Blockly.Gesture.prototype.startDraggingBubble_ = function() {
+  this.bubbleDragger_ = new Blockly.BubbleDragger(this.startBubble_,
+      this.startWorkspace_);
+  this.bubbleDragger_.startBubbleDrag();
+  this.bubbleDragger_.dragBubble(this.mostRecentEvent_,
+      this.currentDragDeltaXY_);
+};
+/**
  * Start a gesture: update the workspace to indicate that a gesture is in
  * progress and bind mousemove and mouseup handlers.
  * @param {!Event} e A mouse down or touch start event.
@@ -509,7 +574,7 @@ Blockly.Gesture.prototype.doStart = function(e, multiTouch) {
   var wasStarted = this.hasStarted_;
   this.hasStarted_ = true;
 
-  Blockly.BlockSvg.disconnectUiStop_();
+  Blockly.BlockAnimations.disconnectUiStop();
   this.startWorkspace_.updateScreenCalculationsIfScrolled();
   if (this.startWorkspace_.isMutator) {
     // Mutator's coordinate system could be out of date because the bubble was
@@ -546,10 +611,18 @@ Blockly.Gesture.prototype.doStart = function(e, multiTouch) {
     this.mouseDownXY_ = new goog.math.Coordinate(e.clientX, e.clientY);
   }
 
+  this.bindMouseEvents(e);
+};
+
+/**
+ * Bind gesture events.
+ * @param {!Event} e A mouse down or touch start event.
+ * @package
+ */
+Blockly.Gesture.prototype.bindMouseEvents = function(e) {
   if(!this.onMoveWrapper_) {
     this.onMoveWrapper_ = Blockly.bindEventWithChecks_(
         document, 'mousemove', null, this.handleMove.bind(this));
-
   }
   if(!this.onUpWrapper_) {
     this.onUpWrapper_ = Blockly.bindEventWithChecks_(
@@ -571,9 +644,12 @@ Blockly.Gesture.prototype.handleMove = function(e) {
     return;
   }
 
+  var stopPropagation = true;
+
   var wasDraggingWorkspace = this.isDraggingWorkspace_;
   var wasDraggingBlock = this.isDraggingBlock_;
   var wasSelectingBlocks = this.isSelectingBlocks_;
+
   this.updateFromEvent_(e);
   if (this.isDraggingWorkspace_) {
     if(wasDraggingWorkspace === false) {
@@ -581,14 +657,13 @@ Blockly.Gesture.prototype.handleMove = function(e) {
       this.setWorkspaceDragTouchIDs(e);
     }
     this.workspaceDragger_.drag(this.currentDragDeltaXY_);
-    e.preventDefault();
-    e.stopPropagation();
   } else if (this.isDraggingBlock_) {
     if(wasDraggingBlock === false) {
       // Set touch IDs to for workspace drag gesture
       this.setBlockDragTouchID(e);
     }
 
+    // OB: Scroll when dragging a block while at edge of workspace
     if(this.startWorkspace_ && this.startWorkspace_.options.verticalScrollAtEdges === true) {
       var wsDelta = this.startWorkspace_.maybeScrollWorkspaceVertical(e, this.currentDragDeltaXY_.y < 0, this.currentDragDeltaXY_.y > 0, true);
       this.mouseDownXY_.x -= wsDelta.x;
@@ -597,14 +672,12 @@ Blockly.Gesture.prototype.handleMove = function(e) {
       this.currentDragDeltaXY_.y += wsDelta.y;
     }
 
-    if (!this.blockDragger_.dragBlock(
+    if (this.blockDragger_.dragBlock(
       this.mostRecentEvent_, this.currentDragDeltaXY_)) {
-      e.preventDefault();
-      e.stopPropagation();
+      stopPropagation = false;
     }
-  }
-  else if (this.isSelectingBlocks_) {
-
+  } else if (this.isSelectingBlocks_) {
+    // OB: Scroll when moving block selection at edge of workspace
     if(this.startWorkspace_ && this.startWorkspace_.options.verticalScrollAtEdges === true) {
       // Right now, this only triggers when mouse is moved.
       // Find a way to call it every frame or every X seconds, until mouse is up again ?
@@ -616,10 +689,16 @@ Blockly.Gesture.prototype.handleMove = function(e) {
     }
 
     this.blocksSelection_.updateSelection(this.currentDragDeltaXY_);
+  } else if (this.isDraggingBubble_) {
+    this.bubbleDragger_.dragBubble(this.mostRecentEvent_,
+        this.currentDragDeltaXY_);
+  }
 
+  if (stopPropagation) {
     e.preventDefault();
     e.stopPropagation();
   }
+  
 };
 
 /**
@@ -659,8 +738,8 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     console.log('Trying to end a gesture recursively.');
     return;
   }
-
   var shouldEndGesture = true;
+  // OB MERGE: Should add a 'shouldEndBubbleDrag' function to start
   if (this.isDraggingBlock_) {
     shouldEndGesture = this.shouldEndBlockDrag(e);
   }
@@ -686,12 +765,17 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     // The ordering of these checks is important: drags have higher priority than
     // clicks.  Fields have higher priority than blocks; blocks have higher
     // priority than workspaces.
-    if (this.isDraggingBlock_) {
+    if (this.isDraggingBubble_) {
+      this.bubbleDragger_.endBubbleDrag(e, this.currentDragDeltaXY_);
+    } else if (this.isDraggingBlock_) {
         this.blockDragger_.endBlockDrag(e, this.currentDragDeltaXY_);
     } else if (this.isDraggingWorkspace_) {
         this.workspaceDragger_.endDrag(this.currentDragDeltaXY_);
     } else if(this.isSelectingBlocks_) {
       this.blocksSelection_.endSelection(this.currentDragDeltaXY_);
+    } else if (this.isBubbleClick_()) {
+      // Bubbles are in front of all fields and blocks.
+      this.doBubbleClick_();
     } else if (this.isFieldClick_()) {
       this.doFieldClick_();
     } else if (this.isBlockClick_()) {
@@ -768,7 +852,10 @@ Blockly.Gesture.prototype.cancel = function() {
   }
   this.isEnding_ = true;
   Blockly.longStop_();
-  if (this.isDraggingBlock_) {
+  if (this.isDraggingBubble_) {
+    this.bubbleDragger_.endBubbleDrag(this.mostRecentEvent_,
+        this.currentDragDeltaXY_);
+  } else if (this.isDraggingBlock_) {
     this.blockDragger_.endBlockDrag(this.mostRecentEvent_,
         this.currentDragDeltaXY_);
   } else if (this.isDraggingWorkspace_) {
@@ -787,12 +874,17 @@ Blockly.Gesture.prototype.handleRightClick = function(e) {
   if (this.targetBlock_) {
     //this.bringBlockToFront_();
     Blockly.hideChaff(this.flyout_);
+    // OB: Don't show context menu on right click
     //this.targetBlock_.showContextMenu_(e);
+  } else if (this.startBubble_) {
+    // OB: Don't show context menu on right click
+    //this.startBubble_.showContextMenu_(e);
   } else if (this.startWorkspace_ && !this.flyout_) {
     Blockly.hideChaff();
     //this.startWorkspace_.showContextMenu_(e);
   }
 
+  // TODO: Handle right-click on a bubble.
   e.preventDefault();
   e.stopPropagation();
 
@@ -803,6 +895,7 @@ Blockly.Gesture.prototype.handleRightClick = function(e) {
  * Handle a mousedown/touchstart event on a workspace.
  * @param {!Event} e A mouse down or touch start event.
  * @param {!Blockly.Workspace} ws The workspace the event hit.
+ * @param {boolean=} multiTouch Is this a multi touch...err touch [OB]
  * @package
  */
 Blockly.Gesture.prototype.handleWsStart = function(e, ws, multiTouch) {
@@ -822,7 +915,6 @@ Blockly.Gesture.prototype.handleWsStart = function(e, ws, multiTouch) {
   if(!this.targetBlock_) {
     Blockly.BlocksSelection.clearChosenBlocks();
   }
-
   this.setStartWorkspace_(ws);
   this.mostRecentEvent_ = e;
   this.doStart(e, multiTouch);
@@ -836,11 +928,10 @@ Blockly.Gesture.prototype.handleWsStart = function(e, ws, multiTouch) {
  */
 Blockly.Gesture.prototype.handleFlyoutStart = function(e, flyout) {
   goog.asserts.assert(!this.hasStarted_,
-     'Tried to call gesture.handleFlyoutStart, but the gesture had already been ' +
-     'started.');
+      'Tried to call gesture.handleFlyoutStart, but the gesture had already been ' +
+      'started.');
 
   Blockly.BlocksSelection.clearChosenBlocks();
-
   this.setStartFlyout_(flyout);
   this.handleWsStart(e, flyout.getWorkspace());
 };
@@ -853,32 +944,45 @@ Blockly.Gesture.prototype.handleFlyoutStart = function(e, flyout) {
  */
 Blockly.Gesture.prototype.handleBlockStart = function(e, block) {
   goog.asserts.assert(!this.hasStarted_,
-     'Tried to call gesture.handleBlockStart, but the gesture had already been ' +
-     'started.');
-/*
-     console.log("--- Handle Block Start ---");
-     console.log("block: " + block.type);
-     console.log("is chosen?: " + block.isChosen_);
-     console.trace();
-*/
+      'Tried to call gesture.handleBlockStart, but the gesture had already ' +
+      'been started.');
   this.setStartBlock(block);
-
 
   if(block && block == this.targetBlock_ && block.isChosen_ !== true) {
     Blockly.BlocksSelection.clearChosenBlocks();
   }
 
   this.mostRecentEvent_ = e;
+};
 
-
-  //console.log("Target block: " + this.targetBlock_.type);
-  //e.stopPropagation();
-
+/**
+ * Handle a mousedown/touchstart event on a bubble.
+ * @param {!Event} e A mouse down or touch start event.
+ * @param {!Blockly.Bubble} bubble The bubble the event hit.
+ * @package
+ */
+Blockly.Gesture.prototype.handleBubbleStart = function(e, bubble) {
+  goog.asserts.assert(!this.hasStarted_,
+      'Tried to call gesture.handleBubbleStart, but the gesture had already ' +
+      'been started.');
+  this.setStartBubble(bubble);
+  this.mostRecentEvent_ = e;
 };
 
 /* Begin functions defining what actions to take to execute clicks on each type
  * of target.  Any developer wanting to add behaviour on clicks should modify
  * only this code. */
+
+/**
+ * Execute a bubble click.
+ * @private
+ */
+Blockly.Gesture.prototype.doBubbleClick_ = function() {
+  // TODO (github.com/google/blockly/issues/1673): Consistent handling of single
+  // clicks.
+  this.startBubble_.setFocus && this.startBubble_.setFocus();
+  this.startBubble_.select && this.startBubble_.select();
+};
 
 /**
  * Execute a field click.
@@ -914,7 +1018,7 @@ Blockly.Gesture.prototype.doBlockClick_ = function() {
       // This is used to toggle the stack when any block in the stack is clicked.
       var rootBlock = this.startBlock_.getRootBlock();
       Blockly.Events.fire(
-        new Blockly.Events.Ui(rootBlock, 'stackclick', undefined, undefined));
+          new Blockly.Events.Ui(rootBlock, 'stackclick', undefined, undefined));
     }
   }
   this.bringBlockToFront_();
@@ -934,6 +1038,7 @@ Blockly.Gesture.prototype.doWorkspaceClick_ = function() {
 /* End functions defining what actions to take to execute clicks on each type
  * of target. */
 
+// TODO (fenichel): Move bubbles to the front.
 /**
  * Move the dragged/clicked block to the front of the workspace so that it is
  * not occluded by other blocks.
@@ -955,10 +1060,21 @@ Blockly.Gesture.prototype.bringBlockToFront_ = function() {
  */
 Blockly.Gesture.prototype.setStartField = function(field) {
   goog.asserts.assert(!this.hasStarted_,
-     'Tried to call gesture.setStartField, but the gesture had already been ' +
-     'started.');
+      'Tried to call gesture.setStartField, but the gesture had already been ' +
+      'started.');
   if (!this.startField_) {
     this.startField_ = field;
+  }
+};
+
+/**
+ * Record the bubble that a gesture started on
+ * @param {Blockly.Bubble} bubble The bubble the gesture started on.
+ * @package
+ */
+Blockly.Gesture.prototype.setStartBubble = function(bubble) {
+  if (!this.startBubble_) {
+    this.startBubble_ = bubble;
   }
 };
 
@@ -969,9 +1085,11 @@ Blockly.Gesture.prototype.setStartField = function(field) {
  * @package
  */
 Blockly.Gesture.prototype.setStartBlock = function(block) {
-  if (!this.startBlock_) {
+  // If the gesture already went through a bubble, don't set the start block.
+  if (!this.startBlock_ && !this.startBubble_) {
     this.startBlock_ = block;
-    this.shouldDuplicateOnDrag_ = Blockly.utils.isShadowArgumentReporter(block);
+    this.shouldDuplicateOnDrag_ =
+        Blockly.scratchBlocksUtils.isShadowArgumentReporter(block);
     if (block.isInFlyout && block != block.getRootBlock()) {
       this.setTargetBlock_(block.getRootBlock());
     } else {
@@ -1023,6 +1141,18 @@ Blockly.Gesture.prototype.setStartFlyout_ = function(flyout) {
  * to change the definition of a click should modify only this code. */
 
 /**
+ * Whether this gesture is a click on a bubble.  This should only be called when
+ * ending a gesture (mouse up, touch end).
+ * @return {boolean} whether this gesture was a click on a bubble.
+ * @private
+ */
+Blockly.Gesture.prototype.isBubbleClick_ = function() {
+  // A bubble click starts on a bubble and never escapes the drag radius.
+  var hasStartBubble = !!this.startBubble_;
+  return hasStartBubble && !this.hasExceededDragRadius_;
+};
+
+/**
  * Whether this gesture is a click on a block.  This should only be called when
  * ending a gesture (mouse up, touch end).
  * @return {boolean} whether this gesture was a click on a block.
@@ -1054,7 +1184,8 @@ Blockly.Gesture.prototype.isFieldClick_ = function() {
  * @private
  */
 Blockly.Gesture.prototype.isWorkspaceClick_ = function() {
-  var onlyTouchedWorkspace = !this.startBlock_ && !this.startField_;
+  var onlyTouchedWorkspace = !this.startBlock_ && !this.startBubble_ &&
+      !this.startField_;
   return onlyTouchedWorkspace && !this.hasExceededDragRadius_;
 };
 
@@ -1068,7 +1199,8 @@ Blockly.Gesture.prototype.isWorkspaceClick_ = function() {
  * @package
  */
 Blockly.Gesture.prototype.isDragging = function() {
-  return this.isDraggingWorkspace_ || this.isDraggingBlock_;
+  return this.isDraggingWorkspace_ || this.isDraggingBlock_ ||
+      this.isDraggingBubble_;
 };
 
 /**
