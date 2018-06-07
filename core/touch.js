@@ -34,6 +34,7 @@ goog.require('goog.events');
 goog.require('goog.events.BrowserFeature');
 goog.require('goog.string');
 
+
 /**
  * Which touch events are we currently paying attention to?
  * @type {DOMString}
@@ -63,7 +64,7 @@ Blockly.longPid_ = 0;
 
 /**
  * Context menus on touch devices are activated using a long-press.
- * Unfortunately the contextmenu touch event is currently (2015) only suported
+ * Unfortunately the contextmenu touch event is currently (2015) only supported
  * by Chrome.  This function is fired on any touchstart event, queues a task,
  * which after about a second opens the context menu.  The tasks is killed
  * if the touch event terminates early.
