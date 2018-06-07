@@ -287,7 +287,7 @@ Blockly.VerticalFlyout.prototype.position = function() {
 
   // This version of the flyout does not change width to fit its contents.
   // Instead it matches the width of its parent or uses a default value.
-  this.width_ = this.getWidth();
+  this.width_ = this.getWidth(); 
 
   if (this.parentToolbox_) {
     var toolboxWidth = this.parentToolbox_.getWidth();
@@ -696,7 +696,15 @@ Blockly.VerticalFlyout.prototype.getClientRect = function() {
     return new goog.math.Rect(x - BIG_NUM, -BIG_NUM, BIG_NUM + width,
         BIG_NUM * 2);
   } else {  // Right
-    return new goog.math.Rect(x, -BIG_NUM, BIG_NUM + width, BIG_NUM * 2);
+    // OB [CSI-1088]: On iPad, when there's no toolbar, user can move its finger offscreen while dragging a block;
+    // the block won't get deleted, so the block will be hidden 'off-screen'.
+    // Solution: Create a tiny strip of delete area (5 px), so that a block dragged offscreen gets deleted
+    if(this.width_ <= 0) {
+      return new goog.math.Rect(x - 5, -BIG_NUM, BIG_NUM + width, BIG_NUM * 2);
+    }
+    else {
+      return new goog.math.Rect(x, -BIG_NUM, BIG_NUM + width, BIG_NUM * 2);
+    }
   }
 };
 
