@@ -59,6 +59,8 @@ Blockly.ScrollbarPair = function(workspace, _skipHorizontal) {
 
   if (_skipHorizontal === true) {
     this.hScroll.setOpacity(0);
+    // OB [CSI-1073]: Also disable touch when hiding scrollbar
+    this.hScroll.enableTouch(false);
   }
 
 };
@@ -890,4 +892,13 @@ Blockly.Scrollbar.prototype.setOrigin = function(x, y) {
  */
 Blockly.Scrollbar.prototype.setOpacity = function(_opacity) {
   this.svgGroup_.style.opacity = _opacity;
+};
+
+/**
+ * Enabled/disable pointer events on scrollbar
+ * @param {boolean} _enabled To enable or disable the pointer events
+ */
+Blockly.Scrollbar.prototype.enableTouch = function(_enabled) {
+  var touchValue = (_enabled ? 'visiblePainted' : 'none');
+  this.svgGroup_.setAttribute('pointer-events', touchValue);
 };
