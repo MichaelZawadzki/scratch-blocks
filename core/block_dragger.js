@@ -172,6 +172,7 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
   if (!Blockly.Events.getGroup()) {
     Blockly.Events.setGroup(true);
   }
+
   // OB: Add an event when a block is dragged
   // OB [CSI-633] Make sure to fire the event BEFORE the disconnection has happened,
   // so we can know what block was the parent of this one (so UNDO works properly)

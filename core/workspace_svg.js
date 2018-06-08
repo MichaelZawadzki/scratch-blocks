@@ -1159,7 +1159,7 @@ Blockly.WorkspaceSvg.prototype.reportValue = function(id, value) {
  */
 Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock, opt_outlinedBlocks) {
   if (!this.rendered) {
-    return;
+    return null;
   }
   if (this.currentGesture_) {
     this.currentGesture_.cancel();  // Dragging while pasting?  No.
@@ -1167,15 +1167,19 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock, opt_outlinedBlocks) {
   if (xmlBlock.tagName.toLowerCase() == 'comment') {
     this.pasteWorkspaceComment_(xmlBlock);
   } else {
-    this.pasteBlock_(xmlBlock);
+    var pastedBlock = this.pasteBlock_(xmlBlock, opt_outlinedBlocks);
+    return pastedBlock;
   }
+
+  return null;
 };
 
 /**
  * Paste the provided block onto the workspace.
  * @param {!Element} xmlBlock XML block element.
  */
-Blockly.WorkspaceSvg.prototype.pasteBlock_ = function(xmlBlock) {
+Blockly.WorkspaceSvg.prototype.pasteBlock_ = function(xmlBlock, opt_outlinedBlocks) {
+
   Blockly.Events.disable();
   try {
     var block = Blockly.Xml.domToBlock(xmlBlock, this);
@@ -1243,6 +1247,76 @@ Blockly.WorkspaceSvg.prototype.pasteBlock_ = function(xmlBlock) {
   block.select();
 
   return block;
+
+
+
+  // Blockly.Events.disable();
+  // try {
+  //   var block = Blockly.Xml.domToBlock(xmlBlock, this);
+  //   // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
+  //   Blockly.scratchBlocksUtils.changeObscuredShadowIds(block);
+  //   // Move the duplicate to original position.
+  //   var blockX = parseInt(xmlBlock.getAttribute('x'), 0);
+  //   var blockY = parseInt(xmlBlock.getAttribute('y'), 0);
+  //   if (!isNaN(blockX) && !isNaN(blockY)) {
+  //     if (this.RTL) {
+  //       blockX = -blockX;
+  //     }
+  //     // OB [CSI-748]
+  //     // If blocks pasted are a copy of the outlined blocks, i.e. from the 'duplicate' action,
+  //     // move them by a specific amount
+  //     if(opt_outlinedBlocks === true) {
+  //       blockX += Blockly.OUTLINED_DUPLICATE_BUMP;
+  //       blockY += Blockly.OUTLINED_DUPLICATE_BUMP;
+  //     }
+  //     else {
+  //       // Offset block until not clobbering another block and not in connection
+  //       // distance with neighbouring blocks.
+  //       do {
+  //         var collide = false;
+  //         var allBlocks = this.getAllBlocks();
+  //         for (var i = 0, otherBlock; otherBlock = allBlocks[i]; i++) {
+  //           var otherXY = otherBlock.getRelativeToSurfaceXY();
+  //           if (Math.abs(blockX - otherXY.x) <= 1 &&
+  //               Math.abs(blockY - otherXY.y) <= 1) {
+  //             collide = true;
+  //             break;
+  //           }
+  //         }
+  //         if (!collide) {
+  //           // Check for blocks in snap range to any of its connections.
+  //           var connections = block.getConnections_(false);
+  //           for (var i = 0, connection; connection = connections[i]; i++) {
+  //             var neighbour = connection.closest(Blockly.SNAP_RADIUS,
+  //                 new goog.math.Coordinate(blockX, blockY));
+  //             if (neighbour.connection) {
+  //               collide = true;
+  //               break;
+  //             }
+  //           }
+  //         }
+  //         collide = false;
+  //         if (collide) {
+  //           if (this.RTL) {
+  //             blockX -= Blockly.SNAP_RADIUS;
+  //           } else {
+  //             blockX += Blockly.SNAP_RADIUS;
+  //           }
+  //           blockY += Blockly.SNAP_RADIUS * 2;
+  //         }
+  //       } while (collide);
+  //     }
+  //     block.moveBy(blockX, blockY);
+  //   }
+  // } finally {
+  //   Blockly.Events.enable();
+  // }
+  // if (Blockly.Events.isEnabled() && !block.isShadow()) {
+  //   Blockly.Events.fire(new Blockly.Events.BlockCreate(block));
+  // }
+  // block.select();
+
+  // return block;
 };
 
 /**
@@ -1561,7 +1635,7 @@ Blockly.WorkspaceSvg.prototype.getBlocksBoundingBox = function() {
 
   var boundary = null;
 
-  for (var i = 1; i < topElements.length; i++) {
+  for (var i = 0; i < topElements.length; i++) {
     // OB [CSI-908] Skip dragged blocks; messes up the metrics real bad when scrolling workspace
     if(topElements[i].isDragged_ === true) {
       // When there's only the dragged block, return empty rect

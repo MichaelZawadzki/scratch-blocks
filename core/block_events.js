@@ -524,3 +524,290 @@ Blockly.Events.Move.prototype.run = function(forward) {
     }
   }
 };
+
+
+
+
+/**
+ * Class for a block drag event.
+ * OB: This was created by us Amplify
+ * Was added for a reason... why?! It replaces one of the MOVE even we get when dragging a block,
+ * that we save for later.
+ * @param {Blockly.Block} block The moved block.  Null for a blank event.
+ * @extends {Blockly.Events.Abstract}
+ * @constructor
+ */
+Blockly.Events.StartDrag = function(block) {
+  if (!block) {
+    return;  // Blank event to be populated by fromJson.
+  }
+  Blockly.Events.StartDrag.superClass_.constructor.call(this, block);
+  var location = this.currentLocation_();
+  this.oldParentId = location.parentId;
+  this.oldInputName = location.inputName;
+  this.oldCoordinate = location.coordinate;
+  //this.recordUndo = false;
+};
+//goog.inherits(Blockly.Events.StartDrag, Blockly.Events.Abstract);
+goog.inherits(Blockly.Events.StartDrag, Blockly.Events.BlockBase);
+
+/**
+ * Type of this event.
+ * @type {string}
+ */
+Blockly.Events.StartDrag.prototype.type = Blockly.Events.BLOCK_START_DRAG;
+
+/**
+ * Encode the event as JSON.
+ * @return {!Object} JSON representation.
+ */
+Blockly.Events.StartDrag.prototype.toJson = function() {
+  var json = Blockly.Events.StartDrag.superClass_.toJson.call(this);
+
+  if (this.newParentId) {
+    json['newParentId'] = this.newParentId;
+  }
+  if (this.newInputName) {
+    json['newInputName'] = this.newInputName;
+  }
+  if (this.newCoordinate) {
+    json['newCoordinate'] = Math.round(this.newCoordinate.x) + ',' +
+        Math.round(this.newCoordinate.y);
+  }
+
+  return json;
+};
+
+/**
+ * Decode the JSON event.
+ * @param {!Object} json JSON representation.
+ */
+Blockly.Events.StartDrag.prototype.fromJson = function(json) {
+  Blockly.Events.StartDrag.superClass_.fromJson.call(this, json);
+
+  this.newParentId = json['newParentId'];
+  this.newInputName = json['newInputName'];
+  if (json['newCoordinate']) {
+    var xy = json['newCoordinate'].split(',');
+    this.newCoordinate =
+        new goog.math.Coordinate(parseFloat(xy[0]), parseFloat(xy[1]));
+  }
+};
+
+Blockly.Events.StartDrag.prototype.currentLocation_ = function() {
+  var workspace = Blockly.Workspace.getById(this.workspaceId);
+  var block = workspace.getBlockById(this.blockId);
+  var location = {};
+  var parent = block.getParent();
+  if (parent) {
+    location.parentId = parent.id;
+    var input = parent.getInputWithBlock(block);
+    if (input) {
+      location.inputName = input.name;
+    }
+  } else {
+    location.coordinate = block.getRelativeToSurfaceXY();
+  }
+  return location;
+};
+
+/**
+ * Run a start drag event.
+ * OB: Same as move event... for CSI-633
+ * Why don't we just run the normal MOVE event?
+ * @param {boolean} forward True if run forward, false if run backward (undo).
+ */
+Blockly.Events.StartDrag.prototype.run = function(forward) {
+  var workspace = this.getEventWorkspace_();
+  var block = workspace.getBlockById(this.blockId);
+  if (!block) {
+    console.warn("Can't move non-existant block: " + this.blockId);
+    return;
+  }
+  var parentId = forward ? this.newParentId : this.oldParentId;
+  var inputName = forward ? this.newInputName : this.oldInputName;
+  var coordinate = forward ? this.newCoordinate : this.oldCoordinate;
+  var parentBlock = null;
+  if (parentId) {
+    parentBlock = workspace.getBlockById(parentId);
+    if (!parentBlock) {
+      console.warn("Can't connect to non-existant block: " + parentId);
+      return;
+    }
+  }
+  if (block.getParent()) {
+    block.unplug();
+  }
+  if (coordinate) {
+    var xy = block.getRelativeToSurfaceXY();
+    block.moveBy(coordinate.x - xy.x, coordinate.y - xy.y);
+  } else {
+    var blockConnection = block.outputConnection || block.previousConnection;
+    var parentConnection;
+    if (inputName) {
+      var input = parentBlock.getInput(inputName);
+      if (input) {
+        parentConnection = input.connection;
+      }
+    } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
+      parentConnection = parentBlock.nextConnection;
+    }
+    if (parentConnection) {
+      blockConnection.connect(parentConnection);
+    } else {
+      //Maxim: This is fine if moving an unconnected block to an non-connecting space
+     // console.warn("Can't connect to non-existant input: " + inputName);
+    }
+  }
+};
+
+/**
+ * Class for a block end drag event.
+ * @param {Blockly.Block} block The moved block.  Null for a blank event.
+ * @param {boolean} isOutside True if the moved block is outside of the
+ *     blocks workspace.
+ * @extends {Blockly.Events.Abstract}
+ * @constructor
+ */
+Blockly.Events.EndDrag = function(block, isOutside) {
+  if (!block) {
+    return;  // Blank event to be populated by fromJson.
+  }
+  Blockly.Events.EndDrag.superClass_.constructor.call(this, block);
+  this.isOutside = isOutside;
+  var location = this.currentLocation_();
+  this.oldParentId = location.parentId;
+  this.oldInputName = location.inputName;
+  this.oldCoordinate = location.coordinate;
+  // If drag ends outside the blocks workspace, send the block XML
+  if (isOutside) {
+    this.xml = Blockly.Xml.blockToDom(block, true /* opt_noId */);
+  }
+};
+//goog.inherits(Blockly.Events.EndDrag, Blockly.Events.Abstract);
+goog.inherits(Blockly.Events.EndDrag, Blockly.Events.BlockBase);
+
+/**
+ * Class for a block end drag event.
+ * @param {Blockly.Block} block The moved block.  Null for a blank event.
+ * @extends {Blockly.Events.Abstract}
+ * @constructor
+ */
+Blockly.Events.BlockEndDrag = Blockly.Events.EndDrag;
+
+/**
+ * Type of this event.
+ * @type {string}
+ */
+Blockly.Events.EndDrag.prototype.type = Blockly.Events.END_DRAG;
+
+/**
+ * Encode the event as JSON.
+ * @return {!Object} JSON representation.
+ */
+Blockly.Events.EndDrag.prototype.toJson = function() {
+  var json = Blockly.Events.EndDrag.superClass_.toJson.call(this);
+  if (this.isOutside) {
+    json['isOutside'] = this.isOutside;
+  }
+  if (this.xml) {
+    json['xml'] = this.xml;
+  }
+  return json;
+};
+
+/**
+ * Decode the JSON event.
+ * @param {!Object} json JSON representation.
+ */
+Blockly.Events.EndDrag.prototype.fromJson = function(json) {
+  Blockly.Events.EndDrag.superClass_.fromJson.call(this, json);
+  this.isOutside = json['isOutside'];
+  this.xml = json['xml'];
+};
+
+/**
+ * Does this event record any change of state?
+ * @return {boolean} True if something changed.
+ */
+Blockly.Events.EndDrag.prototype.isNull = function() {
+  return false;
+};
+
+/**
+ * Run an end drag event.
+ * @param {boolean} forward True if run forward, false if run backward (undo).
+ */
+Blockly.Events.EndDrag.prototype.run = function(forward) {
+  var workspace = this.getEventWorkspace_();
+  var block = workspace.getBlockById(this.blockId);
+  if (!block) {
+    console.warn("Can't move non-existant block: " + this.blockId);
+    return;
+  }
+  // MAXIM: Commented out code is copied from the ...Move.prototype.run function
+  //        However it's not working as intended and is sometimes mixed
+  //        with an actual Move.run event. We need to look deeper into 
+  //        EVERY case where undo and run can be called and make sure each 
+  //        event is doinf exactly what (and ONLY what) it needs to do. 
+  // var parentId = forward ? this.newParentId : this.oldParentId;
+  // var inputName = forward ? this.newInputName : this.oldInputName;
+  var coordinate = forward ? this.newCoordinate : undefined;
+  
+  // var parentBlock = null;
+  // if (parentId) {
+  //   parentBlock = workspace.getBlockById(parentId);
+  //   if (!parentBlock) {
+  //     console.warn("Can't connect to non-existant block: " + parentId);
+  //     return;
+  //   }
+  // }
+  // if (block.getParent()) {
+  //   block.unplug();
+  // }
+
+  if (coordinate) {
+    var xy = block.getRelativeToSurfaceXY();
+    block.moveBy(coordinate.x - xy.x, coordinate.y - xy.y);
+  } 
+  // else {
+  //   var blockConnection = block.outputConnection || block.previousConnection;
+  //   var parentConnection;
+  //   if (inputName) {
+  //     var input = parentBlock.getInput(inputName);
+  //     if (input) {
+  //       parentConnection = input.connection;
+  //     }
+  //   } else if (blockConnection && blockConnection.type === Blockly.PREVIOUS_STATEMENT && parentBlock) {
+  //     parentConnection = parentBlock.nextConnection;
+  //   }
+  //   if (parentConnection) {
+  //     blockConnection.connect(parentConnection);
+  //   } else {
+  //     //console.warn("Can't connect to non-existant input: " + inputName);
+  //   }
+  // }
+};
+
+/**
+ * Returns the parentId and input if the block is connected,
+ *   or the XY location if disconnected.
+ * @return {!Object} Collection of location info.
+ * @private
+ */
+Blockly.Events.EndDrag.prototype.currentLocation_ = function() {
+  var workspace = Blockly.Workspace.getById(this.workspaceId);
+  var block = workspace.getBlockById(this.blockId);
+  var location = {};
+  var parent = block.getParent();
+  if (parent) {
+    location.parentId = parent.id;
+    var input = parent.getInputWithBlock(block);
+    if (input) {
+      location.inputName = input.name;
+    }
+  } else {
+    location.coordinate = block.getRelativeToSurfaceXY();
+  }
+  return location;
+};

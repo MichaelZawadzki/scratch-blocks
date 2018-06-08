@@ -407,7 +407,7 @@ Blockly.Events.fromJson = function(json, workspace) {
   return event;
 };
 
-// OB MERGE: Events stuff disappeared in merge... where did it go?
+// OB MERGE: Now in block_events file. But let's keep this here for now just in case.
 // /**
 //  * Abstract class for an event.
 //  * @param {Blockly.Block|Blockly.VariableModel} elem The block or variable.
