@@ -993,6 +993,7 @@ Blockly.WorkspaceSvg.prototype.isLocked = function() {
 /**
  * OB [CSI-616]
  * Show or hide the toolbox.
+ * We can't use the 'setVisible' function of the flyout, since that only hides the stuff in it, but not the panel.
  */
 Blockly.WorkspaceSvg.prototype.showToolbox = function(showIt) {
   this.flyout_.setShowFlyout(showIt);
