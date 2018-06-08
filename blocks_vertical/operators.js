@@ -34,22 +34,21 @@ Blockly.Blocks['operator_add'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 + %2",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "NUM1"
-          },
-          {
-            "type": "input_value",
-            "name": "NUM2"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_ADD,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "NUM1"
+        },
+        {
+          "type": "input_value",
+          "name": "NUM2"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -59,22 +58,21 @@ Blockly.Blocks['operator_subtract'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 - %2",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "NUM1"
-          },
-          {
-            "type": "input_value",
-            "name": "NUM2"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_SUBTRACT,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "NUM1"
+        },
+        {
+          "type": "input_value",
+          "name": "NUM2"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -84,22 +82,21 @@ Blockly.Blocks['operator_multiply'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 * %2",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "NUM1"
-          },
-          {
-            "type": "input_value",
-            "name": "NUM2"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_MULTIPLY,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "NUM1"
+        },
+        {
+          "type": "input_value",
+          "name": "NUM2"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -109,22 +106,21 @@ Blockly.Blocks['operator_divide'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 / %2",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "NUM1"
-          },
-          {
-            "type": "input_value",
-            "name": "NUM2"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_DIVIDE,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "NUM1"
+        },
+        {
+          "type": "input_value",
+          "name": "NUM2"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -134,22 +130,21 @@ Blockly.Blocks['operator_random'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "pick random %1 to %2",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "FROM"
-          },
-          {
-            "type": "input_value",
-            "name": "TO"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_RANDOM,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "FROM"
+        },
+        {
+          "type": "input_value",
+          "name": "TO"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -217,6 +212,7 @@ Blockly.Blocks['operator_gt'] = {
    * Block for greater than comparator.
    * @this Blockly.Block
    */
+  // OB MERGE: Add messages to constants file?
   init: function() {
     this.jsonInit({
       "message0": "%1  >%3 %2",
@@ -279,7 +275,7 @@ Blockly.Blocks['operator_or'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "%1 or %2",
+      "message0": Blockly.Msg.OPERATORS_OR,
       "args0": [
         {
           "type": "input_value",
@@ -305,7 +301,7 @@ Blockly.Blocks['operator_not'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "not %1",
+      "message0": Blockly.Msg.OPERATORS_NOT,
       "args0": [
         {
           "type": "input_value",
@@ -326,7 +322,7 @@ Blockly.Blocks['operator_join'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "join %1 %2",
+      "message0": Blockly.Msg.OPERATORS_JOIN,
       "args0": [
         {
           "type": "input_value",
@@ -350,7 +346,7 @@ Blockly.Blocks['operator_letter_of'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "letter %1 of %2",
+      "message0": Blockly.Msg.OPERATORS_LETTEROF,
       "args0": [
         {
           "type": "input_value",
@@ -374,7 +370,7 @@ Blockly.Blocks['operator_length'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "length of %1",
+      "message0": Blockly.Msg.OPERATORS_LENGTH,
       "args0": [
         {
           "type": "input_value",
@@ -393,22 +389,21 @@ Blockly.Blocks['operator_contains'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 contains %2?",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "STRING1"
-          },
-          {
-            "type": "input_value",
-            "name": "STRING2"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_boolean"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_CONTAINS,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "STRING1"
+        },
+        {
+          "type": "input_value",
+          "name": "STRING2"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_boolean"]
+    });
   }
 };
 
@@ -418,22 +413,21 @@ Blockly.Blocks['operator_mod'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 mod %2",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "NUM1"
-          },
-          {
-            "type": "input_value",
-            "name": "NUM2"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_MOD,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "NUM1"
+        },
+        {
+          "type": "input_value",
+          "name": "NUM2"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -443,18 +437,17 @@ Blockly.Blocks['operator_round'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "round %1",
-        "args0": [
-          {
-            "type": "input_value",
-            "name": "NUM"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_ROUND,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "NUM"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
 
@@ -464,37 +457,36 @@ Blockly.Blocks['operator_mathop'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1 of %2",
-        "args0": [
-          {
-            "type": "field_dropdown",
-            "name": "OPERATOR",
-            "options": [
-              ['abs', 'abs'],
-              ['floor', 'floor'],
-              ['ceiling', 'ceiling'],
-              ['sqrt', 'sqrt'],
-              ['sin', 'sin'],
-              ['cos', 'cos'],
-              ['tan', 'tan'],
-              ['asin', 'asin'],
-              ['acos', 'acos'],
-              ['atan', 'atan'],
-              ['ln', 'ln'],
-              ['log', 'log'],
-              ['e ^', 'e ^'],
-              ['10 ^', '10 ^']
-            ]
-          },
-          {
-            "type": "input_value",
-            "name": "NUM"
-          }
-        ],
-        "category": Blockly.Categories.operators,
-        "extensions": ["colours_operators", "output_number"]
-      });
+    this.jsonInit({
+      "message0": Blockly.Msg.OPERATORS_MATHOP,
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "OPERATOR",
+          "options": [
+            [Blockly.Msg.OPERATORS_MATHOP_ABS, 'abs'],
+            [Blockly.Msg.OPERATORS_MATHOP_FLOOR, 'floor'],
+            [Blockly.Msg.OPERATORS_MATHOP_CEILING, 'ceiling'],
+            [Blockly.Msg.OPERATORS_MATHOP_SQRT, 'sqrt'],
+            [Blockly.Msg.OPERATORS_MATHOP_SIN, 'sin'],
+            [Blockly.Msg.OPERATORS_MATHOP_COS, 'cos'],
+            [Blockly.Msg.OPERATORS_MATHOP_TAN, 'tan'],
+            [Blockly.Msg.OPERATORS_MATHOP_ASIN, 'asin'],
+            [Blockly.Msg.OPERATORS_MATHOP_ACOS, 'acos'],
+            [Blockly.Msg.OPERATORS_MATHOP_ATAN, 'atan'],
+            [Blockly.Msg.OPERATORS_MATHOP_LN, 'ln'],
+            [Blockly.Msg.OPERATORS_MATHOP_LOG, 'log'],
+            [Blockly.Msg.OPERATORS_MATHOP_EEXP, 'e ^'],
+            [Blockly.Msg.OPERATORS_MATHOP_10EXP, '10 ^']
+          ]
+        },
+        {
+          "type": "input_value",
+          "name": "NUM"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
   }
 };
