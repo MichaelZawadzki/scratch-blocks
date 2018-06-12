@@ -90,6 +90,13 @@ Blockly.VerticalFlyout.prototype.DEFAULT_WIDTH = 207;
 Blockly.VerticalFlyout.prototype.CHECKBOX_SIZE = 20;
 
 /**
+ * OB CSI-1088 : Size of the delete area on the edge of the screen, so that blocks don't get stuck.
+ * @type {number}
+ * @const
+ */
+Blockly.VerticalFlyout.prototype.NO_FLYOUT_DELETE_AREA_WIDTH = 10;
+
+/**
  * SVG path data for checkmark in checkbox.
  * @type {string}
  * @const
@@ -719,7 +726,7 @@ Blockly.VerticalFlyout.prototype.getClientRect = function() {
     // the block won't get deleted, so the block will be hidden 'off-screen'.
     // Solution: Create a tiny strip of delete area (5 px), so that a block dragged offscreen gets deleted
     if(this.width_ <= 0) {
-      return new goog.math.Rect(x - 5, -BIG_NUM, BIG_NUM + width, BIG_NUM * 2);
+      return new goog.math.Rect(x - this.NO_FLYOUT_DELETE_AREA_WIDTH, -BIG_NUM, BIG_NUM + width, BIG_NUM * 2);
     }
     else {
       return new goog.math.Rect(x, -BIG_NUM, BIG_NUM + width, BIG_NUM * 2);
