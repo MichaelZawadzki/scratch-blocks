@@ -1034,6 +1034,15 @@ Blockly.BlocksSelection.deleteBlocks = function(doAnimate) {
     var bottomBlock = Blockly.BlocksSelection.getBottomChosenBlock();
     // Remove from outline surface, to make sure blocks' hierarchy is sane
     Blockly.BlocksSelection.removeOutline();
+
+    // enable events
+    var eventsEnabled = Blockly.Events.isEnabled();
+    if(eventsEnabled === false) {
+      Blockly.Events.enable();
+    }
+    // set event group so that all delte actions are treated atomically
+    Blockly.Events.setGroup(true);
+
     // Unplug blocks to disconnect from previous/next
     // OB HACK: when only one block is selected, we use the default unplug function
     if(Blockly.BlocksSelection.blocks.length == 1) {
@@ -1050,6 +1059,13 @@ Blockly.BlocksSelection.deleteBlocks = function(doAnimate) {
       curBlock.dispose(false, doAnimate);
       curBlock = prevBlock;
     }
+
+    Blockly.Events.setGroup(false);
+    // restore events state
+    if(eventsEnabled === false) {
+      Blockly.Events.disable();
+    }
+
     // Clear chosen blocks list
     Blockly.BlocksSelection.clearChosenBlocks();
 
