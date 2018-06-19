@@ -546,6 +546,7 @@ Blockly.Events.StartDrag = function(block) {
   this.oldParentId = location.parentId;
   this.oldInputName = location.inputName;
   this.oldCoordinate = location.coordinate;
+  this.fromFlyout = block.isFromFlyout_;
   //this.recordUndo = false;
 };
 //goog.inherits(Blockly.Events.StartDrag, Blockly.Events.Abstract);
@@ -574,6 +575,9 @@ Blockly.Events.StartDrag.prototype.toJson = function() {
     json['newCoordinate'] = Math.round(this.newCoordinate.x) + ',' +
         Math.round(this.newCoordinate.y);
   }
+  if (this.fromFlyout) {
+    json['fromFlyout'] = this.fromFlyout;
+  }
 
   return json;
 };
@@ -592,6 +596,7 @@ Blockly.Events.StartDrag.prototype.fromJson = function(json) {
     this.newCoordinate =
         new goog.math.Coordinate(parseFloat(xy[0]), parseFloat(xy[1]));
   }
+  this.fromFlyout = json['fromFlyout'];
 };
 
 Blockly.Events.StartDrag.prototype.currentLocation_ = function() {
@@ -621,7 +626,12 @@ Blockly.Events.StartDrag.prototype.run = function(forward) {
   var workspace = this.getEventWorkspace_();
   var block = workspace.getBlockById(this.blockId);
   if (!block) {
-    console.warn("Can't move non-existant block: " + this.blockId);
+    // OB [CSI-1105]
+    // When dragging from toolbar, workspace can't find the block and it is OK;
+    // In other cases, issue warning!
+    if(!this.fromFlyout) {
+      console.warn("Can't start drag non-existant block: " + this.blockId);
+    }
     return;
   }
   var parentId = forward ? this.newParentId : this.oldParentId;
