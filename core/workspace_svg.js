@@ -1110,7 +1110,8 @@ Blockly.WorkspaceSvg.prototype.glowBlockBG = function(id, isGlowingBlock) {
     }
     block.setGlowBlockBG(isGlowingBlock);
   }
-  else if(isGlowingBlock == false) {
+  // OB [CSI-1004]: Turn off highlight if block is not valid
+  else {
     this.workspaceHighlightLayer.updateHighlightRect(false);
   }
 };
@@ -1124,7 +1125,8 @@ Blockly.WorkspaceSvg.prototype.glowCBlockEnd = function(id, isGlowingBlock) {
     }
     block.setGlowBlockBG(isGlowingBlock, true);
   }
-  else if(isGlowingBlock == false) {
+  // OB [CSI-1004]: Turn off highlight if block is not valid
+  else {
     this.workspaceHighlightLayer.updateHighlightRect(false);
   }
 };
