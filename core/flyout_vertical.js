@@ -238,7 +238,7 @@ Blockly.VerticalFlyout.prototype.getMetrics_ = function() {
 
   // Add padding to the bottom of the flyout, so we can scroll to the top of
   // the last category.
-  var contentHeight = optionBox.height * this.workspace_.scale;
+  var contentHeight = optionBox.height * this.workspace_.scale + this.VERTICAL_PADDING;
   this.recordCategoryScrollPositions_();
   var bottomPadding = this.MARGIN;
   if (this.categoryScrollPositions.length > 0) {
