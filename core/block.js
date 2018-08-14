@@ -1711,6 +1711,9 @@ Blockly.Block.prototype.jsonInit = function(json) {
   if (json['category'] !== undefined) {
     this.setCategory(json['category']);
   }
+  if(json['eventingBlockTypeCounts'] !== undefined) {
+      this.setEventingBlockTypeCounts(json['eventingBlockTypeCounts']);
+  }
 };
 
 /**
@@ -2093,6 +2096,16 @@ Blockly.Block.prototype.getOutputShape = function() {
 Blockly.Block.prototype.setCategory = function(category) {
   this.category_ = category;
 };
+
+/**
+ * Set this block's eventing types for use with reporting block counts
+ * @param {!Array} eventseteventingBlockTypeCounts
+ *  a list of the block type counts to increment.
+ */
+Blockly.Block.prototype.setEventingBlockTypeCounts = function(eventingBlockTypeCounts) {
+    this.eventingBlockTypeCounts_ = eventingBlockTypeCounts;
+};
+  
 
 /**
  * Get this block's category (for styling purposes)
