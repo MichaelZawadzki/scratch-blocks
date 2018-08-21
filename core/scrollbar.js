@@ -311,7 +311,7 @@ Blockly.Scrollbar.prototype.containerVisible_ = true;
  */
 Blockly.Scrollbar.scrollbarThickness = 11;
 if (goog.events.BrowserFeature.TOUCH_ENABLED) {
-  Blockly.Scrollbar.scrollbarThickness = 11; 
+  Blockly.Scrollbar.scrollbarThickness = 21; 
 }
 
 /**
