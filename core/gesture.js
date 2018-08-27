@@ -759,8 +759,8 @@ Blockly.Gesture.prototype.handleUp = function(e) {
     }
     //this.startBlock_.select();
   }
-  
-  // We have no fingers/mouses down. End the gesture.
+
+  // MS: [CSI-1248] We have no fingers/mouses down. End the gesture.
   if(this.touchIDs_ && this.touchIDs_.length === 0){
     shouldEndGesture = true;
   }
