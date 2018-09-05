@@ -36,7 +36,7 @@ Blockly.Blocks['event_whenflagclicked'] = {
   init: function() {
     this.jsonInit({
       "id": "event_whenflagclicked",
-      "message0": "when Play clicked",
+      "message0": Blockly.Msg.EVENT_WHENPLAYCLICKED,
       "category": Blockly.Categories.event,
       "extensions": ["colours_event", "shape_hat"]
     });
@@ -47,7 +47,7 @@ Blockly.Blocks['event_whenflagclicked_animate'] = {
   init: function() {
     this.jsonInit({
       "id": "event_whenflagclicked_animate",
-      "message0": "when Play clicked",
+      "message0": Blockly.Msg.EVENT_WHENPLAYCLICKED,
       "message1": "%1", // Statement
       "message2": "%1", // End label
       "args1": [
