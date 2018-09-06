@@ -48,11 +48,13 @@ goog.require('Blockly.FieldTextInputRemovable');
 goog.require('Blockly.FieldTextDropdown');
 goog.require('Blockly.FieldNumber');
 goog.require('Blockly.FieldNumberDropdown');
+goog.require('Blockly.FieldMatrix');
 goog.require('Blockly.FieldVariable');
 goog.require('Blockly.FieldVerticalSeparator');
 goog.require('Blockly.Generator');
 goog.require('Blockly.Msg');
 goog.require('Blockly.Procedures');
+goog.require('Blockly.ScratchMsgs');
 goog.require('Blockly.Toolbox');
 goog.require('Blockly.Touch');
 goog.require('Blockly.WidgetDiv');
@@ -173,14 +175,19 @@ Blockly.svgResize = function(workspace) {
 };
 
 /**
- * Handle a key-down on SVG drawing surface.
+ * Handle a key-down on SVG drawing surface. Does nothing if the main workspace is not visible.
  * @param {!Event} e Key down event.
  * @private
  */
+// TODO (https://github.com/google/blockly/issues/1998) handle cases where there are multiple workspaces
+// and non-main workspaces are able to accept input.
 Blockly.onKeyDown_ = function(e) {
-  if (Blockly.mainWorkspace.options.readOnly || Blockly.utils.isTargetInput(e)) {
+  if (Blockly.mainWorkspace.options.readOnly || Blockly.utils.isTargetInput(e)
+      || (Blockly.mainWorkspace.rendered && !Blockly.mainWorkspace.isVisible())) {
     // No key actions on readonly workspaces.
     // When focused on an HTML text input widget, don't trap any keys.
+    // Ignore keypresses on rendered workspaces that have been explicitly
+    // hidden.
     return;
   }
   var deleteBlock = false;
@@ -377,6 +384,28 @@ Blockly.prompt = function(message, defaultValue, callback, _opt_title,
   // opt_title and opt_varType are unused because we only need them to pass
   // information to the scratch-gui, which overwrites this function
   callback(window.prompt(message, defaultValue));
+};
+
+/**
+ * A callback for status buttons. The window.alert is here for testing and
+ * should be overridden.
+ * @param {string} id An identifier.
+ */
+Blockly.statusButtonCallback = function(id) {
+  window.alert('status button was pressed for ' + id);
+};
+
+/**
+ * Refresh the visual state of a status button in all extension category headers.
+ * @param {Blockly.Workspace} workspace A workspace.
+ */
+Blockly.refreshStatusButtons = function(workspace) {
+  var buttons = workspace.getFlyout().buttons_;
+  for (var i = 0; i < buttons.length; i++) {
+    if (buttons[i] instanceof Blockly.FlyoutExtensionCategoryHeader) {
+      buttons[i].refreshStatus();
+    }
+  }
 };
 
 /**

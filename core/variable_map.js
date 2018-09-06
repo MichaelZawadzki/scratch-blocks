@@ -174,27 +174,36 @@ Blockly.VariableMap.prototype.renameVariableWithConflict_ = function(variable,
  *     their type. This will default to '' which is a specific type.
  * @param {string=} opt_id The unique ID of the variable. This will default to
  *     a UUID.
+ * @param {boolean=} opt_isLocal Whether the variable is locally scoped.
  * @return {?Blockly.VariableModel} The newly created variable.
  */
 Blockly.VariableMap.prototype.createVariable = function(name,
-    opt_type, opt_id) {
+    opt_type, opt_id, opt_isLocal) {
   var variable = this.getVariable(name, opt_type);
   if (variable) {
     if (opt_id && variable.getId() != opt_id) {
-      throw Error('Variable "' + name + '" is already in use and its id is "'
+      // There is a variable conflict. Variable conflicts should be eliminated
+      // in the scratch-vm, or before we get to this point,
+      // so log a warning, because throwing an error crashes projects.
+      console.warn('Variable "' + name + '" is already in use and its id is "'
                   + variable.getId() + '" which conflicts with the passed in ' +
                   'id, "' + opt_id + '".');
     }
     // The variable already exists and has the same ID.
     return variable;
   }
-  if (opt_id && this.getVariableById(opt_id)) {
-    throw Error('Variable id, "' + opt_id + '", is already in use.');
+  if (opt_id) {
+    variable = this.getVariableById(opt_id);
+    if (variable) {
+      console.warn('Variable id, "' + opt_id + '", is already in use.');
+      return variable;
+    }
   }
   opt_id = opt_id || Blockly.utils.genUid();
   opt_type = opt_type || '';
 
-  variable = new Blockly.VariableModel(this.workspace, name, opt_type, opt_id);
+  variable = new Blockly.VariableModel(this.workspace, name, opt_type, opt_id,
+      opt_isLocal);
   // If opt_type is not a key, create a new list.
   if (!this.variableMap_[opt_type]) {
     this.variableMap_[opt_type] = [variable];
