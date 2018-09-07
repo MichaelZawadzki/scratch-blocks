@@ -545,18 +545,13 @@ Blockly.Css.CONTENT = [
   '.blocklyBubbleText {',
     'fill: $colour_text;',
   '}',
-
-  '.blocklyFlyout {',
-    'position: absolute;',
-    'z-index: 20;',
-  '}',
-
   '.blocklyFlyout {',
     'position: absolute;',
     'z-index: 20;',
   '}',
   '.blocklyFlyoutButton {',
     'fill: none;',
+    'pointer-events: all;',
   '}',
 
   '.blocklyFlyoutButtonBackground {',
@@ -706,16 +701,29 @@ Blockly.Css.CONTENT = [
 
   // Scratch Comments
 
+  '.scratchCommentForeignObject {',
+    'position: relative;',
+  '}',
+
   '.scratchCommentBody {',
     'background-color: #fef49c;',
-    'display: flex',
-    'justify-content: center;',
-    'align-items: center;',
   '}',
 
   '.scratchCommentRect {',
     'fill: #fef49c;',
-    'stroke-width: 1px',
+  '}',
+
+  '.scratchCommentTarget {',
+    'fill: transparent;',
+  '}',
+
+  '.scratchWorkspaceCommentBorder {',
+    'stroke: #bcA903;',
+    'stroke-width: 1px;',
+  '}',
+
+  '.scratchCommentTargetFocused {',
+    'fill: none;',
   '}',
 
   '.scratchCommentTopBar {',
@@ -1039,6 +1047,12 @@ Blockly.Css.CONTENT = [
     'margin-left: 10px;',
   '}',
 
+  '.scratchMatrixButtonDiv {',
+    'width: 50%;',
+    'text-align: center;',
+    'float: left;',
+  '}',
+
   /* Copied from: goog/css/menu.css */
   /*
    * Copyright 2009 The Closure Library Authors. All Rights Reserved.
@@ -1225,7 +1239,7 @@ Blockly.Css.CONTENT = [
   '.blocklyDropDownDiv .goog-menuitem-rtl .goog-menuitem-icon {',
      /* Flip left/right positioning. */
      'float: right;',
-     'margin-left: 6px;',
+     'margin-right: -24px;',
   '}',
 
   /* Keyboard shortcut ("accelerator") style. */
@@ -1304,7 +1318,7 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.scratchCategoryMenu {',
-    'width: 52px;',
+    'width: 60px;',
     'background: $colour_toolbox;',
     'color: $colour_toolboxText;',
     'font-size: .7rem;',

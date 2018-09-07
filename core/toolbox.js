@@ -86,10 +86,10 @@ Blockly.Toolbox = function(workspace) {
 
 /**
  * Width of the toolbox, which changes only in vertical layout.
- * This is the sum of the width of the flyout (250) and the category menu (52).
+ * This is the sum of the width of the flyout (250) and the category menu (60).
  * @type {number}
  */
-Blockly.Toolbox.prototype.width = 302;
+Blockly.Toolbox.prototype.width = 310;
 
 /**
  * Height of the toolbox, which changes only in horizontal layout.
@@ -199,10 +199,13 @@ Blockly.Toolbox.prototype.showAll_ = function() {
 
     // create a label node to go at the top of the category
     var labelString = '<xml><label text="' + category.name_ + '"' +
+      ' id="' + category.id_ + '"' +
       ' category-label="true"' +
+      ' showStatusButton="' + category.showStatusButton_ + '"' +
       ' web-class="categoryLabel">' +
       '</label></xml>';
     var labelXML = Blockly.Xml.textToDom(labelString);
+
     allContents.push(labelXML.firstChild);
 
     allContents = allContents.concat(category.getContents());
@@ -660,6 +663,7 @@ Blockly.Toolbox.Category = function(parent, parentHtml, domTree) {
   this.setColour(domTree);
   this.custom_ = domTree.getAttribute('custom');
   this.iconURI_ = domTree.getAttribute('iconURI');
+  this.showStatusButton_ = domTree.getAttribute('showStatusButton');
   this.contents_ = [];
   if (!this.custom_) {
     this.parseContents_(domTree);
@@ -688,7 +692,8 @@ Blockly.Toolbox.Category.prototype.createDom = function() {
   this.item_ = goog.dom.createDom('div',
       {'class': 'scratchCategoryMenuItem'});
   this.label_ = goog.dom.createDom('div',
-      {'class': 'scratchCategoryMenuItemLabel'}, this.name_);
+      {'class': 'scratchCategoryMenuItemLabel'},
+      Blockly.utils.replaceMessageReferences(this.name_));
   if (this.iconURI_) {
     this.bubble_ = goog.dom.createDom('div',
         {'class': 'scratchCategoryItemIcon'});

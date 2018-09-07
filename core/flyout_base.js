@@ -32,7 +32,9 @@ goog.require('Blockly.Events');
 goog.require('Blockly.Events.BlockCreate');
 goog.require('Blockly.Events.VarCreate');
 goog.require('Blockly.FlyoutButton');
+goog.require('Blockly.FlyoutExtensionCategoryHeader');
 goog.require('Blockly.Gesture');
+goog.require('Blockly.scratchBlocksUtils');
 goog.require('Blockly.Touch');
 goog.require('Blockly.WorkspaceSvg');
 goog.require('goog.dom');
@@ -277,6 +279,14 @@ Blockly.Flyout.prototype.dragAngleRange_ = 70;
  * @type {number}
  */
 Blockly.Flyout.prototype.scrollAnimationFraction = 0.3;
+
+/**
+ * Whether to recycle blocks when refreshing the flyout. When false, do not allow
+ * anything to be recycled. The default is to recycle.
+ * @type {boolean}
+ * @private
+ */
+Blockly.Flyout.prototype.recyclingEnabled_ = true;
 
 /**
  * Creates the flyout's DOM.  Only needs to be called once. The flyout can
@@ -544,6 +554,11 @@ Blockly.Flyout.prototype.show = function(xmlList) {
         } else {
           gaps.push(default_gap);
         }
+      } else if ((tagName == 'LABEL') && (xml.getAttribute('showStatusButton') == 'true')) {
+        var curButton = new Blockly.FlyoutExtensionCategoryHeader(this.workspace_,
+            this.targetWorkspace_, xml);
+        contents.push({type: 'button', button: curButton});
+        gaps.push(default_gap);
       } else if (tagName == 'BUTTON' || tagName == 'LABEL') {
         // Labels behave the same as buttons, but are styled differently.
         var isLabel = tagName == 'LABEL';
@@ -619,7 +634,7 @@ Blockly.Flyout.prototype.recordCategoryScrollPositions_ = function() {
   if (numCategories > 0) {
     for (var i = 0; i < numCategories - 1; i++) {
       var currentPos = this.categoryScrollPositions[i].position;
-      var nextPos = this.categoryScrollPositions[i+1].position;
+      var nextPos = this.categoryScrollPositions[i + 1].position;
       var length = nextPos - currentPos;
       this.categoryScrollPositions[i].length = length;
     }
@@ -698,6 +713,14 @@ Blockly.Flyout.prototype.setScrollPos = function(pos) {
 };
 
 /**
+ * Set whether the flyout can recycle blocks. A value of true allows blocks to be recycled.
+ * @param {boolean} recycle True if recycling is possible.
+ */
+Blockly.Flyout.prototype.setRecyclingEnabled = function(recycle) {
+  this.recyclingEnabled_ = recycle;
+};
+
+/**
  * Delete blocks and background buttons from a previous showing of the flyout.
  * @private
  */
@@ -706,7 +729,8 @@ Blockly.Flyout.prototype.clearOldBlocks_ = function() {
   var oldBlocks = this.workspace_.getTopBlocks(false);
   for (var i = 0, block; block = oldBlocks[i]; i++) {
     if (block.workspace == this.workspace_) {
-      if (block.isRecyclable()) {
+      if (this.recyclingEnabled_ &&
+          Blockly.scratchBlocksUtils.blockIsRecyclable(block)) {
         this.recycleBlock_(block);
       } else {
         block.dispose(false, false);

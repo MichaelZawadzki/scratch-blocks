@@ -31,6 +31,7 @@
 goog.provide('Blockly.ContextMenu');
 
 goog.require('Blockly.Events.BlockCreate');
+goog.require('Blockly.scratchBlocksUtils');
 goog.require('Blockly.utils');
 goog.require('Blockly.utils.uiMenu');
 
@@ -263,7 +264,7 @@ Blockly.ContextMenu.blockDuplicateOption = function(block) {
   var duplicateOption = {
     text: Blockly.Msg.DUPLICATE,
     enabled: true,
-    callback: block.duplicateAndDragCallback_()
+    callback: Blockly.scratchBlocksUtils.duplicateAndDragCallback(block)
   };
   return duplicateOption;
 };
@@ -455,10 +456,19 @@ Blockly.ContextMenu.workspaceCommentOption = function(ws, e) {
   // Helper function to create and position a comment correctly based on the
   // location of the mouse event.
   var addWsComment = function() {
+    // Disable events while this comment is getting created
+    // so that we can fire a single create event for this comment
+    // at the end (instead of CommentCreate followed by CommentMove,
+    // which results in unexpected undo behavior).
+    var disabled = false;
+    if (Blockly.Events.isEnabled()) {
+      Blockly.Events.disable();
+      disabled = true;
+    }
     var comment = new Blockly.WorkspaceCommentSvg(
         ws, Blockly.Msg.WORKSPACE_COMMENT_DEFAULT_TEXT,
         Blockly.WorkspaceCommentSvg.DEFAULT_SIZE,
-        Blockly.WorkspaceCommentSvg.DEFAULT_SIZE);
+        Blockly.WorkspaceCommentSvg.DEFAULT_SIZE, false);
 
     var injectionDiv = ws.getInjectionDiv();
     // Bounding rect coordinates are in client coordinates, meaning that they
@@ -490,6 +500,10 @@ Blockly.ContextMenu.workspaceCommentOption = function(ws, e) {
       comment.render(false);
       comment.select();
     }
+    if (disabled) {
+      Blockly.Events.enable();
+    }
+    Blockly.WorkspaceComment.fireCreateEvent(comment);
   };
 
   var wsCommentOption = {enabled: true};
