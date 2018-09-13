@@ -50,6 +50,8 @@ Blockly.Events.Abstract = function() {
    */
   this.group = Blockly.Events.group_;
 
+  this.tag = Blockly.Events.tag_;
+
   /**
    * Sets whether the event should be added to the undo stack.
    * @type {boolean}
@@ -68,6 +70,9 @@ Blockly.Events.Abstract.prototype.toJson = function() {
   if (this.group) {
     json['group'] = this.group;
   }
+  if(this.tags){
+    json['tag'] = this.tag;
+  }
   return json;
 };
 
@@ -77,6 +82,7 @@ Blockly.Events.Abstract.prototype.toJson = function() {
  */
 Blockly.Events.Abstract.prototype.fromJson = function(json) {
   this.group = json['group'];
+  this.tag =json['tag'];
 };
 
 /**

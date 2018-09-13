@@ -184,6 +184,13 @@ Blockly.Events.SAVED_FIRE_QUEUE_ = [];
 
 
 /**
+ * tag for new events. tags can be set and cleared for various reasons for identifying specific events.
+ * @type {string}
+ * @private
+ */
+Blockly.Events.tag_ = '';
+
+/**
  * Create a custom event and add it to the potential fire queue
  * @param {!Blockly.Events.Abstract} event Custom data for event.
  */
@@ -366,6 +373,22 @@ Blockly.Events.setGroup = function(state) {
   } else {
     Blockly.Events.group_ = state;
   }
+};
+
+
+/**
+ * Set a tag
+ * @param {string} _tag Set to identify a specific event or set of events
+ */
+Blockly.Events.setEventTag = function(_tag) {
+    Blockly.Events.tag_ = _tag;
+};
+
+/**
+ * clear current tag
+ */
+Blockly.Events.clearEventTag = function(){
+        Blockly.Events.tag_ = '';
 };
 
 /**
