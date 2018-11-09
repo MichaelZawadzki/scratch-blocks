@@ -460,7 +460,7 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
     this.svgBackground_ = Blockly.utils.createSvgElement('rect',
         {'height': '100%', 'width': '100%', 'class': opt_backgroundClass},
         this.svgGroup_);
-
+        
     if (opt_backgroundClass == 'blocklyMainBackground' && this.grid_) {
       this.svgBackground_.style.fill =
           'url(#' + this.grid_.getPatternId() + ')';
@@ -660,7 +660,8 @@ Blockly.WorkspaceSvg.prototype.addFlyout_ = function(tagName) {
     horizontalLayout: this.horizontalLayout,
     toolboxPosition: this.options.toolboxPosition,
     stackGlowFilterId: this.options.stackGlowFilterId,
-    disableBlocksContextMenu : this.options.disableBlocksContextMenu
+    disableBlocksContextMenu : this.options.disableBlocksContextMenu,
+    horizontalFlyoutHeight : this.options.horizontalFlyoutHeight
   };
   if (this.horizontalLayout) {
     this.flyout_ = new Blockly.HorizontalFlyout(workspaceOptions);
