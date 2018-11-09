@@ -144,6 +144,8 @@ Blockly.Options = function(options) {
   this.dragSingleBlock = options['dragSingleBlock'];
   this.verticalScrollAtEdges = options['verticalScrollAtEdges'];
   this.useLeftDeleteArea = options['useLeftDeleteArea'];
+  // OB: Have option to specify a flyout height. Only used when flyout is horizontal
+  this.horizontalFlyoutHeight = options['horizontalFlyoutHeight'];
 
   // OB: Special option: new font. Directly set the CSS constant
   Blockly.Css.font = options['font'];

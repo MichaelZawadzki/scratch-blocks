@@ -56,6 +56,9 @@ Blockly.HorizontalFlyout = function(workspaceOptions) {
    * @private
    */
   this.horizontalLayout_ = true;
+
+  // OB: Fixed height for the flyout
+  this.horizontalFlyoutHeight = workspaceOptions.horizontalFlyoutHeight ? workspaceOptions.horizontalFlyoutHeight : undefined;
 };
 goog.inherits(Blockly.HorizontalFlyout, Blockly.Flyout);
 
@@ -439,8 +442,14 @@ Blockly.HorizontalFlyout.prototype.getClientRect = function() {
 Blockly.HorizontalFlyout.prototype.reflowInternal_ = function(blocks) {
   this.workspace_.scale = this.targetWorkspace_.scale;
   var flyoutHeight = 0;
-  for (var i = 0, block; block = blocks[i]; i++) {
-    flyoutHeight = Math.max(flyoutHeight, block.getHeightWidth().height);
+  // OB: Fixed height for flyout was specified; use that
+  if(this.horizontalFlyoutHeight) {
+    flyoutHeight = this.horizontalFlyoutHeight;
+  }
+  else {
+    for (var i = 0, block; block = blocks[i]; i++) {
+      flyoutHeight = Math.max(flyoutHeight, block.getHeightWidth().height);
+    }
   }
   flyoutHeight += this.MARGIN * 1.5;
   flyoutHeight *= this.workspace_.scale;
