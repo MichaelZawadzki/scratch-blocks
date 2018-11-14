@@ -117,6 +117,11 @@ Blockly.Options = function(options) {
     var oneBasedIndex = !!options['oneBasedIndex'];
   }
 
+  var useBlockHighlightLayer = options['useBlockHighlightLayer'];
+  if (useBlockHighlightLayer === undefined) {
+    useBlockHighlightLayer = true;
+  }
+
   Blockly.Colours.overrideColours(options['colours']);
   
   this.RTL = rtl;
@@ -146,6 +151,8 @@ Blockly.Options = function(options) {
   this.useLeftDeleteArea = options['useLeftDeleteArea'];
   // OB: Have option to specify a flyout height. Only used when flyout is horizontal
   this.horizontalFlyoutHeight = options['horizontalFlyoutHeight'];
+  // OB: Enable/disabled drawing of dashed lines on workspace
+  this.useBlockHighlightLayer = useBlockHighlightLayer;
 
   // OB: Special option: new font. Directly set the CSS constant
   Blockly.Css.font = options['font'];

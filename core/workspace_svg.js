@@ -1022,7 +1022,7 @@ Blockly.WorkspaceSvg.prototype.showToolbox = function(showIt) {
  * 
  */
 Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
-  if (this.isFlyout === false) {
+  if (this.isFlyout === false && this.options.useBlockHighlightLayer === true) {
     // CD, TODO: filter connected blocks
     var activeBlocks = this.getAllBlocks();
     var lineSegmentInfo = [];
