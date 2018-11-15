@@ -460,7 +460,7 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
     this.svgBackground_ = Blockly.utils.createSvgElement('rect',
         {'height': '100%', 'width': '100%', 'class': opt_backgroundClass},
         this.svgGroup_);
-
+        
     if (opt_backgroundClass == 'blocklyMainBackground' && this.grid_) {
       this.svgBackground_.style.fill =
           'url(#' + this.grid_.getPatternId() + ')';
@@ -660,7 +660,8 @@ Blockly.WorkspaceSvg.prototype.addFlyout_ = function(tagName) {
     horizontalLayout: this.horizontalLayout,
     toolboxPosition: this.options.toolboxPosition,
     stackGlowFilterId: this.options.stackGlowFilterId,
-    disableBlocksContextMenu : this.options.disableBlocksContextMenu
+    disableBlocksContextMenu : this.options.disableBlocksContextMenu,
+    horizontalFlyoutHeight : this.options.horizontalFlyoutHeight
   };
   if (this.horizontalLayout) {
     this.flyout_ = new Blockly.HorizontalFlyout(workspaceOptions);
@@ -1021,7 +1022,7 @@ Blockly.WorkspaceSvg.prototype.showToolbox = function(showIt) {
  * 
  */
 Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
-  if (this.isFlyout === false) {
+  if (this.isFlyout === false && this.options.useBlockHighlightLayer === true) {
     // CD, TODO: filter connected blocks
     var activeBlocks = this.getAllBlocks();
     var lineSegmentInfo = [];
@@ -1372,7 +1373,6 @@ Blockly.WorkspaceSvg.prototype.createVariable = function(name, opt_type, opt_id,
   return newVar;
 };
 
-
 Blockly.WorkspaceSvg.prototype.getLeftOfWorkspaceClientRect = function() {
   if (!this.svgGroup_) {
     return null;
@@ -1393,6 +1393,17 @@ Blockly.WorkspaceSvg.prototype.getLeftOfWorkspaceClientRect = function() {
   } else {
     return new goog.math.Rect(x + width, -BIG_NUM, BIG_NUM, BIG_NUM * 2);
   }
+};
+
+Blockly.WorkspaceSvg.prototype.customDeleteArea_ = null;
+
+Blockly.WorkspaceSvg.prototype.recordCustomDeleteArea = function (_x, _y, _w, _h) {
+  var deleteArea = new goog.math.Rect(_x, _y, _w, _h);
+  this.customDeleteArea_ = deleteArea;
+};
+
+Blockly.WorkspaceSvg.prototype.removedCustomDeleteArea = function () {
+  this.customDeleteArea_ = null;
 };
 
 /**
@@ -1457,6 +1468,9 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
   }
   if(this.options.useLeftDeleteArea && this.deleteAreaLeft_ && this.deleteAreaLeft_.contains(xy)) {
     return Blockly.DELETE_AREA_LEFT;
+  }
+  if(this.customDeleteArea_ && this.customDeleteArea_.contains(xy)) {
+    return Blockly.DELETE_AREA_CUSTOM;
   }
   return Blockly.DELETE_AREA_NONE;
 };

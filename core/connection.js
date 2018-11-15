@@ -138,6 +138,10 @@ Blockly.Connection.prototype.hidden_ = null;
  */
 Blockly.Connection.prototype.isSaved_ = false;
 
+Blockly.Connection.prototype.connectCallback = null;
+Blockly.Connection.prototype.disconnectCallback = null;
+Blockly.Connection.prototype.useCallbacks = true;
+
 /**
  * Connect two connections together.  This is the connection on the superior
  * block.
@@ -229,6 +233,15 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
     previousParentConnection.connect(parentBlock.previousConnection);
   }
 
+  // OB Call function when connecting something to this connection
+  if(this.connectCallback && this.useCallbacks === true) {
+    this.connectCallback(parentConnection, childConnection);
+  } 
+  // else {
+  //   console.log("No CONNECT callback")
+  // }
+
+  
   var event;
   if (Blockly.Events.isEnabled()) {
     event = new Blockly.Events.BlockMove(childBlock);
@@ -613,6 +626,24 @@ Blockly.Connection.prototype.disconnectInternal_ = function(parentBlock,
   if (Blockly.Events.isEnabled()) {
     event = new Blockly.Events.BlockMove(childBlock);
   }
+
+
+  // OB Call function when disconnecting from this connection;
+  // Call it BEFORE the disconnection so we can access the object being disconnected
+  if(this.disconnectCallback && this.useCallbacks === true) {
+    this.disconnectCallback(this, this.targetConnection);
+  } 
+  // else {
+  //   console.log("No DISCONNECT callback");
+  // }
+  if(this.targetConnection.connectCallback && this.targetConnection.useCallbacks === true) {
+    this.targetConnection.disconnectCallback(this.targetConnection, this);
+  } 
+  // else {
+  //   console.log("No DISCONNECT callback for target");
+  // }
+
+
   var otherConnection = this.targetConnection;
   otherConnection.targetConnection = null;
   this.targetConnection = null;

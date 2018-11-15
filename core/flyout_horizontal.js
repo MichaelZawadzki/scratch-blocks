@@ -56,6 +56,9 @@ Blockly.HorizontalFlyout = function(workspaceOptions) {
    * @private
    */
   this.horizontalLayout_ = true;
+
+  // OB: Fixed height for the flyout
+  this.horizontalFlyoutHeight = workspaceOptions.horizontalFlyoutHeight ? workspaceOptions.horizontalFlyoutHeight : undefined;
 };
 goog.inherits(Blockly.HorizontalFlyout, Blockly.Flyout);
 
@@ -171,7 +174,10 @@ Blockly.HorizontalFlyout.prototype.position = function() {
   var y = targetWorkspaceMetrics.absoluteTop;
   if (this.toolboxPosition_ == Blockly.TOOLBOX_AT_BOTTOM) {
     y += targetWorkspaceMetrics.viewHeight;
-    y -= this.height_;
+    // OB If there's a toolbox, offset by height of flyout. If not, don't! Not sure what is going on here...
+    if(this.targetWorkspace_.toolbox_) {
+      y -= this.height_;
+    }
   }
 
   // Record the height for Blockly.Flyout.getMetrics_, or width if the layout is
@@ -439,37 +445,50 @@ Blockly.HorizontalFlyout.prototype.getClientRect = function() {
 Blockly.HorizontalFlyout.prototype.reflowInternal_ = function(blocks) {
   this.workspace_.scale = this.targetWorkspace_.scale;
   var flyoutHeight = 0;
-  for (var i = 0, block; block = blocks[i]; i++) {
-    flyoutHeight = Math.max(flyoutHeight, block.getHeightWidth().height);
-  }
-  flyoutHeight += this.MARGIN * 1.5;
-  flyoutHeight *= this.workspace_.scale;
-  flyoutHeight += Blockly.Scrollbar.scrollbarThickness;
-  if (this.height_ != flyoutHeight) {
-    for (var i = 0, block; block = blocks[i]; i++) {
-      var blockHW = block.getHeightWidth();
-      if (block.flyoutRect_) {
-        block.flyoutRect_.setAttribute('width', blockHW.width);
-        block.flyoutRect_.setAttribute('height', blockHW.height);
-        // Rectangles behind blocks with output tabs are shifted a bit.
-        var blockXY = block.getRelativeToSurfaceXY();
-        block.flyoutRect_.setAttribute('y', blockXY.y);
-        block.flyoutRect_.setAttribute('x',
-            this.RTL ? blockXY.x - blockHW.width : blockXY.x);
-        // For hat blocks we want to shift them down by the hat height
-        // since the y coordinate is the corner, not the top of the hat.
-        var hatOffset =
-            block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0;
-        if (hatOffset) {
-          block.moveBy(0, hatOffset);
-        }
-        block.flyoutRect_.setAttribute('y', blockXY.y);
-      }
-    }
+  // OB: Fixed height for flyout was specified; use that
+  if(this.horizontalFlyoutHeight !== undefined) {
+    flyoutHeight = this.horizontalFlyoutHeight;
     // Record the height for .getMetrics_ and .position.
-    this.height_ = flyoutHeight;
-    // Call this since it is possible the trash and zoom buttons need
-    // to move. e.g. on a bottom positioned flyout when zoom is clicked.
-    this.targetWorkspace_.resize();
+    if (this.height_ != flyoutHeight) {
+      this.height_ = flyoutHeight;
+      // Call this since it is possible the trash and zoom buttons need
+      // to move. e.g. on a bottom positioned flyout when zoom is clicked.
+      this.targetWorkspace_.resize();
+    }
+  }
+  else {
+    for (var i = 0, block; block = blocks[i]; i++) {
+      flyoutHeight = Math.max(flyoutHeight, block.getHeightWidth().height);
+    }
+    flyoutHeight += this.MARGIN * 1.5;
+    flyoutHeight *= this.workspace_.scale;
+    flyoutHeight += Blockly.Scrollbar.scrollbarThickness;
+    if (this.height_ != flyoutHeight) {
+      for (var i = 0, block; block = blocks[i]; i++) {
+        var blockHW = block.getHeightWidth();
+        if (block.flyoutRect_) {
+          block.flyoutRect_.setAttribute('width', blockHW.width);
+          block.flyoutRect_.setAttribute('height', blockHW.height);
+          // Rectangles behind blocks with output tabs are shifted a bit.
+          var blockXY = block.getRelativeToSurfaceXY();
+          block.flyoutRect_.setAttribute('y', blockXY.y);
+          block.flyoutRect_.setAttribute('x',
+              this.RTL ? blockXY.x - blockHW.width : blockXY.x);
+          // For hat blocks we want to shift them down by the hat height
+          // since the y coordinate is the corner, not the top of the hat.
+          var hatOffset =
+              block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0;
+          if (hatOffset) {
+            block.moveBy(0, hatOffset);
+          }
+          block.flyoutRect_.setAttribute('y', blockXY.y);
+        }
+      }
+      // Record the height for .getMetrics_ and .position.
+      this.height_ = flyoutHeight;
+      // Call this since it is possible the trash and zoom buttons need
+      // to move. e.g. on a bottom positioned flyout when zoom is clicked.
+      this.targetWorkspace_.resize();
+    }
   }
 };
