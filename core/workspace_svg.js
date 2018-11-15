@@ -1373,7 +1373,6 @@ Blockly.WorkspaceSvg.prototype.createVariable = function(name, opt_type, opt_id,
   return newVar;
 };
 
-
 Blockly.WorkspaceSvg.prototype.getLeftOfWorkspaceClientRect = function() {
   if (!this.svgGroup_) {
     return null;
@@ -1394,6 +1393,17 @@ Blockly.WorkspaceSvg.prototype.getLeftOfWorkspaceClientRect = function() {
   } else {
     return new goog.math.Rect(x + width, -BIG_NUM, BIG_NUM, BIG_NUM * 2);
   }
+};
+
+Blockly.WorkspaceSvg.prototype.customDeleteArea_ = null;
+
+Blockly.WorkspaceSvg.prototype.recordCustomDeleteArea = function (_x, _y, _w, _h) {
+  var deleteArea = new goog.math.Rect(_x, _y, _w, _h);
+  this.customDeleteArea_ = deleteArea;
+};
+
+Blockly.WorkspaceSvg.prototype.removedCustomDeleteArea = function () {
+  this.customDeleteArea_ = null;
 };
 
 /**
@@ -1458,6 +1468,9 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
   }
   if(this.options.useLeftDeleteArea && this.deleteAreaLeft_ && this.deleteAreaLeft_.contains(xy)) {
     return Blockly.DELETE_AREA_LEFT;
+  }
+  if(this.customDeleteArea_ && this.customDeleteArea_.contains(xy)) {
+    return Blockly.DELETE_AREA_CUSTOM;
   }
   return Blockly.DELETE_AREA_NONE;
 };
