@@ -229,6 +229,11 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   this.insertCodeHookAfter = true;
   this.insertCodeStatementPrefix = true;
 
+  /**
+   * OB Flag set when the disposing procedure of the block is started
+   */
+  this.isDisposing_ = false;
+
   // Copy the type-specific functions and data from the prototype.
   if (prototypeName) {
     /** @type {string} */
@@ -372,6 +377,8 @@ Blockly.Block.prototype.dispose = function(healStack) {
     // Already deleted.
     return;
   }
+  this.isDisposing_ = true;
+  
   // Terminate onchange event calls.
   if (this.onchangeWrapper_) {
     this.workspace.removeChangeListener(this.onchangeWrapper_);
