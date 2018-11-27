@@ -153,6 +153,12 @@ Blockly.Flyout = function(workspaceOptions) {
    */
   this.recycleBlocks_ = [];
 
+  /**
+   * OB [CSI-1392] Scale for the flyout
+   * @type {number}
+   * @private
+   */
+  this.flyoutScale_ = workspaceOptions.flyoutScale ? workspaceOptions.flyoutScale : undefined;
 };
 
 /**

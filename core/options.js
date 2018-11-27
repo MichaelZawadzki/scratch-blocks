@@ -153,6 +153,8 @@ Blockly.Options = function(options) {
   this.horizontalFlyoutHeight = options['horizontalFlyoutHeight'];
   // OB: Enable/disabled drawing of dashed lines on workspace
   this.useBlockHighlightLayer = useBlockHighlightLayer;
+  // OB [CSI-1392] Flyout scale
+  this.flyoutScale = options['flyoutScale'];
 
   // OB: Special option: new font. Directly set the CSS constant
   Blockly.Css.font = options['font'];

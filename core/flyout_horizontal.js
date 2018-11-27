@@ -323,7 +323,13 @@ Blockly.HorizontalFlyout.prototype.wheel_ = function(e) {
  * @private
  */
 Blockly.HorizontalFlyout.prototype.layout_ = function(contents, gaps) {
-  this.workspace_.scale = this.targetWorkspace_.scale;
+  // OB [CSI-1392] Set a specific scale for the flyout, separate from the workspace
+  if(this.flyoutScale_ !== undefined) {
+    this.workspace_.scale = this.flyoutScale_;
+  }
+  else {
+    this.workspace_.scale = this.targetWorkspace_.scale;
+  }
   var margin = this.MARGIN;
   var cursorX = margin;
   var cursorY = margin;
@@ -443,7 +449,13 @@ Blockly.HorizontalFlyout.prototype.getClientRect = function() {
  * @param {!Array<!Blockly.Block>} blocks The blocks to reflow.
  */
 Blockly.HorizontalFlyout.prototype.reflowInternal_ = function(blocks) {
-  this.workspace_.scale = this.targetWorkspace_.scale;
+  // OB [CSI-1392] Set a specific scale for the flyout, separate from the workspace
+  if(this.flyoutScale_ !== undefined) {
+    this.workspace_.scale = this.flyoutScale_;
+  }
+  else {
+    this.workspace_.scale = this.targetWorkspace_.scale;
+  }
   var flyoutHeight = 0;
   // OB: Fixed height for flyout was specified; use that
   if(this.horizontalFlyoutHeight !== undefined) {
