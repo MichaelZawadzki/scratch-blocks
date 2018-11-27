@@ -324,6 +324,12 @@ Blockly.WorkspaceSvg.prototype.inverseScreenCTM_ = null;
 Blockly.WorkspaceSvg.prototype.inverseScreenCTMDirty_ = true;
 
 /**
+ * OB: Custom delete rectangles. Can have multiple.
+ * @type {Array}
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.customDeleteAreas_ = null;
+/**
  * Getter for the inverted screen CTM.
  * @return {SVGMatrix} The matrix to use in mouseToSvg
  */
@@ -1396,15 +1402,16 @@ Blockly.WorkspaceSvg.prototype.getLeftOfWorkspaceClientRect = function() {
   }
 };
 
-Blockly.WorkspaceSvg.prototype.customDeleteArea_ = null;
-
 Blockly.WorkspaceSvg.prototype.recordCustomDeleteArea = function (_x, _y, _w, _h) {
+  if(!this.customDeleteAreas_) {
+    this.customDeleteAreas_ = [];
+  }
   var deleteArea = new goog.math.Rect(_x, _y, _w, _h);
-  this.customDeleteArea_ = deleteArea;
+  this.customDeleteAreas_.push(deleteArea);
 };
 
 Blockly.WorkspaceSvg.prototype.removedCustomDeleteArea = function () {
-  this.customDeleteArea_ = null;
+  this.customDeleteAreas_ = null;
 };
 
 /**
@@ -1470,8 +1477,15 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
   if(this.options.useLeftDeleteArea && this.deleteAreaLeft_ && this.deleteAreaLeft_.contains(xy)) {
     return Blockly.DELETE_AREA_LEFT;
   }
-  if(this.customDeleteArea_ && this.customDeleteArea_.contains(xy)) {
-    return Blockly.DELETE_AREA_CUSTOM;
+  // if(this.customDeleteAreas_ && this.customDeleteAreas_.contains(xy)) {
+  //   return Blockly.DELETE_AREA_CUSTOM;
+  // }
+  if(this.customDeleteAreas_) {
+    for(var i = 0; i < this.customDeleteAreas_.length; i++) {
+      if(this.customDeleteAreas_[i].contains(xy)) {
+        return Blockly.DELETE_AREA_CUSTOM;
+      }
+    }
   }
   return Blockly.DELETE_AREA_NONE;
 };
