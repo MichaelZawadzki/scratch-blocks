@@ -1273,7 +1273,9 @@ Blockly.WorkspaceSvg.prototype.pasteBlock_ = function(xmlBlock, opt_outlinedBloc
   if (Blockly.Events.isEnabled() && !block.isShadow()) {
     Blockly.Events.fire(new Blockly.Events.BlockCreate(block));
   }
-  block.select();
+  if(opt_outlinedBlocks !== false) {
+    block.select();
+  }
 
   return block;
 };
