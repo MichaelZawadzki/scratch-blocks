@@ -74,6 +74,13 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.lineSegments_ = [];
 Blockly.WorkspaceHighlightLayerSvg.prototype.highlightRect_ = null;
 
 /**
+ * OB [CSI-1411]
+ * Add left and right offsets to the workspace highlight layer. Objects on that layer (lines and highlight rect)
+ * will now display offsetted accordingly
+ */
+Blockly.WorkspaceHighlightLayerSvg.prototype.horizontalOffsets = {left: 0, right: 0};
+
+/**
  * Create the layer and inject it into the container.
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.createDom = function() {
@@ -101,12 +108,14 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.createDom = function() {
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGLines_ = function() {
   
+  console.log("Create SVG lines");
+  
   // Make a bunch of lines so that they can be turn on/off without having to recreating it every time.
   for (var i = 0; i < 100; i++) {
     var line = Blockly.utils.createSvgElement('line',{
       'x1': 0,
       'y1': 10 + (10*i),
-      'x2': 300,
+      'x2': 500,
       'y2': 10 + (10*i),
       'class': 'blockHighlightLine',
       'visibility' : 'hidden',
@@ -128,7 +137,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGRect_ = function() {
     var rect = Blockly.utils.createSvgElement('rect',{
       'x': 0,
       'y': 0,
-      'width': 300,
+      'width': 500,
       'height': 10,
       'fill' : '#B0D3FF',
       'stroke' : '#B0D3FF',
@@ -147,20 +156,29 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGRect_ = function() {
 Blockly.WorkspaceHighlightLayerSvg.prototype.resize = function(width, height) {
   if (this.SVG_) {
     // Update width and height.
-    this.SVG_.setAttribute('width', width);
-    this.SVG_.setAttribute('height', height);
+    this.SVG_.setAttribute('width', width + 'px');
+    this.SVG_.setAttribute('height', height + 'px');
 
-    // resize the lines to expand to the width of the workspace.
-    for (var i = 0; i < this.lineSegments_.length; i++) {
-      var visibility = this.lineSegments_[i].getAttribute('visibility');
-      if (visibility === 'visible') {
-        this.lineSegments_[i].setAttribute('x2', width);
-      }
-    }
+    // // resize the lines to expand to the width of the workspace.
+    // for (var i = 0; i < this.lineSegments_.length; i++) {
+    //   var visibility = this.lineSegments_[i].getAttribute('visibility');
+    //   if (visibility === 'visible') {
+    //     this.lineSegments_[i].setAttribute('x2', (width - this.horizontalOffsets.right) + 'px');
+    //   }
+    // }
+    this.updateSVGLines();
     var rectVisibility = this.highlightRect_.getAttribute('visibility');
     if(rectVisibility === 'visible'){
-       this.highlightRect_.setAttribute('width', width);
+      this.highlightRect_.setAttribute('width', (width - this.horizontalOffsets.right) + 'px');
     }
+  }
+};
+
+Blockly.WorkspaceHighlightLayerSvg.prototype.updateSVGLines = function() {
+  var svgSize = Blockly.svgSize(this.container_);
+  for (var i = 0, currentLine; currentLine = this.lineSegments_[i]; i++) {
+    currentLine.setAttribute('x1', this.horizontalOffsets.left + 'px');
+    currentLine.setAttribute('x2', (svgSize.width - this.horizontalOffsets.right) + 'px');
   }
 };
 
@@ -169,10 +187,10 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.resize = function(width, height) {
  * @param {element} lineSegmentsInfo
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lineSegmentsInfo) {
-  
+
   var i, b, j;
   var lineIndex = 0;
-  var totalLineSegments = lineSegmentsInfo.map(function(lineSegment){
+  var totalLineSegments = lineSegmentsInfo.map(function(lineSegment) {
     return lineSegment.lineSegments.length;
   });
   var totalNumberNeeded = 0;
@@ -225,8 +243,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightLayer = function(lin
  * @param {!element} width, width of the workspace.
  * @param {!element} height, height of the highlighted block.
  */
-Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightRect = function(visible, x, y, width, height)
-{
+Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightRect = function(visible, x, y, width, height) {
   if(visible){
     this.highlightRect_.setAttribute('visibility', 'visible');
   }else{
@@ -236,7 +253,7 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.updateHighlightRect = function(visi
   this.highlightRect_.setAttribute('x', x);
   this.highlightRect_.setAttribute('y', y);
   this.highlightRect_.setAttribute('width', width);
-  this.highlightRect_.setAttribute('height',height);
+  this.highlightRect_.setAttribute('height', height);
 
 }
 
@@ -252,4 +269,10 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.translateLayer = function(x, y) {
 
     this.highlightRect_.setAttribute('transform', translation);
   }
+};
+
+Blockly.WorkspaceHighlightLayerSvg.prototype.setLayerHorizontalOffsets = function (left, right) {
+  this.horizontalOffsets.left = left;
+  this.horizontalOffsets.right = right;
+  this.updateSVGLines();
 };

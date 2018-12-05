@@ -83,7 +83,7 @@ Blockly.BlocksSelectionLayerSvg.prototype.createDom = function() {
 
   /**
   * Dom structure for the workspace highlight layer for the blocks.
-  * <svg class="blocklyWsHighlightLayer">
+  * <svg class="blocklyBlocksSelectionLayer">
   * </svg>
   */
   this.SVG_ = Blockly.utils.createSvgElement('svg', {

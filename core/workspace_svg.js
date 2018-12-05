@@ -762,9 +762,8 @@ Blockly.WorkspaceSvg.prototype.resize = function() {
     this.scrollbar.resize();
   }
   if (this.workspaceHighlightLayer) {
-    var width = this.getParentSvg().getAttribute("width");
-    var height = this.getParentSvg().getAttribute("height");
-    this.workspaceHighlightLayer.resize(width, height);
+    var svgSize = Blockly.svgSize(this.getParentSvg());
+    this.workspaceHighlightLayer.resize(svgSize.width, svgSize.height);
   }
   if(this.options.verticalScrollAtEdges === true) {
       this.resizeScrollAreas();
@@ -1033,14 +1032,17 @@ Blockly.WorkspaceSvg.prototype.updateHighlightLayer = function() {
     // CD, TODO: filter connected blocks
     var activeBlocks = this.getAllBlocks();
     var lineSegmentInfo = [];
-    var width = this.getParentSvg().getAttribute("width");
+    var svgSize = Blockly.svgSize(this.getParentSvg());
+    var width = svgSize.width;
+    var offsetRight = (this.workspaceHighlightLayer ? this.workspaceHighlightLayer.horizontalOffsets.right : 0);
+
     for(var j = 0; j < activeBlocks.length; j++) {
       var blockHighlight = activeBlocks[j].getBlockHighlightObject();
 
       for(var i = 0; i < blockHighlight.lineSegments.length; i++) {
         blockHighlight.lineSegments[i].x *= this.scale;
         blockHighlight.lineSegments[i].y *= this.scale;
-        blockHighlight.lineSegments[i].width = width;
+        blockHighlight.lineSegments[i].width = (width - offsetRight) + 'px';
       }
       lineSegmentInfo.push(blockHighlight);
     }
