@@ -243,7 +243,7 @@ Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
 Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock, highlightCBlockEnd) {
   var highlightBlockObject = this.getBlockHighlightObject();
   var scale = this.workspace.scale;
-  var width = this.workspace.getParentSvg().getAttribute("width"); //do NOT apply scale!
+  var width = Blockly.svgSize(this.workspace.getParentSvg()).width; //do NOT apply scale!
 
   //Make sure the block info is valid before using isGlowingBlock and calculating rect!
   var visible = false; 
@@ -263,7 +263,12 @@ Blockly.BlockSvg.prototype.setGlowBlockBG = function(isGlowingBlock, highlightCB
 
     topY = highlightBlockObject.lineSegments[lineIdxToHighlight].y * scale;
     height = (highlightBlockObject.lineSegments[lineIdxToHighlight + 1].y - highlightBlockObject.lineSegments[lineIdxToHighlight].y) * scale;
-    this.workspace.workspaceHighlightLayer.updateHighlightRect(visible, 0, topY, width, height);
+    this.workspace.workspaceHighlightLayer.updateHighlightRect(
+      visible, 
+      this.workspace.workspaceHighlightLayer.horizontalOffsets.left, 
+      topY, 
+      width - (this.workspace.workspaceHighlightLayer.horizontalOffsets.right + this.workspace.workspaceHighlightLayer.horizontalOffsets.left), 
+      height);
   }
 };
 
