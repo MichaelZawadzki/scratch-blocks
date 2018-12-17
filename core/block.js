@@ -1228,6 +1228,10 @@ Blockly.Block.prototype.setColour = function(colour, colourSecondary, colourTert
   if (colourQuaternary !== undefined) {
     this.colourQuaternary_ = this.makeColour_(colourQuaternary);
   }
+  
+  if (this.rendered) {
+    this.updateColour();
+  }
 };
 
 /**
