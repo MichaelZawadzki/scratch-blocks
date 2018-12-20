@@ -468,9 +468,9 @@ Blockly.Connection.prototype.canConnectToPrevious_ = function(candidate) {
 Blockly.Connection.prototype.isConnectionAllowed = function(candidate) {
 
   // // Don't consider insertion markers.
-  // if (candidate.sourceBlock_.isInsertionMarker()) {
-  //   return false;
-  // }
+  if (candidate.sourceBlock_.isInsertionMarker()) {
+    return false;
+  }
 
   // Type checking.
   var canConnect = this.canConnectWithReason_(candidate);
@@ -542,7 +542,7 @@ Blockly.Connection.prototype.connect = function(otherConnection) {
     // Already connected together.  NOP.
     return;
   }
-  
+
   this.checkConnection_(otherConnection);
   // Determine which block is superior (higher in the source stack).
   if (this.isSuperior()) {
