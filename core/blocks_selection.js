@@ -393,6 +393,10 @@ Blockly.BlocksSelection.selectOneBlock = function (_block) {
     Blockly.BlocksSelection.addToChosenBlocksUsingTopBlocks(_block, blockList, true);
     Blockly.BlocksSelection.createOutline();
   }
+  else if(_block.getLockGroup()) {
+    Blockly.BlocksSelection.selectLockGroupBlocks(_block);
+    Blockly.BlocksSelection.createOutline();
+  }
   else {
     Blockly.BlocksSelection.addToChosenBlocks(_block, true);
     Blockly.BlocksSelection.createOutline();
@@ -400,6 +404,52 @@ Blockly.BlocksSelection.selectOneBlock = function (_block) {
 
   if(Blockly.BlocksSelection.onAddChosenBlocksCallback) {
     Blockly.BlocksSelection.onAddChosenBlocksCallback();
+  }
+};
+
+/**
+ * OB [CSI-1438]: Chose all contiguous blocks that share the same lock group.
+ * This way, all blocks of that group will always be moved around together.
+ */
+Blockly.BlocksSelection.selectLockGroupBlocks = function (_block) {
+  var lockGroupID = _block.getLockGroup();
+  var blockList = [];
+  Blockly.BlocksSelection.addLockGroupBlocksToList(lockGroupID, _block, blockList);
+
+  Blockly.BlocksSelection.addMultipleToChosenBlocks(blockList);
+};
+
+Blockly.BlocksSelection.addLockGroupBlocksToList = function (_lockGroupID, _block, _blockList) {
+  if(_blockList.includes(_block)) {
+    return;
+  }
+  _blockList.push(_block);
+  var currentBlock = _block;
+  // Find all previous blocks that have the same lock group
+  while(currentBlock && currentBlock.previousConnection && currentBlock.previousConnection.isConnected()) {
+    currentBlock = currentBlock.previousConnection.targetConnection.sourceBlock_;
+    if(currentBlock.getLockGroup() === _lockGroupID) {
+      _blockList.push(currentBlock);
+    }
+    else {
+      currentBlock = null;
+    }
+  }
+  currentBlock = _block;
+  // Find all next blocks that have the same lock group
+  while(currentBlock && currentBlock.nextConnection && currentBlock.nextConnection.isConnected()) {
+    currentBlock = currentBlock.nextConnection.targetConnection.sourceBlock_;
+    if(currentBlock.getLockGroup() === _lockGroupID) {
+      _blockList.push(currentBlock);
+    }
+    else {
+      currentBlock = null;
+    }
+  }
+
+  var childrenStackBlocks = _block.getChildrenStack(false);
+  if(childrenStackBlocks && childrenStackBlocks.length > 0) {
+    Blockly.BlocksSelection.addLockGroupBlocksToList(_lockGroupID, childrenStackBlocks[0], _blockList);
   }
 };
 

@@ -467,10 +467,10 @@ Blockly.Connection.prototype.canConnectToPrevious_ = function(candidate) {
  */
 Blockly.Connection.prototype.isConnectionAllowed = function(candidate) {
 
-  // Don't consider insertion markers.
-  if (candidate.sourceBlock_.isInsertionMarker()) {
-    return false;
-  }
+  // // Don't consider insertion markers.
+  // if (candidate.sourceBlock_.isInsertionMarker()) {
+  //   return false;
+  // }
 
   // Type checking.
   var canConnect = this.canConnectWithReason_(candidate);
@@ -542,6 +542,7 @@ Blockly.Connection.prototype.connect = function(otherConnection) {
     // Already connected together.  NOP.
     return;
   }
+  
   this.checkConnection_(otherConnection);
   // Determine which block is superior (higher in the source stack).
   if (this.isSuperior()) {
@@ -587,6 +588,34 @@ Blockly.Connection.singleConnection_ = function(block, orphanBlock) {
     }
   }
   return connection;
+};
+
+/**
+ * OB [CSI-1438]
+ * See if a connection is allowed to be disconnected.
+ * When a connected blocks share the same 'lockGroup' ID, they cannot be disconnected!
+ * There's a special case for when blocks are inside a C-block. Need to check if the
+ * surrounding parent is of the same group.
+ * In any other scenario, connections can be disconnected.
+ */
+Blockly.Connection.prototype.isDisconnectAllowed = function() {
+  var otherConnection = this.targetConnection;
+  var thisConnectionLockGroup = this.sourceBlock_.getLockGroup();
+  var targetConnectionLockGroup = null;
+  if(otherConnection && otherConnection.sourceBlock_) {
+    targetConnectionLockGroup = otherConnection.sourceBlock_.getLockGroup();
+  }
+
+  var surroundLockGroup = null;
+  var surroundBlock = this.sourceBlock_.getSurroundParent();
+  if(surroundBlock) {
+    surroundLockGroup = surroundBlock.getLockGroup();
+  }
+
+  return !(
+            (thisConnectionLockGroup && targetConnectionLockGroup && thisConnectionLockGroup === targetConnectionLockGroup) || 
+            (surroundLockGroup && surroundLockGroup === thisConnectionLockGroup)
+          );
 };
 
 /**

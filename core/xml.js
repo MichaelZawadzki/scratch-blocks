@@ -261,6 +261,9 @@ Blockly.Xml.blockToDom = function(block, opt_noId, opt_outlinedBlocks) {
   if (block.shouldChooseChildren() && !block.isShadow()) {
     element.setAttribute('choosechildren', true);
   }
+  if (block.getLockGroup() && !block.isShadow()) {
+    element.setAttribute('lockgroup', block.getLockGroup());
+  }
 
   var nextBlock = block.getNextBlock();
   if (nextBlock && !opt_outlinedBlocks || (opt_outlinedBlocks && Blockly.BlockOutlineSurfaceSvg.isBlockOnOutlineSurface(nextBlock))) {
@@ -831,6 +834,11 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   var chooseChildren = xmlBlock.getAttribute('choosechildren')
   if (chooseChildren) {
     block.setChooseChildren(chooseChildren == 'true');
+  } 
+  // OB
+  var lockGroup = xmlBlock.getAttribute('lockgroup')
+  if (lockGroup) {
+    block.setLockGroup(lockGroup);
   } 
 
 

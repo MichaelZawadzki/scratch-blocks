@@ -312,10 +312,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   var isOutside = this.wasOutside_;
   var eventNewDragCoordinate = {x: this.startXY_.x + currentDragDeltaXY.x, y: this.startXY_.y + currentDragDeltaXY.y};
   
-  
-  
   this.draggingBlock_.setMouseThroughStyle(false);
-
   Blockly.BlockAnimations.disconnectUiStop();
 
   var delta;
