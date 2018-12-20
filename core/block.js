@@ -139,6 +139,14 @@ Blockly.Block = function(workspace, prototypeName, opt_id) {
   /**
    * @type {boolean}
    * @private
+   * OB [CSI-1438]: Blocks in a 'lock group' cannot be separated and will all be 'chosen' together.
+   * Their connections are 'locked'
+   */
+  this.lockGroup_ = undefined;
+
+  /**
+   * @type {boolean}
+   * @private
    */
   this.isShadow_ = false;
 
@@ -953,6 +961,14 @@ Blockly.Block.prototype.shouldChooseChildren = function() {
  */
 Blockly.Block.prototype.setChooseChildren = function(chooseChildren) {
   this.chooseChildren_ = chooseChildren;
+};
+
+Blockly.Block.prototype.getLockGroup = function() {
+  return this.lockGroup_;
+};
+
+Blockly.Block.prototype.setLockGroup = function(groupId) {
+  this.lockGroup_ = groupId;
 };
 
 

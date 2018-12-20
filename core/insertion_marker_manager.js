@@ -193,7 +193,8 @@ Blockly.InsertionMarkerManager.prototype.wouldDeleteBlock = function() {
  * @package
  */
 Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
-  if (this.closestConnection_) {
+  // OB [CSI-1438]: Adding a check to see if the closest connection can be disconnected, if needed
+  if (this.closestConnection_ && this.closestConnection_.isDisconnectAllowed()) {
     // Don't fire events for insertion markers.
     Blockly.Events.disable();
     this.hidePreview_();
@@ -483,7 +484,11 @@ Blockly.InsertionMarkerManager.prototype.maybeShowPreview_ = function(candidate)
   // Add an insertion marker or replacement marker.
   this.closestConnection_ = closest;
   this.localConnection_ = local;
-  this.showPreview_();
+  
+  // OB [CSI-1438]: Only show preview if the closest connection can be disconnected
+  if(this.closestConnection_.isDisconnectAllowed()) {
+    this.showPreview_();
+  }
 };
 
 /**
