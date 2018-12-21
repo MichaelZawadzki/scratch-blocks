@@ -592,13 +592,13 @@ Blockly.Connection.singleConnection_ = function(block, orphanBlock) {
 
 /**
  * OB [CSI-1438]
- * See if a connection is allowed to be disconnected.
+ * See if it is allowed to insert a block in that connection.
  * When a connected blocks share the same 'lockGroup' ID, they cannot be disconnected!
  * There's a special case for when blocks are inside a C-block. Need to check if the
  * surrounding parent is of the same group.
  * In any other scenario, connections can be disconnected.
  */
-Blockly.Connection.prototype.isDisconnectAllowed = function() {
+Blockly.Connection.prototype.isInsertionAllowed = function() {
   var otherConnection = this.targetConnection;
   var thisConnectionLockGroup = this.sourceBlock_.getLockGroup();
   var targetConnectionLockGroup = null;
@@ -614,8 +614,24 @@ Blockly.Connection.prototype.isDisconnectAllowed = function() {
 
   return !(
             (thisConnectionLockGroup && targetConnectionLockGroup && thisConnectionLockGroup === targetConnectionLockGroup) || 
-            (surroundLockGroup && surroundLockGroup === thisConnectionLockGroup)
+            (thisConnectionLockGroup && surroundLockGroup && surroundLockGroup === thisConnectionLockGroup)
           );
+};
+
+/**
+ * OB [CSI-1438]
+ * See if an output block can be inserted in an input.
+ */
+Blockly.Connection.prototype.isInputInsertionAllowed = function() {
+  var thisConnectionLockGroup = this.sourceBlock_.getLockGroup();
+  var input = this.sourceBlock_.getInputWithConnection(this);
+  var inputLockGroup;
+  if(input && input.connection && input.connection.targetConnection) {
+    var targetBlock = input.connection.targetConnection.sourceBlock_;
+    inputLockGroup = targetBlock.getLockGroup();
+  }
+  
+  return !(thisConnectionLockGroup && inputLockGroup && thisConnectionLockGroup === inputLockGroup);
 };
 
 /**
