@@ -194,7 +194,7 @@ Blockly.InsertionMarkerManager.prototype.wouldDeleteBlock = function() {
  */
 Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
   // OB [CSI-1438]: Adding a check to see if the closest connection can be disconnected, if needed
-  if (this.closestConnection_ && this.closestConnection_.isDisconnectAllowed()) {
+  if (this.closestConnection_ && this.isBlockInsertionAllowed_()) {
     // Don't fire events for insertion markers.
     Blockly.Events.disable();
     this.hidePreview_();
@@ -455,6 +455,22 @@ Blockly.InsertionMarkerManager.prototype.shouldDelete_ = function(candidate,
 /**** Begin preview visibility functions ****/
 
 /**
+ * OB [CSI-1438]
+ * Make sure we can insert a block in the given position,
+ * by looking at lock groups.
+ */
+Blockly.InsertionMarkerManager.prototype.isBlockInsertionAllowed_ = function() {
+  var allowInsert = true;
+  if(this.localConnection_.type == Blockly.OUTPUT_VALUE) {
+    allowInsert = this.closestConnection_.isInputInsertionAllowed();
+  }
+  else {
+    allowInsert = this.closestConnection_.isInsertionAllowed();
+  }
+  return allowInsert;
+};
+
+/**
  * Show an insertion marker or replacement highlighting during a drag, if
  * needed.
  * At the beginning of this function, this.localConnection_ and
@@ -485,8 +501,8 @@ Blockly.InsertionMarkerManager.prototype.maybeShowPreview_ = function(candidate)
   this.closestConnection_ = closest;
   this.localConnection_ = local;
   
-  // OB [CSI-1438]: Only show preview if the closest connection can be disconnected
-  if(this.closestConnection_.isDisconnectAllowed()) {
+  // OB [CSI-1438]: Only show preview if the a block can be inserted in the target
+  if(this.isBlockInsertionAllowed_()) {
     this.showPreview_();
   }
 };
