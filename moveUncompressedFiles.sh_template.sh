@@ -39,6 +39,7 @@ mkdir -p $CORE_DIR
 # Copy files
 cp blockly_uncompressed_vertical.js $BASE_DIR
 cp msg/messages.js $MSG_DIR
+cp msg/scratch_msgs.js $MSG_DIR
 
 BLOCKS_VERTICAL_FILES=blocks_vertical/*.js
 for f in $BLOCKS_VERTICAL_FILES
