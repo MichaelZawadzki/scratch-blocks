@@ -1999,6 +1999,38 @@ Blockly.Block.prototype.moveInputBefore = function(name, refName) {
 };
 
 /**
+ * Move a named input to a different location on this block.
+ * @param {string} name The name of the input to move.
+ * @param {?string} refName Name of input that should be before the moved input,
+ *   or null to be the input at the end.
+ */
+Blockly.Block.prototype.moveInputAfter = function(name, refName) {
+  if (name == refName) {
+    return;
+  }
+  // Find both inputs.
+  var inputIndex = -1;
+  var refIndex = refName ? -1 : this.inputList.length;
+  for (var i = 0, input; input = this.inputList[i]; i++) {
+    if (input.name == name) {
+      inputIndex = i;
+      if (refIndex != -1) {
+        break;
+      }
+    } else if (refName && input.name == refName) {
+      refIndex = i;
+      if (inputIndex != -1) {
+        break;
+      }
+    }
+  }
+  goog.asserts.assert(inputIndex != -1, 'Named input "%s" not found.', name);
+  goog.asserts.assert(
+      refIndex != -1, 'Reference input "%s" not found.', refName);
+  this.moveNumberedInputAfter(inputIndex, refIndex);
+};
+
+/**
  * Move a numbered input to a different location on this block.
  * @param {number} inputIndex Index of the input to move.
  * @param {number} refIndex Index of input that should be after the moved input.
@@ -2017,6 +2049,30 @@ Blockly.Block.prototype.moveNumberedInputBefore = function(
   if (inputIndex < refIndex) {
     refIndex--;
   }
+  // Reinsert input.
+  this.inputList.splice(refIndex, 0, input);
+};
+
+/**
+ * Move a numbered input to a different location on this block.
+ * @param {number} inputIndex Index of the input to move.
+ * @param {number} refIndex Index of input that should be before the moved input.
+ */
+Blockly.Block.prototype.moveNumberedInputAfter = function(
+    inputIndex, refIndex) {
+  // Validate arguments.
+  goog.asserts.assert(inputIndex != refIndex, 'Can\'t move input to itself.');
+  goog.asserts.assert(inputIndex < this.inputList.length,
+      'Input index ' + inputIndex + ' out of bounds.');
+  goog.asserts.assert(refIndex <= this.inputList.length,
+      'Reference input ' + refIndex + ' out of bounds.');
+
+
+  // Remove input.
+  var input = this.inputList[inputIndex];
+  this.inputList.splice(inputIndex, 1);
+  refIndex++;
+
   // Reinsert input.
   this.inputList.splice(refIndex, 0, input);
 };
