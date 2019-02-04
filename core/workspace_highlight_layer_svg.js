@@ -107,9 +107,6 @@ Blockly.WorkspaceHighlightLayerSvg.prototype.createDom = function() {
  * Create a pool of svg lines.
  */
 Blockly.WorkspaceHighlightLayerSvg.prototype.createSVGLines_ = function() {
-  
-  console.log("Create SVG lines");
-  
   // Make a bunch of lines so that they can be turn on/off without having to recreating it every time.
   for (var i = 0; i < 100; i++) {
     var line = Blockly.utils.createSvgElement('line',{
