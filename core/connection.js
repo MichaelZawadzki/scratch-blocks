@@ -233,15 +233,6 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
     previousParentConnection.connect(parentBlock.previousConnection);
   }
 
-  // OB Call function when connecting something to this connection
-  if(this.connectCallback && this.useCallbacks === true) {
-    this.connectCallback(parentConnection, childConnection);
-  } 
-  // else {
-  //   console.log("No CONNECT callback")
-  // }
-
-  
   var event;
   if (Blockly.Events.isEnabled()) {
     event = new Blockly.Events.BlockMove(childBlock);
@@ -250,6 +241,14 @@ Blockly.Connection.prototype.connect_ = function(childConnection) {
   Blockly.Connection.connectReciprocally_(parentConnection, childConnection);
   // Demote the inferior block so that one is a child of the superior one.
   childBlock.setParent(parentBlock);
+
+  // OB Call function when connecting something to this connection
+  // MAS Moved to after setParent so the connection will exist when callback is called
+  if(this.connectCallback && this.useCallbacks === true) {
+    this.connectCallback(parentConnection, childConnection);
+  } 
+  
+
   if (event) {
     event.recordNew();
    
