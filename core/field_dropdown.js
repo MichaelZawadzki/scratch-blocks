@@ -50,9 +50,11 @@ goog.require('goog.userAgent');
  * @extends {Blockly.Field}
  * @constructor
  */
-Blockly.FieldDropdown = function(menuGenerator, opt_validator) {
+Blockly.FieldDropdown = function(menuGenerator, opt_validator, disableTrimOptions ) {
   this.menuGenerator_ = menuGenerator;
-  this.trimOptions_();
+  if(disableTrimOptions !== true){
+    this.trimOptions_();
+  }
   var firstTuple = this.getOptions()[0];
 
   var name = (firstTuple === undefined) ? 'undefined' : firstTuple[1];
