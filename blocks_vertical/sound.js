@@ -25,6 +25,7 @@ goog.provide('Blockly.Blocks.sound');
 goog.require('Blockly.Blocks');
 goog.require('Blockly.Colours');
 goog.require('Blockly.constants');
+goog.require('Blockly.ScratchBlocks.VerticalExtensions');
 
 Blockly.Blocks['sound_sounds_menu'] = {
   /**
@@ -32,34 +33,31 @@ Blockly.Blocks['sound_sounds_menu'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1",
-        "args0": [
-          {
-            "type": "field_dropdown",
-            "name": "SOUND_MENU",
-            "options": [
-              ['1', '0'],
-              ['2', '1'],
-              ['3', '2'],
-              ['4', '3'],
-              ['5', '4'],
-              ['6', '5'],
-              ['7', '6'],
-              ['8', '7'],
-              ['9', '8'],
-              ['10', '9']
-            ]
-          }
-        ],
-        "inputsInline": true,
-        "output": "String",
-        "colour": Blockly.Colours.sounds.secondary,
-        "colourSecondary": Blockly.Colours.sounds.secondary,
-        "colourTertiary": Blockly.Colours.sounds.tertiary,
-        "outputShape": Blockly.OUTPUT_SHAPE_ROUND
-      });
+    this.jsonInit({
+      "message0": "%1",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "SOUND_MENU",
+          "options": [
+            ['1', '0'],
+            ['2', '1'],
+            ['3', '2'],
+            ['4', '3'],
+            ['5', '4'],
+            ['6', '5'],
+            ['7', '6'],
+            ['8', '7'],
+            ['9', '8'],
+            ['10', '9']
+          ]
+        }
+      ],
+      "colour": Blockly.Colours.sounds.secondary,
+      "colourSecondary": Blockly.Colours.sounds.secondary,
+      "colourTertiary": Blockly.Colours.sounds.tertiary,
+      "extensions": ["output_string"]
+    });
   }
 };
 
@@ -70,20 +68,15 @@ Blockly.Blocks['sound_play'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "play sound %1",
+      "message0": Blockly.Msg.SOUND_PLAY,
       "args0": [
         {
           "type": "input_value",
           "name": "SOUND_MENU"
         }
       ],
-      "inputsInline": true,
-      "previousStatement": null,
-      "nextStatement": null,
       "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -95,19 +88,15 @@ Blockly.Blocks['sound_playuntildone'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "play sound %1 until done",
+      "message0": Blockly.Msg.SOUND_PLAYUNTILDONE,
       "args0": [
         {
           "type": "input_value",
           "name": "SOUND_MENU"
         }
       ],
-      "inputsInline": true,
-      "previousStatement": null,
-      "nextStatement": null,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "category": Blockly.Categories.sound,
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -119,150 +108,12 @@ Blockly.Blocks['sound_stopallsounds'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "stop all sounds",
-      "previousStatement": null,
-      "nextStatement": null,
+      "message0": Blockly.Msg.SOUND_STOPALLSOUNDS,
       "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
-
-Blockly.Blocks['sound_drums_menu'] = {
-  /**
-   * Drums drop-down menu.
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1",
-        "args0": [
-          {
-            "type": "field_dropdown",
-            "name": "DRUM",
-            "options": [
-              ['(1) Snare Drum', '1'],
-              ['(2) Bass Drum', '2'],
-              ['(3) Side Stick', '3'],
-              ['(4) Crash Cymbal', '4'],
-              ['(5) Open Hi-Hat', '5'],
-              ['(6) Closed Hi-Hat', '6'],
-              ['(7) Tambourine', '7'],
-              ['(8) Hand Clap', '8'],
-              ['(9) Claves', '9'],
-              ['(10) Wood Block', '10'],
-              ['(11) Cowbell', '11'],
-              ['(12) Triangle', '12'],
-              ['(13) Bongo', '13'],
-              ['(14) Conga', '14'],
-              ['(15) Cabasa', '15'],
-              ['(16) Guiro', '16'],
-              ['(17) Vibraslap', '17'],
-              ['(18) Open Cuica', '18']
-            ]
-          }
-        ],
-        "inputsInline": true,
-        "output": "String",
-        "colour": Blockly.Colours.sounds.secondary,
-        "colourSecondary": Blockly.Colours.sounds.secondary,
-        "colourTertiary": Blockly.Colours.sounds.tertiary,
-        "outputShape": Blockly.OUTPUT_SHAPE_ROUND
-      });
-  }
-};
-
-Blockly.Blocks['sound_playdrumforbeats'] = {
-  /**
-   * Block to play a drum for some number of beats
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "play drum %1 for %2 beats",
-      "args0": [
-        {
-          "type": "input_value",
-          "name": "DRUM"
-        },
-        {
-          "type": "input_value",
-          "name": "BEATS"
-        }
-      ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
-    });
-  }
-};
-
-Blockly.Blocks['sound_restforbeats'] = {
-  /**
-   * Block to rest for some number of beats
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "rest for %1 beats",
-      "args0": [
-        {
-          "type": "input_value",
-          "name": "BEATS"
-        }
-      ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
-    });
-  }
-};
-
-Blockly.Blocks['sound_playnoteforbeats'] = {
-  /**
-   * Block to play a certain note for some number of beats
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "play note %1 for %2 beats",
-      "args0": [
-        {
-          "type": "input_value",
-          "name": "NOTE"
-        },
-        {
-          "type": "input_value",
-          "name": "BEATS"
-        }
-      ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
-    });
-  }
-};
-
-Blockly.Blocks['sound_effects_menu_options'] = [
-  ['pitch', 'PITCH'],
-  ['pan left/right', 'PAN'],
-  ['echo', 'ECHO'],
-  ['reverb', 'REVERB'],
-  ['fuzz', 'FUZZ'],
-  ['robot', 'ROBOT']
-];
 
 Blockly.Blocks['sound_seteffectto'] = {
   /**
@@ -271,23 +122,23 @@ Blockly.Blocks['sound_seteffectto'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "set %1 effect to %2",
+      "message0": Blockly.Msg.SOUND_SETEFFECTO,
       "args0": [
         {
           "type": "field_dropdown",
           "name": "EFFECT",
-          "options": Blockly.Blocks['sound_effects_menu_options']
+          "options": [
+            [Blockly.Msg.SOUND_EFFECTS_PITCH, 'PITCH'],
+            [Blockly.Msg.SOUND_EFFECTS_PAN, 'PAN']
+          ]
         },
         {
           "type": "input_value",
           "name": "VALUE"
         }
       ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "category": Blockly.Categories.sound,
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -300,23 +151,23 @@ Blockly.Blocks['sound_changeeffectby'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "change %1 effect by %2",
+      "message0": Blockly.Msg.SOUND_CHANGEEFFECTBY,
       "args0": [
         {
           "type": "field_dropdown",
           "name": "EFFECT",
-          "options": Blockly.Blocks['sound_effects_menu_options']
+          "options": [
+            [Blockly.Msg.SOUND_EFFECTS_PITCH, 'PITCH'],
+            [Blockly.Msg.SOUND_EFFECTS_PAN, 'PAN']
+          ]
         },
         {
           "type": "input_value",
           "name": "VALUE"
         }
       ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "category": Blockly.Categories.sound,
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -328,84 +179,9 @@ Blockly.Blocks['sound_cleareffects'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "clear sound effects",
-      "previousStatement": null,
-      "nextStatement": null,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
-    });
-  }
-};
-
-Blockly.Blocks['sound_instruments_menu'] = {
-  /**
-   * Instruments drop-down menu.
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1",
-        "args0": [
-          {
-            "type": "field_dropdown",
-            "name": "INSTRUMENT",
-            "options": [
-              ['(1) Piano', '1'],
-              ['(2) Electric Piano', '2'],
-              ['(3) Organ', '3'],
-              ['(4) Guitar', '4'],
-              ['(5) Electric Guitar', '5'],
-              ['(6) Bass', '6'],
-              ['(7) Pizzicato', '7'],
-              ['(8) Cello', '8'],
-              ['(9) Trombone', '9'],
-              ['(10) Clarinet', '10'],
-              ['(11) Saxophone', '11'],
-              ['(12) Flute', '12'],
-              ['(13) Wooden Flute', '13'],
-              ['(14) Bassoon', '14'],
-              ['(15) Choir', '15'],
-              ['(16) Vibraphone', '16'],
-              ['(17) Music Box', '17'],
-              ['(18) Steel Drum', '18'],
-              ['(19) Marimba', '19'],
-              ['(20) Synth Lead', '20'],
-              ['(21) Synth Pad', '21']
-            ]
-          }
-        ],
-        "inputsInline": true,
-        "output": "String",
-        "colour": Blockly.Colours.sounds.secondary,
-        "colourSecondary": Blockly.Colours.sounds.secondary,
-        "colourTertiary": Blockly.Colours.sounds.tertiary,
-        "outputShape": Blockly.OUTPUT_SHAPE_ROUND
-      });
-  }
-};
-
-Blockly.Blocks['sound_setinstrumentto'] = {
-  /**
-   * Block to set the sprite's instrument
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "set instrument to %1",
-      "args0": [
-        {
-          "type": "input_value",
-          "name": "INSTRUMENT"
-        }
-      ],
-      "previousStatement": null,
-      "nextStatement": null,
+      "message0": Blockly.Msg.SOUND_CLEAREFFECTS,
       "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -417,19 +193,15 @@ Blockly.Blocks['sound_changevolumeby'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "change volume by %1",
+      "message0": Blockly.Msg.SOUND_CHANGEVOLUMEBY,
       "args0": [
         {
           "type": "input_value",
           "name": "VOLUME"
         }
       ],
-      "previousStatement": null,
-      "nextStatement": null,
       "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -441,19 +213,15 @@ Blockly.Blocks['sound_setvolumeto'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "set volume to %1%",
+      "message0": Blockly.Msg.SOUND_SETVOLUMETO,
       "args0": [
         {
           "type": "input_value",
           "name": "VOLUME"
         }
       ],
-      "previousStatement": null,
-      "nextStatement": null,
       "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
+      "extensions": ["colours_sounds", "shape_statement"]
     });
   }
 };
@@ -465,81 +233,10 @@ Blockly.Blocks['sound_volume'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "volume",
+      "message0": Blockly.Msg.SOUND_VOLUME,
       "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary,
-      "output": "Number",
-      "outputShape": Blockly.OUTPUT_SHAPE_ROUND,
-      "checkboxInFlyout": true
-    });
-  }
-};
-
-Blockly.Blocks['sound_changetempoby'] = {
-  /**
-   * Block to change the sprite's tempo by a certain value
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "change tempo by %1",
-      "args0": [
-        {
-          "type": "input_value",
-          "name": "TEMPO"
-        }
-      ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
-    });
-  }
-};
-
-Blockly.Blocks['sound_settempotobpm'] = {
-  /**
-   * Block to set the sprite's volume to a certain bpm
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "set tempo to %1 bpm",
-      "args0": [
-        {
-          "type": "input_value",
-          "name": "TEMPO"
-        }
-      ],
-      "previousStatement": null,
-      "nextStatement": null,
-      "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary
-    });
-  }
-};
-
-Blockly.Blocks['sound_tempo'] = {
-  /**
-   * Block to report tempo
-   * @this Blockly.Block
-   */
-  init: function() {
-    this.jsonInit({
-      "message0": "tempo",
-      "category": Blockly.Categories.sound,
-      "colour": Blockly.Colours.sounds.primary,
-      "colourSecondary": Blockly.Colours.sounds.secondary,
-      "colourTertiary": Blockly.Colours.sounds.tertiary,
-      "output": "Number",
-      "outputShape": Blockly.OUTPUT_SHAPE_ROUND,
-      "checkboxInFlyout": true
+      "checkboxInFlyout": true,
+      "extensions": ["colours_sounds", "output_number"]
     });
   }
 };

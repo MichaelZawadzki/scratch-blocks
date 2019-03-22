@@ -49,6 +49,16 @@ Blockly.FieldIconMenu = function(icons) {
 };
 goog.inherits(Blockly.FieldIconMenu, Blockly.Field);
 
+/**
+ * Construct a FieldIconMenu from a JSON arg object.
+ * @param {!Object} element A JSON object with options.
+ * @returns {!Blockly.FieldIconMenu} The new field instance.
+ * @package
+ * @nocollapse
+ */
+Blockly.FieldIconMenu.fromJson = function(element) {
+  return new Blockly.FieldIconMenu(element['options']);
+};
 
 /**
  * Fixed width of the drop-down, in px. Icon buttons will flow inside this width.
@@ -69,6 +79,10 @@ Blockly.FieldIconMenu.savedPrimary_ = null;
  * @param {Block} block The owning block.
  */
 Blockly.FieldIconMenu.prototype.init = function(block) {
+  if (this.fieldGroup_) {
+    // Icon menu has already been initialized once.
+    return;
+  }
   // Render the arrow icon
   // Fixed sizes in px. Saved for creating the flip transform of the menu renders above the button.
   var arrowSize = 12;
@@ -88,7 +102,8 @@ Blockly.FieldIconMenu.prototype.init = function(block) {
   });
   this.arrowIcon_.setAttributeNS('http://www.w3.org/1999/xlink',
       'xlink:href', Blockly.mainWorkspace.options.pathToMedia + 'dropdown-arrow.svg');
-  block.getSvgRoot().appendChild(this.arrowIcon_);
+  //block.getSvgRoot().appendChild(this.arrowIcon_);
+  block.getSvgContentRoot().appendChild(this.arrowIcon_);
   Blockly.FieldIconMenu.superClass_.init.call(this, block);
 };
 
@@ -239,7 +254,9 @@ Blockly.FieldIconMenu.prototype.showEditor_ = function() {
   // Update source block colour to look selected
   this.savedPrimary_ = this.sourceBlock_.getColour();
   this.sourceBlock_.setColour(this.sourceBlock_.getColourSecondary(),
-    this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+      this.sourceBlock_.getColourSecondary(),
+      this.sourceBlock_.getColourTertiary(),
+      this.sourceBlock_.getColourQuaternary());
 
   var scale = this.sourceBlock_.workspace.scale;
   // Offset for icon-type horizontal blocks.
@@ -254,8 +271,7 @@ Blockly.FieldIconMenu.prototype.showEditor_ = function() {
     var arrowY = this.arrowY_ + Blockly.DropDownDiv.ARROW_SIZE / 1.5;
     // Flip the arrow on the button
     this.arrowIcon_.setAttribute('transform',
-      'translate(' + arrowX + ',' + arrowY + ') rotate(180)');
-  }
+        'translate(' + arrowX + ',' + arrowY + ') rotate(180)');}
 };
 
 /**
@@ -280,7 +296,9 @@ Blockly.FieldIconMenu.prototype.onHide_ = function() {
   // when a block is dragged from the flyout.
   if (this.sourceBlock_) {
     this.sourceBlock_.setColour(this.savedPrimary_,
-      this.sourceBlock_.getColourSecondary(), this.sourceBlock_.getColourTertiary());
+        this.sourceBlock_.getColourSecondary(),
+        this.sourceBlock_.getColourTertiary(),
+        this.sourceBlock_.getColourQuaternary());
   }
   Blockly.DropDownDiv.content_.removeAttribute('role');
   Blockly.DropDownDiv.content_.removeAttribute('aria-haspopup');
@@ -288,3 +306,5 @@ Blockly.FieldIconMenu.prototype.onHide_ = function() {
   // Unflip the arrow if appropriate
   this.arrowIcon_.setAttribute('transform', 'translate(' + this.arrowX_ + ',' + this.arrowY_ + ')');
 };
+
+Blockly.Field.register('field_iconmenu', Blockly.FieldIconMenu);

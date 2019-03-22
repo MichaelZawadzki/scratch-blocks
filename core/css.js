@@ -66,6 +66,20 @@ Blockly.Css.styleSheet_ = null;
 Blockly.Css.mediaPath_ = '';
 
 /**
+ * Default font.
+ * @type {string}
+ * @private
+ */
+Blockly.Css.defaultFont = '"Helvetica Neue", Helvetica, sans-serif';
+
+/**
+ * A new font defined in the workspace options. Will override the default font
+ * @type {string}
+ * @private
+ */
+Blockly.Css.font = null;
+
+/**
  * Inject the CSS into the DOM.  This is preferable over using a regular CSS
  * file since:
  * a) It loads synchronously and doesn't force a redraw later.
@@ -101,6 +115,14 @@ Blockly.Css.inject = function(hasCss, pathToMedia) {
         Blockly.Colours[colourProperty]
       );
     }
+  }
+
+  // Dynamically replace the default font in the CSS, if there's another font defined
+  if(Blockly.Css.font) {
+    text = text.replace(
+        new RegExp(Blockly.Css.defaultFont, 'g'),
+        Blockly.Css.font
+      );
   }
 
   // Inject CSS tag at start of head.
@@ -172,8 +194,22 @@ Blockly.Css.CONTENT = [
     '-webkit-transform-origin: 0 0;',
   '}',
 
+  '.blocklyWidgetDiv.fieldTextInput.removableTextInput {',
+    'overflow: visible;',
+  '}',
+
   '.blocklyTextDropDownArrow {',
     'position: absolute;',
+  '}',
+
+  '.blocklyTextRemoveIcon {',
+    'position: absolute;',
+    'width: 24px;',
+    'height: 24px;',
+    'top: -40px;',
+    'left: 50%;',
+    'margin-left: -12px;',
+    'cursor: pointer;',
   '}',
 
   '.blocklyNonSelectable {',
@@ -186,12 +222,47 @@ Blockly.Css.CONTENT = [
   '.blocklyWsDragSurface {',
     'display: none;',
     'position: absolute;',
-    'overflow: visible;',
     'top: 0;',
     'left: 0;',
   '}',
+  /* Added as a separate rule with multiple classes to make it more specific
+     than a bootstrap rule that selects svg:root. See issue #1275 for context.
+  */
+  '.blocklyWsDragSurface.blocklyOverflowVisible {',
+    'overflow: visible;',
+  '}',
+
+  '.blocklyWsHighlightLayer {',
+    'position: absolute;',
+    'overflow: visible;',
+    'top: 0;',
+    'left: 0;',
+    'right: 0;',
+    'bottom: 0;',
+  '}',
+  
+  '.blocklyBlocksSelectionLayer {',
+    'position: absolute;',
+    'overflow: visible;',
+    'top: 0;',
+    'left: 0;',
+    'right: 0;',
+    'bottom: 0;',
+    //'z-index: 50;', /* Display above the toolbox */
+  '}',
 
   '.blocklyBlockDragSurface {',
+    'display: none;',
+    'position: absolute;',
+    'top: 0;',
+    'left: 0;',
+    'right: 0;',
+    'bottom: 0;',
+    'overflow: visible !important;',
+    'z-index: 50;', /* Display above the toolbox */
+  '}',
+  
+  '.blocklyBlocksOutlineSurface {',
     'display: none;',
     'position: absolute;',
     'top: 0;',
@@ -208,7 +279,7 @@ Blockly.Css.CONTENT = [
     'box-shadow: 4px 4px 20px 1px rgba(0,0,0,.15);',
     'color: #000;',
     'display: none;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 9pt;',
     'opacity: 0.9;',
     'padding: 2px;',
@@ -227,6 +298,7 @@ Blockly.Css.CONTENT = [
     'box-shadow: 0px 0px 8px 1px ' + Blockly.Colours.dropDownShadow + ';',
     'padding: 4px;',
     '-webkit-user-select: none;',
+    'min-height: 26px',
   '}',
 
   '.blocklyDropDownContent {',
@@ -292,7 +364,7 @@ Blockly.Css.CONTENT = [
     'border: 1px solid $colour_numPadBorder;',
     'cursor: pointer;',
     'font-weight: 600;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 12pt;',
     '-webkit-tap-highlight-color: rgba(0,0,0,0);',
   '}',
@@ -329,7 +401,7 @@ Blockly.Css.CONTENT = [
     'overflow: auto;',
     'word-wrap: break-word;',
     'text-align: center;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: .8em;',
   '}',
 
@@ -361,6 +433,11 @@ Blockly.Css.CONTENT = [
   '.blocklySelected>.blocklyPath {',
     // 'stroke: #fc3;',
     // 'stroke-width: 3px;',
+  '}',
+  
+  '.blocklyChosen {',
+    //'stroke: #fc3;',
+    //'stroke-width: 4px;',
   '}',
 
   '.blocklySelected>.blocklyPathLight {',
@@ -406,14 +483,24 @@ Blockly.Css.CONTENT = [
     'cursor: url("<<<PATH>>>/handdelete.cur"), auto;',
   '}',
 
+  '.blocklyDragging.blocklyDraggingMouseThrough {',
+    'pointer-events: none;',
+  '}',
+
   '.blocklyToolboxDelete {',
     'cursor: url("<<<PATH>>>/handdelete.cur"), auto;',
   '}',
 
+  '.blocklyToolboxGrab {',
+    'cursor: url("<<<PATH>>>/handclosed.cur"), auto;',
+    'cursor: grabbing;',
+    'cursor: -webkit-grabbing;',
+  '}',
+
   '.blocklyDragging>.blocklyPath,',
   '.blocklyDragging>.blocklyPathLight {',
-    'fill-opacity: .8;',
-    'stroke-opacity: .8;',
+    'fill-opacity: 1.0;',
+    'stroke-opacity: 1.0;',
   '}',
 
   '.blocklyDragging>.blocklyPath {',
@@ -430,7 +517,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyText {',
     'fill: #fff;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 12pt;',
     'font-weight: 500;',
   '}',
@@ -447,6 +534,10 @@ Blockly.Css.CONTENT = [
     'fill: $colour_text;',
   '}',
 
+  '.blocklyEditableText>.blocklyEditableLabel {',
+    'fill: #fff;',
+  '}',
+
   '.blocklyDropdownText {',
     'fill: #fff !important;',
   '}',
@@ -454,18 +545,13 @@ Blockly.Css.CONTENT = [
   '.blocklyBubbleText {',
     'fill: $colour_text;',
   '}',
-
-  '.blocklyFlyout {',
-    'position: absolute;',
-    'z-index: 20;',
-  '}',
-
   '.blocklyFlyout {',
     'position: absolute;',
     'z-index: 20;',
   '}',
   '.blocklyFlyoutButton {',
     'fill: none;',
+    'pointer-events: all;',
   '}',
 
   '.blocklyFlyoutButtonBackground {',
@@ -477,7 +563,7 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.blocklyFlyoutButtonShadow {',
-    'fill: none;',
+    'fill: transparent;',
   '}',
 
   '.blocklyFlyoutButton:hover {',
@@ -494,14 +580,17 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.blocklyFlyoutLabelText {',
-    'fill: #000;',
+    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-size: 14pt;',
+    'fill: #575E75;',
+    'font-weight: bold;',
   '}',
 
   /*
     Don't allow users to select text.  It gets annoying when trying to
     drag a block and selected text moves instead.
   */
-  '.blocklySvg text, .blocklyBlockDragSurface text {',
+  '.blocklySvg text, .blocklyBlockDragSurface text, .blocklyFlyout text, .blocklyToolboxDiv text {',
     'user-select: none;',
     '-moz-user-select: none;',
     '-webkit-user-select: none;',
@@ -540,17 +629,136 @@ Blockly.Css.CONTENT = [
     'padding: 0;',
   '}',
 
+  '.blocklyCommentForeignObject {',
+    'position: relative;',
+    'z-index: 0;',
+  '}',
+
+  '.blocklyCommentRect {',
+    'fill: #E7DE8E;',
+    'stroke: #bcA903;',
+    'stroke-width: 1px',
+  '}',
+
+  '.blocklyCommentTarget {',
+    'fill: transparent;',
+    'stroke: #bcA903;',
+  '}',
+
+  '.blocklyCommentTargetFocused {',
+    'fill: none;',
+  '}',
+
+  '.blocklyCommentHandleTarget {',
+    'fill: none;',
+  '}',
+
+  '.blocklyCommentHandleTargetFocused {',
+    'fill: transparent;',
+  '}',
+
+  '.blocklyFocused>.blocklyCommentRect {',
+    'fill: #B9B272;',
+    'stroke: #B9B272;',
+  '}',
+
+  '.blocklySelected>.blocklyCommentTarget {',
+    'stroke: #fc3;',
+    'stroke-width: 3px;',
+  '}',
+
+
   '.blocklyCommentTextarea {',
-    'background-color: #ffc;',
+    'background-color: #fef49c;',
     'border: 0;',
+    'outline: 0;',
     'margin: 0;',
-    'padding: 2px;',
+    'padding: 3px;',
     'resize: none;',
+    'display: block;',
+    'overflow: hidden;',
+  '}',
+
+  '.blocklyCommentDeleteIcon {',
+    'cursor: pointer;',
+    'fill: #000;',
+    'display: none',
+  '}',
+
+  '.blocklySelected > .blocklyCommentDeleteIcon {',
+    'display: block',
+  '}',
+
+  '.blocklyDeleteIconShape {',
+    'fill: #000;',
+    'stroke: #000;',
+    'stroke-width: 1px;',
+  '}',
+
+  '.blocklyDeleteIconShape.blocklyDeleteIconHighlighted {',
+    'stroke: #fc3;',
+  '}',
+
+  // Scratch Comments
+
+  '.scratchCommentForeignObject {',
+    'position: relative;',
+  '}',
+
+  '.scratchCommentBody {',
+    'background-color: #fef49c;',
+  '}',
+
+  '.scratchCommentRect {',
+    'fill: #fef49c;',
+  '}',
+
+  '.scratchCommentTarget {',
+    'fill: transparent;',
+  '}',
+
+  '.scratchWorkspaceCommentBorder {',
+    'stroke: #bcA903;',
+    'stroke-width: 1px;',
+  '}',
+
+  '.scratchCommentTargetFocused {',
+    'fill: none;',
+  '}',
+
+  '.scratchCommentTopBar {',
+    'fill: #000000;',
+    'fill-opacity: 0.1',
+  '}',
+
+  '.scratchCommentText {',
+    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-size: 12pt;',
+    'font-weight: 400;',
+  '}',
+
+  '.scratchCommentTextarea {',
+    'background-color: #fef49c;',
+    'border: 0;',
+    'outline: 0;',
+    'padding: 0;',
+    'resize: none;',
+    'overflow: hidden;',
+  '}',
+
+  '.scratchCommentResizeSE {',
+    'cursor: se-resize;',
+    'fill: transparent;',
+  '}',
+
+  '.scratchCommentResizeSW {',
+    'cursor: sw-resize;',
+    'fill: transparent;',
   '}',
 
   '.blocklyHtmlInput {',
     'border: none;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 12pt;',
     'height: 100%;',
     'margin: 0;',
@@ -575,7 +783,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyFlyoutBackground {',
     'fill: $colour_flyout;',
-    'fill-opacity: .8;',
+    'fill-opacity: 0;',
   '}',
 
   '.blocklyMainWorkspaceScrollbar {',
@@ -624,25 +832,40 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.blocklyAngleCircle {',
-    'stroke: #444;',
+    'stroke: ' + Blockly.Colours.motion.tertiary + ';',
     'stroke-width: 1;',
-    'fill: #ddd;',
-    'fill-opacity: .8;',
+    'fill: ' + Blockly.Colours.motion.secondary + ';',
   '}',
 
-  '.blocklyAngleMarks {',
-    'stroke: #444;',
+  '.blocklyAngleCenterPoint {',
+    'stroke: #fff;',
     'stroke-width: 1;',
+    'fill: #fff;',
+  '}',
+
+  '.blocklyAngleDragHandle {',
+    'stroke: #fff;',
+    'stroke-width: 5;',
+    'stroke-opacity: 0.25;',
+    'fill: #fff;',
+    'cursor: pointer;',
+  '}',
+
+
+  '.blocklyAngleMarks {',
+    'stroke: #fff;',
+    'stroke-width: 1;',
+    'stroke-opacity: 0.5;',
   '}',
 
   '.blocklyAngleGauge {',
-    'fill: #f88;',
-    'fill-opacity: .8;',
+    'fill: #fff;',
+    'fill-opacity: 0.20;',
   '}',
 
   '.blocklyAngleLine {',
-    'stroke: #f00;',
-    'stroke-width: 2;',
+    'stroke: #fff;',
+    'stroke-width: 1;',
     'stroke-linecap: round;',
     'pointer-events: none;',
   '}',
@@ -672,8 +895,9 @@ Blockly.Css.CONTENT = [
     'overflow-x: visible;',
     'overflow-y: auto;',
     'position: absolute;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'z-index: 40;', /* so blocks go over toolbox when dragging */
+    '-webkit-tap-highlight-color: transparent;', /* issue #1345 */
   '}',
 
   '.blocklyTreeRoot {',
@@ -761,7 +985,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyTreeLabel {',
     'cursor: default;',
-    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-family: ' + Blockly.Css.defaultFont + ';',
     'font-size: 16px;',
     'padding: 0 3px;',
     'vertical-align: middle;',
@@ -775,54 +999,58 @@ Blockly.Css.CONTENT = [
     'color: #fff;',
   '}',
 
-  /* Copied from: goog/css/colorpicker-simplegrid.css */
-  /*
-   * Copyright 2007 The Closure Library Authors. All Rights Reserved.
-   *
-   * Use of this source code is governed by the Apache License, Version 2.0.
-   * See the COPYING file for details.
-   */
-
-  /* Author: pupius@google.com (Daniel Pupius) */
-
-  /*
-    Styles to make the colorpicker look like the old gmail color picker
-    NOTE: without CSS scoping this will override styles defined in palette.css
-  */
-  '.blocklyWidgetDiv .goog-palette {',
-    'outline: none;',
-    'cursor: default;',
-  '}',
-
-  '.blocklyWidgetDiv .goog-palette-table {',
-    'border-collapse: collapse;',
-  '}',
-
-  '.blocklyWidgetDiv .goog-palette-cell {',
-    'height: 13px;',
-    'width: 15px;',
-    'margin: 0;',
-    'border: 0;',
-    'text-align: center;',
-    'vertical-align: middle;',
-    'font-size: 1px;',
-  '}',
-
-  '.blocklyWidgetDiv .goog-palette-colorswatch {',
+  '.blocklyDropDownDiv .goog-slider-horizontal {',
+    'margin: 8px;',
+    'height: 22px;',
+    'width: 150px;',
     'position: relative;',
-    'height: 13px;',
-    'width: 15px;',
+    'outline: none;',
+    'border-radius: 11px;',
+    'margin-bottom: 20px;',
   '}',
 
-  '.blocklyWidgetDiv .goog-palette-cell-hover .goog-palette-colorswatch {',
-    'border: 1px solid #FFF;',
-    'box-sizing: border-box;',
+  '.blocklyDropDownDiv .goog-slider-horizontal .goog-slider-thumb {',
+    'width: 26px;',
+    'height: 26px;',
+    'top: -1px;',
+    'position: absolute;',
+    'background-color: white;',
+    'border-radius: 100%;',
+    '-webkit-box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);',
+    '-moz-box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);',
+    'box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);',
   '}',
 
-  '.blocklyWidgetDiv .goog-palette-cell-selected .goog-palette-colorswatch {',
-    'border: 1px solid #000;',
-    'box-sizing: border-box;',
-    'color: #fff;',
+  '.scratchEyedropper {',
+    'background: none;',
+    'outline: none;',
+    'border: none;',
+    'width: 100%;',
+    'text-align: center;',
+    'border-top: 1px solid #ddd;',
+    'padding-top: 5px;',
+    'cursor: pointer;',
+  '}',
+
+  '.scratchColourPickerLabel {',
+    'font-family: "Helvetica Neue", Helvetica, sans-serif;',
+    'font-size: 0.65rem;',
+    'color: $colour_toolboxText;',
+    'margin: 8px;',
+  '}',
+
+  '.scratchColourPickerLabelText {',
+    'font-weight: bold;',
+  '}',
+
+  '.scratchColourPickerReadout {',
+    'margin-left: 10px;',
+  '}',
+
+  '.scratchMatrixButtonDiv {',
+    'width: 50%;',
+    'text-align: center;',
+    'float: left;',
   '}',
 
   /* Copied from: goog/css/menu.css */
@@ -845,7 +1073,7 @@ Blockly.Css.CONTENT = [
     'border-style: solid;',
     'border-width: 1px;',
     'cursor: default;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'margin: 0;',
     'outline: none;',
     'padding: 4px 0;',
@@ -857,7 +1085,7 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDropDownDiv .goog-menu {',
     'cursor: default;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'outline: none;',
     'z-index: 20000;',  /* Arbitrary, but some apps depend on it... */
   '}',
@@ -893,7 +1121,7 @@ Blockly.Css.CONTENT = [
    */
   '.blocklyWidgetDiv .goog-menuitem {',
     'color: #000;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'list-style: none;',
     'margin: 0;',
      /* 28px on the left for icon or checkbox; 7em on the right for shortcut. */
@@ -903,10 +1131,11 @@ Blockly.Css.CONTENT = [
 
   '.blocklyDropDownDiv .goog-menuitem {',
     'color: #fff;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
     'font-weight: bold;',
     'list-style: none;',
     'margin: 0;',
+    'min-height: 24px;',
      /* 28px on the left for icon or checkbox; 7em on the right for shortcut. */
     'padding: 4px 7em 4px 28px;',
     'white-space: nowrap;',
@@ -941,7 +1170,7 @@ Blockly.Css.CONTENT = [
   '.blocklyWidgetDiv .goog-menuitem-content ',
   '.blocklyDropDownDiv .goog-menuitem-content {',
     'color: #000;',
-    'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
+    'font: normal 13px ' + Blockly.Css.defaultFont + ';',
   '}',
 
   /* State: disabled. */
@@ -1010,7 +1239,7 @@ Blockly.Css.CONTENT = [
   '.blocklyDropDownDiv .goog-menuitem-rtl .goog-menuitem-icon {',
      /* Flip left/right positioning. */
      'float: right;',
-     'margin-left: 6px;',
+     'margin-right: -24px;',
   '}',
 
   /* Keyboard shortcut ("accelerator") style. */
@@ -1089,47 +1318,63 @@ Blockly.Css.CONTENT = [
   '}',
 
   '.scratchCategoryMenu {',
-    'width: 250px;',
+    'width: 60px;',
     'background: $colour_toolbox;',
     'color: $colour_toolboxText;',
-    'font-size: .9em;',
+    'font-size: .7rem;',
     'user-select: none;',
     '-webkit-user-select: none;',
     '-moz-user-select: none;',
     '-ms-user-select: none;',
   '}',
 
-  '.scratchCategoryRow {',
-    'width: 50%;',
+  '.scratchCategoryMenuHorizontal {',
+    'width: 100%;',
+    'height: 50px;',
+    'background: $colour_toolbox;',
+    'color: $colour_toolboxText;',
+    'font-size: .7em;',
+    'user-select: none;',
+    '-webkit-user-select: none;',
+    '-moz-user-select: none;',
+    '-ms-user-select: none;',
+  '}',
+
+  '.scratchCategoryMenuHorizontal .scratchCategoryMenuRow {',
+    'float: left;',
+    'margin: 3px;',
+  '}',
+
+  '.scratchCategoryMenuRow {',
   '}',
 
   '.scratchCategoryMenuItem {',
-    'padding: 4px;',
-    'width: 50%;',
+    'padding: 0.375rem 0px;',
     'cursor: pointer;',
+    'text-align: center;',
+  '}',
+
+  '.scratchCategoryMenuHorizontal .scratchCategoryMenuItem {',
+    'padding: 6px 5px;',
   '}',
 
   '.scratchCategoryMenuItem.categorySelected {',
     'background: $colour_toolboxSelected;',
-    'border-radius: 16px;',
   '}',
 
-  '.scratchCategoryItemBubbleLTR {',
-    'width: 14px;',
-    'height: 14px;',
+  '.scratchCategoryItemBubble {',
+    'width: 1.25rem;',
+    'height: 1.25rem;',
     'border: 1px solid;',
-    'border-radius: 8px;',
-    'float: left;',
-    'margin-right: 8px;',
+    'border-radius: 100%;',
+    'margin: 0 auto 0.125rem;',
   '}',
 
-  '.scratchCategoryItemBubbleRTL {',
-    'width: 14px;',
-    'height: 14px;',
-    'border: 1px solid;',
-    'border-radius: 8px;',
-    'float: right;',
-    'margin-left: 8px;',
+  '.scratchCategoryItemIcon {',
+    'width: 1.25rem;',
+    'height: 1.25rem;',
+    'margin: 0 auto 0.125rem;',
+    'background-size: 100%;',
   '}',
 
   '.scratchCategoryMenuItem:hover {',

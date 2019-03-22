@@ -61,8 +61,8 @@ Blockly.WorkspaceDragger = function(workspace) {
    * @type {!goog.math.Coordinate}
    * @private
    */
-  this.startScrollXY_ = new goog.math.Coordinate(workspace.scrollX,
-        workspace.scrollY);
+  this.startScrollXY_ = new goog.math.Coordinate(
+      workspace.scrollX, workspace.scrollY);
 };
 
 /**
@@ -128,5 +128,11 @@ Blockly.WorkspaceDragger.prototype.drag = function(currentDragDeltaXY) {
  * @private
  */
 Blockly.WorkspaceDragger.prototype.updateScroll_ = function(x, y) {
+  
+  // [Amplify MMZ] - Option to disable hozizontal scrolling
+  if (this.workspace_.options.hideHorizontalScrollbar === true) {
+    x = undefined;
+  }
+
   this.workspace_.scrollbar.set(x, y);
 };

@@ -26,6 +26,8 @@
 
 goog.provide('Blockly.InsertionMarkerManager');
 
+goog.require('Blockly.BlockAnimations');
+goog.require('Blockly.Events.BlockMove');
 goog.require('Blockly.RenderedConnection');
 
 goog.require('goog.math.Coordinate');
@@ -157,14 +159,21 @@ Blockly.InsertionMarkerManager.prototype.dispose = function() {
   this.availableConnections_.length = 0;
   this.closestConnection_ = null;
   this.localConnection_ = null;
-  if (this.firstMarker_) {
-    this.firstMarker_.dispose();
-    this.firstMarker_ = null;
+
+  Blockly.Events.disable();
+  try {
+    if (this.firstMarker_) {
+      this.firstMarker_.dispose();
+      this.firstMarker_ = null;
+    }
+    if (this.lastMarker_) {
+      this.lastMarker_.dispose();
+      this.lastMarker_ = null;
+    }
+  } finally {
+    Blockly.Events.enable();
   }
-  if (this.lastMarker_) {
-    this.lastMarker_.dispose();
-    this.lastMarker_ = null;
-  }
+
   this.highlightedBlock_ = null;
 };
 
@@ -184,19 +193,24 @@ Blockly.InsertionMarkerManager.prototype.wouldDeleteBlock = function() {
  * @package
  */
 Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
-  if (this.closestConnection_) {
+  // OB [CSI-1438]: Adding a check to see if the closest connection can be disconnected, if needed
+  if (this.closestConnection_ && this.isBlockInsertionAllowed_()) {
     // Don't fire events for insertion markers.
     Blockly.Events.disable();
     this.hidePreview_();
     Blockly.Events.enable();
     // Connect two blocks together.
     this.localConnection_.connect(this.closestConnection_);
-    if (this.rendered) {
+    if (this.topBlock_.rendered) {
       // Trigger a connection animation.
       // Determine which connection is inferior (lower in the source stack).
       var inferiorConnection = this.localConnection_.isSuperior() ?
           this.closestConnection_ : this.localConnection_;
-      inferiorConnection.getSourceBlock().connectionUiEffect();
+      Blockly.BlockAnimations.connectionUiEffect(
+          inferiorConnection.getSourceBlock());
+      // Bring the just-edited stack to the front.
+      var rootBlock = this.topBlock_.getRootBlock();
+      rootBlock.bringToFront();
     }
   }
 };
@@ -222,6 +236,8 @@ Blockly.InsertionMarkerManager.prototype.update = function(dxy, deleteArea) {
     this.maybeHidePreview_(candidate);
     this.maybeShowPreview_(candidate);
     Blockly.Events.enable();
+    // OB [CSI-797]: Update highlight layer when insertion marker gets updated
+    this.workspace_.updateHighlightLayer();
   }
 };
 
@@ -237,13 +253,22 @@ Blockly.InsertionMarkerManager.prototype.update = function(dxy, deleteArea) {
  */
 Blockly.InsertionMarkerManager.prototype.createMarkerBlock_ = function(sourceBlock) {
   var imType = sourceBlock.type;
-  var result = this.workspace_.newBlock(imType);
-  if (sourceBlock.mutationToDom) {
-    var oldMutationDom = sourceBlock.mutationToDom();
-    result.domToMutation(oldMutationDom);
+
+  Blockly.Events.disable();
+  try {
+    var result = this.workspace_.newBlock(imType);
+    result.setInsertionMarker(true, sourceBlock.width);
+    if (sourceBlock.mutationToDom) {
+      var oldMutationDom = sourceBlock.mutationToDom();
+      if (oldMutationDom) {
+        result.domToMutation(oldMutationDom);
+      }
+    }
+    result.initSvg();
+  } finally {
+    Blockly.Events.enable();
   }
-  result.setInsertionMarker(true, sourceBlock.width);
-  result.initSvg();
+
   return result;
 };
 
@@ -430,6 +455,22 @@ Blockly.InsertionMarkerManager.prototype.shouldDelete_ = function(candidate,
 /**** Begin preview visibility functions ****/
 
 /**
+ * OB [CSI-1438]
+ * Make sure we can insert a block in the given position,
+ * by looking at lock groups.
+ */
+Blockly.InsertionMarkerManager.prototype.isBlockInsertionAllowed_ = function() {
+  var allowInsert = true;
+  if(this.localConnection_.type == Blockly.OUTPUT_VALUE) {
+    allowInsert = this.closestConnection_.isInputInsertionAllowed();
+  }
+  else {
+    allowInsert = this.closestConnection_.isInsertionAllowed();
+  }
+  return allowInsert;
+};
+
+/**
  * Show an insertion marker or replacement highlighting during a drag, if
  * needed.
  * At the beginning of this function, this.localConnection_ and
@@ -459,7 +500,11 @@ Blockly.InsertionMarkerManager.prototype.maybeShowPreview_ = function(candidate)
   // Add an insertion marker or replacement marker.
   this.closestConnection_ = closest;
   this.localConnection_ = local;
-  this.showPreview_();
+  
+  // OB [CSI-1438]: Only show preview if the a block can be inserted in the target
+  if(this.isBlockInsertionAllowed_()) {
+    this.showPreview_();
+  }
 };
 
 /**

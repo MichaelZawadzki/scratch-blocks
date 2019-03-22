@@ -26,6 +26,7 @@
 
 goog.provide('Blockly.DraggedConnectionManager');
 
+goog.require('Blockly.BlockAnimations');
 goog.require('Blockly.RenderedConnection');
 
 goog.require('goog.math.Coordinate');
@@ -133,12 +134,16 @@ Blockly.DraggedConnectionManager.prototype.applyConnections = function() {
   if (this.closestConnection_) {
     // Connect two blocks together.
     this.localConnection_.connect(this.closestConnection_);
-    if (this.rendered) {
+    if (this.topBlock_.rendered) {
       // Trigger a connection animation.
       // Determine which connection is inferior (lower in the source stack).
       var inferiorConnection = this.localConnection_.isSuperior() ?
           this.closestConnection_ : this.localConnection_;
-      inferiorConnection.getSourceBlock().connectionUiEffect();
+      Blockly.BlockAnimations.connectionUiEffect(
+          inferiorConnection.getSourceBlock());
+      // Bring the just-edited stack to the front.
+      var rootBlock = this.topBlock_.getRootBlock();
+      rootBlock.bringToFront();
     }
     this.removeHighlighting_();
   }
@@ -150,18 +155,26 @@ Blockly.DraggedConnectionManager.prototype.applyConnections = function() {
  *     in workspace units.
  * @param {?number} deleteArea One of {@link Blockly.DELETE_AREA_TRASH},
  *     {@link Blockly.DELETE_AREA_TOOLBOX}, or {@link Blockly.DELETE_AREA_NONE}.
+ * @param {?boolean} isOutside True if the drag is going outside the blocks workspace
  * @package
  */
-Blockly.DraggedConnectionManager.prototype.update = function(dxy, deleteArea) {
-  var oldClosestConnection = this.closestConnection_;
-  var closestConnectionChanged = this.updateClosest_(dxy);
-
-  if (closestConnectionChanged && oldClosestConnection) {
-    oldClosestConnection.unhighlight();
+Blockly.DraggedConnectionManager.prototype.update = function(dxy, deleteArea, isOutside) {
+  var oldClosestConnection;
+  var closestConnectionChanged;
+  // If dragged outside, don't connect, since the connections aren't visible.
+  if (!isOutside) {
+    oldClosestConnection = this.closestConnection_;
+    closestConnectionChanged = this.updateClosest_(dxy);
+    if (closestConnectionChanged && oldClosestConnection) {
+      oldClosestConnection.unhighlight();
+    }
+  } else if (this.closestConnection_) {
+    this.closestConnection_.unhighlight();
+    this.closestConnection_ = null;
   }
 
- // Prefer connecting over dropping into the trash can, but prefer dragging to
- // the toolbox over connecting to other blocks.
+  // Prefer connecting over dropping into the trash can, but prefer dragging to
+  // the toolbox over connecting to other blocks.
   var wouldConnect = !!this.closestConnection_ &&
       deleteArea != Blockly.DELETE_AREA_TOOLBOX;
   var wouldDelete = !!deleteArea && !this.topBlock_.getParent() &&

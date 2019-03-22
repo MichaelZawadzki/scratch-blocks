@@ -64,6 +64,24 @@ Blockly.Generator.prototype.INFINITE_LOOP_TRAP = null;
 Blockly.Generator.prototype.STATEMENT_PREFIX = null;
 
 /**
+ * Arbitrary code to inject before every block's generated code
+ * Any instances of '%1' will be replaced by the block ID of the statement.
+ * E.g. 'beforeBlock(%1);\n'
+ * @type {?string}
+ * @author MMZ @ Amplify
+ */
+Blockly.Generator.prototype.BLOCK_HOOK_BEFORE = null;
+
+/**
+ * Arbitrary code to inject after every block's generated code
+ * Any instances of '%1' will be replaced by the block ID of the statement.
+ * E.g. 'afterBlock(%1);\n'
+ * @type {?string}
+ * @author MMZ @ Amplify
+ */
+Blockly.Generator.prototype.BLOCK_HOOK_AFTER  = null;
+
+/**
  * The method of indenting.  Defaults to two spaces, but language generators
  * may override this to increase indent or change to tabs.
  * @type {string}
@@ -88,7 +106,7 @@ Blockly.Generator.prototype.ORDER_OVERRIDES = [];
  * @param {Blockly.Workspace} workspace Workspace to generate code from.
  * @return {string} Generated code.
  */
-Blockly.Generator.prototype.workspaceToCode = function(workspace) {
+Blockly.Generator.prototype.workspaceToCode = function(workspace, requireTriggerBlock) {
   if (!workspace) {
     // Backwards compatibility from before there could be multiple workspaces.
     console.warn('No workspace specified in workspaceToCode call.  Guessing.');
@@ -98,19 +116,23 @@ Blockly.Generator.prototype.workspaceToCode = function(workspace) {
   this.init(workspace);
   var blocks = workspace.getTopBlocks(true);
   for (var x = 0, block; block = blocks[x]; x++) {
-    var line = this.blockToCode(block);
-    if (goog.isArray(line)) {
-      // Value blocks return tuples of code and operator order.
-      // Top-level blocks don't care about operator order.
-      line = line[0];
-    }
-    if (line) {
-      if (block.outputConnection && this.scrubNakedValue) {
-        // This block is a naked value.  Ask the language's code generator if
-        // it wants to append a semicolon, or something.
-        line = this.scrubNakedValue(line);
+    //Only evaluate block lists starting with a trigger block
+    if (requireTriggerBlock !== true || block.type === "event_whenflagclicked" || block.type === "event_whenflagclicked_animate") {
+      var line = this.blockToCode(block);
+      if (goog.isArray(line)) {
+        // Value blocks return tuples of code and operator order.
+        // Top-level blocks don't care about operator order.
+        line = line[0];
       }
-      code.push(line);
+
+      if (line) {
+        if (block.outputConnection && this.scrubNakedValue) {
+          // This block is a naked value.  Ask the language's code generator if
+          // it wants to append a semicolon, or something.
+          line = this.scrubNakedValue(line);
+        }
+        code.push(line);
+      }
     }
   }
   code = code.join('\n');  // Blank line between each section.
@@ -142,7 +164,7 @@ Blockly.Generator.prototype.prefixLines = function(text, prefix) {
  */
 Blockly.Generator.prototype.allNestedComments = function(block) {
   var comments = [];
-  var blocks = block.getDescendants();
+  var blocks = block.getDescendants(true);
   for (var i = 0; i < blocks.length; i++) {
     var comment = blocks[i].getCommentText();
     if (comment) {
@@ -171,6 +193,9 @@ Blockly.Generator.prototype.blockToCode = function(block) {
     // Skip past this block if it is disabled.
     return this.blockToCode(block.getNextBlock());
   }
+  if(block.isInsertionMarker()){
+    return this.blockToCode(block.getNextBlock());
+  }
 
   var func = this[block.type];
   goog.asserts.assertFunction(func,
@@ -188,10 +213,21 @@ Blockly.Generator.prototype.blockToCode = function(block) {
     return [this.scrub_(block, code[0]), code[1]];
   } else if (goog.isString(code)) {
     var id = block.id.replace(/\$/g, '$$$$');  // Issue 251.
-    if (this.STATEMENT_PREFIX) {
-      code = this.STATEMENT_PREFIX.replace(/%1/g, '\'' + id + '\'') +
-          code;
+
+    // OB [CSI-1056]: Code hooks are inserted conditionally.
+
+    if (this.BLOCK_HOOK_BEFORE && block.insertCodeHookBefore === true) {
+      code = this.BLOCK_HOOK_BEFORE.replace(/%1/g, '\'' + id + '\'') + code;
     }
+
+    if (this.STATEMENT_PREFIX && block.insertCodeStatementPrefix === true) {
+      code = this.STATEMENT_PREFIX.replace(/%1/g, '\'' + id + '\'') + code;
+    }
+
+    if (this.BLOCK_HOOK_AFTER && block.insertCodeHookAfter === true) {
+      code = code + this.BLOCK_HOOK_AFTER.replace(/%1/g, '\'' + id + '\'');
+    }
+
     return this.scrub_(block, code);
   } else if (code === null) {
     // Block has handled code generation itself.
@@ -378,9 +414,11 @@ Blockly.Generator.prototype.provideFunction_ = function(desiredName, code) {
  * Hook for code to run before code generation starts.
  * Subclasses may override this, e.g. to initialise the database of variable
  * names.
- * @param {!Blockly.Workspace} workspace Workspace to generate code from.
+ * @param {!Blockly.Workspace} _workspace Workspace to generate code from.
  */
-Blockly.Generator.prototype.init = undefined;
+Blockly.Generator.prototype.init = function(_workspace) {
+  // Optionally override
+};
 
 /**
  * Common tasks for generating code from blocks.  This is called from
@@ -388,12 +426,15 @@ Blockly.Generator.prototype.init = undefined;
  * Subclasses may override this, e.g. to generate code for statements following
  * the block, or to handle comments for the specified block and any connected
  * value blocks.
- * @param {!Blockly.Block} block The current block.
+ * @param {!Blockly.Block} _block The current block.
  * @param {string} code The JavaScript code created for this block.
  * @return {string} JavaScript code with comments and subsequent blocks added.
  * @private
  */
-Blockly.Generator.prototype.scrub_ = undefined;
+Blockly.Generator.prototype.scrub_ = function(_block, code) {
+  // Optionally override
+  return code;
+};
 
 /**
  * Hook for code to run at end of code generation.
@@ -402,7 +443,10 @@ Blockly.Generator.prototype.scrub_ = undefined;
  * @param {string} code Generated code.
  * @return {string} Completed code.
  */
-Blockly.Generator.prototype.finish = undefined;
+Blockly.Generator.prototype.finish = function(code) {
+  // Optionally override
+  return code;
+};
 
 /**
  * Naked values are top-level blocks with outputs that aren't plugged into
@@ -412,4 +456,7 @@ Blockly.Generator.prototype.finish = undefined;
  * @param {string} line Line of generated code.
  * @return {string} Legal line of code.
  */
-Blockly.Generator.prototype.scrubNakedValue = undefined;
+Blockly.Generator.prototype.scrubNakedValue = function(line) {
+  // Optionally override
+  return line;
+};

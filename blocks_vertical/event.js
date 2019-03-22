@@ -25,7 +25,50 @@ goog.provide('Blockly.Blocks.event');
 goog.require('Blockly.Blocks');
 goog.require('Blockly.Colours');
 goog.require('Blockly.constants');
+goog.require('Blockly.ScratchBlocks.VerticalExtensions');
 
+Blockly.Blocks['event_whentouchingobject'] = {
+  /**
+   * Block for when a sprite is touching an object.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.EVENT_WHENTOUCHINGOBJECT,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "TOUCHINGOBJECTMENU"
+        }
+      ],
+      "category": Blockly.Categories.event,
+      "extensions": ["colours_event", "shape_hat"]
+    });
+  }
+};
+
+Blockly.Blocks['event_touchingobjectmenu'] = {
+  /**
+   * "Touching [Object]" Block Menu.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": "%1",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "TOUCHINGOBJECTMENU",
+          "options": [
+            [Blockly.Msg.SENSING_TOUCHINGOBJECT_POINTER, '_mouse_'],
+            [Blockly.Msg.SENSING_TOUCHINGOBJECT_EDGE, '_edge_']
+          ]
+        }
+      ],
+      "extensions": ["colours_event", "output_string"]
+    });
+  }
+};
 
 Blockly.Blocks['event_whenflagclicked'] = {
   /**
@@ -35,23 +78,34 @@ Blockly.Blocks['event_whenflagclicked'] = {
   init: function() {
     this.jsonInit({
       "id": "event_whenflagclicked",
-      "message0": "when %1 clicked",
-      "args0": [
+      "message0": Blockly.Msg.EVENT_WHENPLAYCLICKED,
+      "category": Blockly.Categories.event,
+      "extensions": ["colours_event", "shape_hat"]
+    });
+  }
+};
+
+Blockly.Blocks['event_whenflagclicked_animate'] = {
+  init: function() {
+    this.jsonInit({
+      "id": "event_whenflagclicked_animate",
+      "message0": Blockly.Msg.EVENT_WHENPLAYCLICKED,
+      "message1": "%1", // Statement
+      "message2": "%1", // End label
+      "args1": [
         {
-          "type": "field_image",
-          "src": Blockly.mainWorkspace.options.pathToMedia + "icons/event_whenflagclicked.svg",
-          "width": 24,
-          "height": 24,
-          "alt": "flag",
-          "flip_rtl": true
+          "type": "input_statement",
+          "name": "SUBSTACK"
         }
       ],
-      "inputsInline": true,
-      "nextStatement": null,
+      "args2": [
+        {
+          "type": "field_label",
+          "text": "animate",
+        },
+      ],
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_hat_statement_end"]
     });
   }
 };
@@ -63,13 +117,24 @@ Blockly.Blocks['event_whenthisspriteclicked'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "when this sprite clicked",
-      "inputsInline": true,
-      "nextStatement": null,
+      "message0": Blockly.Msg.EVENT_WHENTHISSPRITECLICKED,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_hat"]
+    });
+  }
+
+};
+
+Blockly.Blocks['event_whenstageclicked'] = {
+  /**
+   * Block for when the stage is clicked.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.EVENT_WHENSTAGECLICKED,
+      "category": Blockly.Categories.event,
+      "extensions": ["colours_event", "shape_hat"]
     });
   }
 };
@@ -82,24 +147,17 @@ Blockly.Blocks['event_whenbroadcastreceived'] = {
   init: function() {
     this.jsonInit({
       "id": "event_whenbroadcastreceived",
-      "message0": "when I receive %1",
+      "message0": Blockly.Msg.EVENT_WHENBROADCASTRECEIVED,
       "args0": [
         {
-          "type": "field_dropdown",
+          "type": "field_variable",
           "name": "BROADCAST_OPTION",
-          "options": [
-            ['message1', 'message1'],
-            ['message2', 'message2'],
-            ['new message', 'new message']
-          ]
+          "variableTypes": [Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE],
+          "variable": Blockly.Msg.DEFAULT_BROADCAST_MESSAGE_NAME
         }
       ],
-      "inputsInline": true,
-      "nextStatement": null,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_hat"]
     });
   }
 };
@@ -111,22 +169,18 @@ Blockly.Blocks['event_whenbackdropswitchesto'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "when backdrop switches to %1",
+      "message0": Blockly.Msg.EVENT_WHENBACKDROPSWITCHESTO,
       "args0": [
         {
           "type": "field_dropdown",
           "name": "BACKDROP",
           "options": [
-              ['backdrop1', 'BACKDROP1']
+            ['backdrop1', 'BACKDROP1']
           ]
         }
       ],
-      "inputsInline": true,
-      "nextStatement": null,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_hat"]
     });
   }
 };
@@ -138,13 +192,14 @@ Blockly.Blocks['event_whengreaterthan'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "when %1 > %2",
+      "message0": Blockly.Msg.EVENT_WHENGREATERTHAN,
       "args0": [
         {
           "type": "field_dropdown",
           "name": "WHENGREATERTHANMENU",
           "options": [
-              ['timer', 'TIMER']
+            [Blockly.Msg.EVENT_WHENGREATERTHAN_LOUDNESS, 'LOUDNESS'],
+            [Blockly.Msg.EVENT_WHENGREATERTHAN_TIMER, 'TIMER']
           ]
         },
         {
@@ -152,12 +207,8 @@ Blockly.Blocks['event_whengreaterthan'] = {
           "name": "VALUE"
         }
       ],
-      "inputsInline": true,
-      "nextStatement": null,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_hat"]
     });
   }
 };
@@ -168,27 +219,21 @@ Blockly.Blocks['event_broadcast_menu'] = {
    * @this Blockly.Block
    */
   init: function() {
-    this.jsonInit(
-      {
-        "message0": "%1",
-        "args0": [
-          {
-            "type": "field_dropdown",
-            "name": "BROADCAST_OPTION",
-            "options": [
-              ['message1', 'message1'],
-              ['message2', 'message2'],
-              ['new message', 'new message']
-            ]
-          }
-        ],
-        "inputsInline": true,
-        "output": "String",
-        "colour": Blockly.Colours.event.secondary,
-        "colourSecondary": Blockly.Colours.event.secondary,
-        "colourTertiary": Blockly.Colours.event.tertiary,
-        "outputShape": Blockly.OUTPUT_SHAPE_ROUND
-      });
+    this.jsonInit({
+      "message0": "%1",
+      "args0": [
+        {
+          "type": "field_variable",
+          "name": "BROADCAST_OPTION",
+          "variableTypes":[Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE],
+          "variable": Blockly.Msg.DEFAULT_BROADCAST_MESSAGE_NAME
+        }
+      ],
+      "colour": Blockly.Colours.event.secondary,
+      "colourSecondary": Blockly.Colours.event.secondary,
+      "colourTertiary": Blockly.Colours.event.tertiary,
+      "extensions": ["output_string"]
+    });
   }
 };
 
@@ -200,20 +245,15 @@ Blockly.Blocks['event_broadcast'] = {
   init: function() {
     this.jsonInit({
       "id": "event_broadcast",
-      "message0": "broadcast %1",
+      "message0": Blockly.Msg.EVENT_BROADCAST,
       "args0": [
         {
           "type": "input_value",
-          "name": "BROADCAST_OPTION"
+          "name": "BROADCAST_INPUT"
         }
       ],
-      "inputsInline": true,
-      "previousStatement": null,
-      "nextStatement": null,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_statement"]
     });
   }
 };
@@ -225,20 +265,15 @@ Blockly.Blocks['event_broadcastandwait'] = {
    */
   init: function() {
     this.jsonInit({
-      "message0": "broadcast %1 and wait",
+      "message0": Blockly.Msg.EVENT_BROADCASTANDWAIT,
       "args0": [
         {
-          "type": "input_value",
-          "name": "BROADCAST_OPTION"
+          "type":"input_value",
+          "name":"BROADCAST_INPUT"
         }
       ],
-      "inputsInline": true,
-      "previousStatement": null,
-      "nextStatement": null,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_statement"]
     });
   }
 };
@@ -251,18 +286,18 @@ Blockly.Blocks['event_whenkeypressed'] = {
   init: function() {
     this.jsonInit({
       "id": "event_whenkeypressed",
-      "message0": "when %1 key pressed",
+      "message0": Blockly.Msg.EVENT_WHENKEYPRESSED,
       "args0": [
         {
           "type": "field_dropdown",
           "name": "KEY_OPTION",
           "options": [
-            ['space', 'space'],
-            ['left arrow', 'left arrow'],
-            ['right arrow', 'right arrow'],
-            ['down arrow', 'down arrow'],
-            ['up arrow', 'up arrow'],
-            ['any', 'any'],
+            [Blockly.Msg.EVENT_WHENKEYPRESSED_SPACE, 'space'],
+            [Blockly.Msg.EVENT_WHENKEYPRESSED_LEFT, 'left arrow'],
+            [Blockly.Msg.EVENT_WHENKEYPRESSED_RIGHT, 'right arrow'],
+            [Blockly.Msg.EVENT_WHENKEYPRESSED_DOWN, 'down arrow'],
+            [Blockly.Msg.EVENT_WHENKEYPRESSED_UP, 'up arrow'],
+            [Blockly.Msg.EVENT_WHENKEYPRESSED_ANY, 'any'],
             ['a', 'a'],
             ['b', 'b'],
             ['c', 'c'],
@@ -302,12 +337,8 @@ Blockly.Blocks['event_whenkeypressed'] = {
           ]
         }
       ],
-      "inputsInline": true,
-      "nextStatement": null,
       "category": Blockly.Categories.event,
-      "colour": Blockly.Colours.event.primary,
-      "colourSecondary": Blockly.Colours.event.secondary,
-      "colourTertiary": Blockly.Colours.event.tertiary
+      "extensions": ["colours_event", "shape_hat"]
     });
   }
 };

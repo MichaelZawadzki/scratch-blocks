@@ -34,6 +34,7 @@ goog.require('goog.events');
 goog.require('goog.events.BrowserFeature');
 goog.require('goog.string');
 
+
 /**
  * Which touch events are we currently paying attention to?
  * @type {DOMString}
@@ -63,7 +64,7 @@ Blockly.longPid_ = 0;
 
 /**
  * Context menus on touch devices are activated using a long-press.
- * Unfortunately the contextmenu touch event is currently (2015) only suported
+ * Unfortunately the contextmenu touch event is currently (2015) only supported
  * by Chrome.  This function is fired on any touchstart event, queues a task,
  * which after about a second opens the context menu.  The tasks is killed
  * if the touch event terminates early.
@@ -150,27 +151,31 @@ Blockly.Touch.getTouchIdentifierFromEvent = function(e) {
  * @return {boolean} Whether the identifier on the event matches the current
  *     saved identifier.
  */
+ // OB: Now dealing with multi touch, so don't check the touch identifier.
+ // What are the possible problems with this?!?
 Blockly.Touch.checkTouchIdentifier = function(e) {
-  var identifier = Blockly.Touch.getTouchIdentifierFromEvent(e);
+  // var identifier = Blockly.Touch.getTouchIdentifierFromEvent(e);
 
-  // if (Blockly.touchIdentifier_ )is insufficient because android touch
-  // identifiers may be zero.
-  if (Blockly.Touch.touchIdentifier_ != undefined &&
-      Blockly.Touch.touchIdentifier_ != null) {
-    // We're already tracking some touch/mouse event.  Is this from the same
-    // source?
-    return Blockly.Touch.touchIdentifier_ == identifier;
-  }
-  if (e.type == 'mousedown' || e.type == 'touchstart') {
-    // No identifier set yet, and this is the start of a drag.  Set it and
-    // return.
-    Blockly.Touch.touchIdentifier_ = identifier;
-    return true;
-  }
-  // There was no identifier yet, but this wasn't a start event so we're going
-  // to ignore it.  This probably means that another drag finished while this
-  // pointer was down.
-  return false;
+  // // if (Blockly.touchIdentifier_ )is insufficient because android touch
+  // // identifiers may be zero.
+  // if (Blockly.Touch.touchIdentifier_ != undefined &&
+  //     Blockly.Touch.touchIdentifier_ != null) {
+  //   // We're already tracking some touch/mouse event.  Is this from the same
+  //   // source?
+  //   return Blockly.Touch.touchIdentifier_ == identifier;
+  // }
+  // if (e.type == 'mousedown' || e.type == 'touchstart') {
+  //   // No identifier set yet, and this is the start of a drag.  Set it and
+  //   // return.
+  //   Blockly.Touch.touchIdentifier_ = identifier;
+  //   return true;
+  // }
+  // // There was no identifier yet, but this wasn't a start event so we're going
+  // // to ignore it.  This probably means that another drag finished while this
+  // // pointer was down.
+  // return false;
+
+  return true;
 };
 
 /**
@@ -180,10 +185,73 @@ Blockly.Touch.checkTouchIdentifier = function(e) {
  */
 Blockly.Touch.setClientFromTouch = function(e) {
   if (goog.string.startsWith(e.type, 'touch')) {
+    
+    var touchPoint;
     // Map the touch event's properties to the event.
-    var touchPoint = e.changedTouches[0];
+    if(e.touches && e.touches.length > 0) {
+      touchPoint = e.touches[0];
+    } else if(e.changedTouches && e.changedTouches.length > 0) {
+      touchPoint = e.changedTouches[0];
+    }
+
     e.clientX = touchPoint.clientX;
     e.clientY = touchPoint.clientY;
+  }
+};
+
+// /**
+//  * Set an event's clientX and clientY from its first changed touch.  Use this to
+//  * make a touch event work in a mouse event handler.
+//  * @param {!Event} e A touch event.
+//  */
+// Blockly.Touch.setClientFromMultiTouch = function(e) {
+//   var touchesToUse = e.touches; // e.changedTouches; //
+//   if (goog.string.startsWith(e.type, 'touch') && touchesToUse) {
+//     // Map the touch event's properties to the event.
+//     var numTouches = touchesToUse.length;
+//     e.clientMultiX = 0;
+//     e.clientMultiY = 0;
+//     for(var i = 0; i < numTouches; i++)
+//     {
+//       var touchPoint = touchesToUse[i];
+//       e.clientMultiX += touchPoint.clientX;
+//       e.clientMultiY += touchPoint.clientY;
+//     }
+//     e.clientMultiX /= numTouches;
+//     e.clientMultiY /= numTouches;
+//   }
+// };
+
+Blockly.Touch.setClientFromTouches = function(e, currentTouches) {
+  Blockly.Touch.setClientFromTouch(e);
+  // if(e.isMultiTouch) {
+  //   Blockly.Touch.setClientFromMultiTouch(e);
+  // }
+};
+
+/**
+ * Set an event's clientX and clientY using the touches specified by an array of touch IDs.
+ * Use this to make a touch event work in a mouse event handler.
+ * @param {!Event} e A touch event.
+ * @param {!Array} touchIDs The IDs of the touches to use.
+ */
+Blockly.Touch.setClientFromTouchIDs = function(e, touchIDs) {
+  var touchNum = touchIDs.length;
+  if(touchNum > 0) {
+    // reset client touch info
+    e.clientX = 0;
+    e.clientY = 0;
+
+    var curTouch;
+    for(var i = 0; i < touchNum; i++) {
+      curTouch = Blockly.Touch.findTouchInEvent(e, touchIDs[i]);
+      if(curTouch) {
+        e.clientX += curTouch.clientX;
+        e.clientY += curTouch.clientY;
+      }
+    }
+    e.clientX /= touchNum;
+    e.clientY /= touchNum;
   }
 };
 
@@ -222,4 +290,60 @@ Blockly.Touch.splitEventByTouches = function(e) {
     events.push(e);
   }
   return events;
+};
+
+/**
+ * Find a touch in an event given a touch ID.
+ * Will first look at changed touches, then regular touches.
+ * @param {!Event} e A touch event.
+ * @param {Integer} touchID The ID of the touche to find.
+ */
+Blockly.Touch.findTouchInEvent = function(e, touchID) {
+  if(e) {
+    var touch = null;
+    // First look in changed touches
+    touch = Blockly.Touch.findTouchInChangedTouches(e, touchID);
+    if(touch) {
+      return touch;
+    }
+    // Then in active touches
+    touch = Blockly.Touch.findTouchInTouches(e, touchID);
+    if(touch) {
+      return touch;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Find a touch in an event's changed touches given a touch ID.
+ * @param {!Event} e A touch event.
+ * @param {Integer} touchID The ID of the touche to find.
+ */
+Blockly.Touch.findTouchInChangedTouches = function(e, touchID) {
+  if(e && e.changedTouches && e.changedTouches.length > 0) {
+    for(var touchIdx = 0; touchIdx < e.changedTouches.length; touchIdx++) {
+      if(e.changedTouches[touchIdx].identifier === touchID) {
+        return e.changedTouches[touchIdx];
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Find a touch in an event's touches given a touch ID.
+ * @param {!Event} e A touch event.
+ * @param {Integer} touchID The ID of the touche to find.
+ */
+Blockly.Touch.findTouchInTouches = function(e, touchID) {
+  if(e && e.touches && e.touches.length > 0) {
+    for(var touchIdx = 0; touchIdx < e.touches.length; touchIdx++) {
+      if(e.touches[touchIdx].identifier === touchID) {
+        return e.touches[touchIdx];
+      }
+    }
+  }
+  return null;
 };

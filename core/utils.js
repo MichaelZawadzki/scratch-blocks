@@ -38,6 +38,20 @@ goog.require('goog.events.BrowserFeature');
 goog.require('goog.math.Coordinate');
 goog.require('goog.userAgent');
 
+
+/**
+ * To allow ADVANCED_OPTIMIZATIONS, combining variable.name and variable['name']
+ * is not possible. To access the exported Blockly.Msg.Something it needs to be
+ * accessed through the exact name that was exported. Note, that all the exports
+ * are happening as the last thing in the generated js files, so they won't be
+ * accessible before JavaScript loads!
+ * @return {!Object.<string, string>} The message array.
+ * @private
+ */
+Blockly.utils.getMessageArray_ = function() {
+  return goog.global['Blockly']['Msg'];
+};
+
 /**
  * Remove an attribute from a element even if it's in IE 10.
  * Similar to Element.removeAttribute() but it works on SVG elements in IE 10.
@@ -108,7 +122,7 @@ Blockly.utils.removeClass = function(element, className) {
  * @param {!Element} element DOM element to check.
  * @param {string} className Name of class to check.
  * @return {boolean} True if class exists, false otherwise.
- * @private
+ * @package
  */
 Blockly.utils.hasClass = function(element, className) {
   var classes = element.getAttribute('class');
@@ -194,7 +208,6 @@ Blockly.utils.getRelativeXY = function(element) {
 Blockly.utils.getInjectionDivXY_ = function(element) {
   var x = 0;
   var y = 0;
-  var scale = 1;
   while (element) {
     var xy = Blockly.utils.getRelativeXY(element);
     var scale = Blockly.utils.getScale_(element);
@@ -256,7 +269,7 @@ Blockly.utils.getScale_REGEXP_ = /scale\(\s*([-+\d.e]+)\s*\)/;
  * @private
  */
 Blockly.utils.getRelativeXY.XY_3D_REGEX_ =
-  /transform:\s*translate3d\(\s*([-+\d.e]+)px([ ,]\s*([-+\d.e]+)\s*)px([ ,]\s*([-+\d.e]+)\s*)px\)?/;
+    /transform:\s*translate3d\(\s*([-+\d.e]+)px([ ,]\s*([-+\d.e]+)\s*)px([ ,]\s*([-+\d.e]+)\s*)px\)?/;
 
 /**
  * Static regex to pull the x,y,z values out of a translate3d() style property.
@@ -265,7 +278,7 @@ Blockly.utils.getRelativeXY.XY_3D_REGEX_ =
  * @private
  */
 Blockly.utils.getRelativeXY.XY_2D_REGEX_ =
-  /transform:\s*translate\(\s*([-+\d.e]+)px([ ,]\s*([-+\d.e]+)\s*)px\)?/;
+    /transform:\s*translate\(\s*([-+\d.e]+)px([ ,]\s*([-+\d.e]+)\s*)px\)?/;
 
 /**
  * Helper method for creating SVG elements.
@@ -275,8 +288,8 @@ Blockly.utils.getRelativeXY.XY_2D_REGEX_ =
  * @return {!SVGElement} Newly created SVG element.
  */
 Blockly.utils.createSvgElement = function(name, attrs, parent /*, opt_workspace */) {
-  var e = /** @type {!SVGElement} */ (
-      document.createElementNS(Blockly.SVG_NS, name));
+  var e = /** @type {!SVGElement} */
+      (document.createElementNS(Blockly.SVG_NS, name));
   for (var key in attrs) {
     e.setAttribute(key, attrs[key]);
   }
@@ -312,7 +325,7 @@ Blockly.utils.isRightButton = function(e) {
  * @param {!Event} e Mouse event.
  * @param {!Element} svg SVG element.
  * @param {SVGMatrix} matrix Inverted screen CTM to use.
- * @return {!Object} Object with .x and .y properties.
+ * @return {!SVGPoint} Object with .x and .y properties.
  */
 Blockly.utils.mouseToSvg = function(e, svg, matrix) {
   var svgPoint = svg.createSVGPoint();
@@ -438,7 +451,7 @@ Blockly.utils.replaceMessageReferences = function(message) {
   var interpolatedResult = Blockly.utils.tokenizeInterpolation_(message, false);
   // When parseInterpolationTokens == false, interpolatedResult should be at
   // most length 1.
-  return interpolatedResult.length ? interpolatedResult[0] : "";
+  return interpolatedResult.length ? interpolatedResult[0] : '';
 };
 
 /**
@@ -449,18 +462,18 @@ Blockly.utils.replaceMessageReferences = function(message) {
  *     Otherwise, false.
  */
 Blockly.utils.checkMessageReferences = function(message) {
-  var isValid = true; // True until a bad reference is found
+  var isValid = true;  // True until a bad reference is found.
 
   var regex = /%{BKY_([a-zA-Z][a-zA-Z0-9_]*)}/g;
   var match = regex.exec(message);
-  while (match != null) {
+  while (match) {
     var msgKey = match[1];
-    if (Blockly.Msg[msgKey] == null) {
+    if (Blockly.utils.getMessageArray_()[msgKey] == undefined) {
       console.log('WARNING: No message string for %{BKY_' + msgKey + '}.');
       isValid = false;
     }
 
-    // Re-run on remainder of sting.
+    // Re-run on remainder of string.
     message = message.substring(match.index + msgKey.length + 1);
     match = regex.exec(message);
   }
@@ -469,7 +482,7 @@ Blockly.utils.checkMessageReferences = function(message) {
 };
 
 /**
- * Internal implemention of the message reference and interpolation token
+ * Internal implementation of the message reference and interpolation token
  * parsing used by tokenizeInterpolation() and replaceMessageReferences().
  * @param {string} message Text which might contain string table references and
  *     interpolation tokens.
@@ -478,7 +491,8 @@ Blockly.utils.checkMessageReferences = function(message) {
  * @return {!Array.<string|number>} Array of strings and numbers.
  * @private
  */
-Blockly.utils.tokenizeInterpolation_ = function(message, parseInterpolationTokens) {
+Blockly.utils.tokenizeInterpolation_ = function(message,
+    parseInterpolationTokens) {
   var tokens = [];
   var chars = message.split('');
   chars.push('');  // End marker.
@@ -486,7 +500,7 @@ Blockly.utils.tokenizeInterpolation_ = function(message, parseInterpolationToken
   // 0 - Base case.
   // 1 - % found.
   // 2 - Digit found.
-  // 3 - Message ref found
+  // 3 - Message ref found.
   var state = 0;
   var buffer = [];
   var number = null;
@@ -553,7 +567,7 @@ Blockly.utils.tokenizeInterpolation_ = function(message, parseInterpolationToken
             if (goog.isString(rawValue)) {
               // Attempt to dereference substrings, too, appending to the end.
               Array.prototype.push.apply(tokens,
-                Blockly.utils.tokenizeInterpolation(rawValue));
+                  Blockly.utils.tokenizeInterpolation(rawValue));
             } else if (parseInterpolationTokens) {
               // When parsing interpolation tokens, numbers are special
               // placeholders (%1, %2, etc). Make sure all other values are
@@ -624,7 +638,7 @@ Blockly.utils.genUid = function() {
  * Legal characters for the unique ID.  Should be all on a US keyboard.
  * No characters that conflict with XML or JSON.  Requests to remove additional
  * 'problematic' characters from this soup will be denied.  That's your failure
- * to properly escape in your own environment.  Issues #251, #625, #682.
+ * to properly escape in your own environment.  Issues #251, #625, #682, #1304.
  * @private
  */
 Blockly.utils.genUid.soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
@@ -799,36 +813,6 @@ Blockly.utils.wrapToText_ = function(words, wordBreaks) {
 };
 
 /**
- * Measure some text using a canvas in-memory.
- * Does not exist in Blockly, but needed in scratch-blocks
- * @param {string} fontSize E.g., '10pt'
- * @param {string} fontFamily E.g., 'Arial'
- * @param {string} fontWeight E.g., '600'
- * @param {string} text The actual text to measure
- * @return {number} Width of the text in px.
- */
-Blockly.utils.measureText = function(fontSize, fontFamily, fontWeight, text) {
-  var canvas = document.createElement('canvas');
-  var context = canvas.getContext('2d');
-  context.font = fontWeight + ' ' + fontSize + ' ' + fontFamily;
-  return context.measureText(text).width;
-};
-
-/**
- * Encode a string's HTML entities.
- * E.g., <a> -> &lt;a&gt;
- * Does not exist in Blockly, but needed in scratch-blocks
- * @param {string} rawStr Unencoded raw string to encode.
- * @return {string} String with HTML entities encoded.
- */
-Blockly.utils.encodeEntities = function(rawStr) {
-  // CC-BY-SA https://stackoverflow.com/questions/18749591/encode-html-entities-in-javascript
-  return rawStr.replace(/[\u00A0-\u9999<>\&]/gim, function(i) {
-    return '&#' + i.charCodeAt(0) + ';';
-  });
-};
-
-/**
  * Check if 3D transforms are supported by adding an element
  * and attempting to set the property.
  * @return {boolean} true if 3D transforms are supported.
@@ -930,4 +914,24 @@ Blockly.utils.runAfterPageLoad = function(fn) {
 Blockly.utils.setCssTransform = function(node, transform) {
   node.style['transform'] = transform;
   node.style['-webkit-transform'] = transform;
+};
+
+/**
+ * Get the position of the current viewport in window coordinates.  This takes
+ * scroll into account.
+ * @return {!Object} an object containing window width, height, and scroll
+ *     position in window coordinates.
+ * @package
+ */
+Blockly.utils.getViewportBBox = function() {
+  // Pixels.
+  var windowSize = goog.dom.getViewportSize();
+  // Pixels, in window coordinates.
+  var scrollOffset = goog.style.getViewportPageOffset(document);
+  return {
+    right: windowSize.width + scrollOffset.x,
+    bottom: windowSize.height + scrollOffset.y,
+    top: scrollOffset.y,
+    left: scrollOffset.x
+  };
 };

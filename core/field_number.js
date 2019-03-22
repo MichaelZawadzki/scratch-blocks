@@ -53,8 +53,23 @@ goog.require('goog.userAgent');
  */
 Blockly.FieldNumber = function(opt_value, opt_min, opt_max, opt_precision,
     opt_validator) {
+  if(opt_max === undefined)
+  {
+    opt_max = Blockly.FieldNumber.APP_SPECIFIC_MAX;
+  }
   var numRestrictor = this.getNumRestrictor(opt_min, opt_max, opt_precision);
   opt_value = (opt_value && !isNaN(opt_value)) ? String(opt_value) : '0';
+  if(opt_validator === undefined && (opt_max !== undefined || opt_min !== undefined))
+  {
+    opt_validator = 
+      function(newValue){
+        if((!opt_min || newValue >= opt_min) && (!opt_max) || newValue <= opt_max)
+        {
+          return newValue;
+        }
+        return null;
+      };
+  }
   Blockly.FieldNumber.superClass_.constructor.call(
       this, opt_value, opt_validator, numRestrictor);
   this.addArgType('number');
@@ -62,11 +77,32 @@ Blockly.FieldNumber = function(opt_value, opt_min, opt_max, opt_precision,
 goog.inherits(Blockly.FieldNumber, Blockly.FieldTextInput);
 
 /**
+ * Construct a FieldNumber from a JSON arg object.
+ * @param {!Object} options A JSON object with options (value, min, max, and
+ *                          precision).
+ * @returns {!Blockly.FieldNumber} The new field instance.
+ * @package
+ * @nocollapse
+ */
+Blockly.FieldNumber.fromJson = function(options) {
+  return new Blockly.FieldNumber(options['value'],
+      options['min'], options['max'], options['precision']);
+};
+
+/**
  * Fixed width of the num-pad drop-down, in px.
  * @type {number}
  * @const
  */
 Blockly.FieldNumber.DROPDOWN_WIDTH = 168;
+
+
+/**
+ * Overridden maximum value for field numbers set frm outside scratch-blocks
+ * @type {number}
+ * @const
+ */
+Blockly.FieldNumber.APP_SPECIFIC_MAX;
 
 /**
  * Extra padding to add between the block and the num-pad drop-down, in px.
@@ -82,7 +118,7 @@ Blockly.FieldNumber.DROPDOWN_Y_PADDING = 8;
  * @type {Array.<string>}
  * @const
  */
- // Calculator order
+// Calculator order
 Blockly.FieldNumber.NUMPAD_BUTTONS =
     ['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0', '-', ' '];
 
@@ -335,3 +371,5 @@ Blockly.FieldNumber.prototype.onHide_ = function() {
   Blockly.DropDownDiv.content_.removeAttribute('role');
   Blockly.DropDownDiv.content_.removeAttribute('aria-haspopup');
 };
+
+Blockly.Field.register('field_number', Blockly.FieldNumber);

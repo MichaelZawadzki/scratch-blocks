@@ -57,6 +57,13 @@ Blockly.Input = function(type, name, block, connection) {
   this.connection = connection;
   /** @type {!Array.<!Blockly.Field>} */
   this.fieldRow = [];
+
+  /**
+   * The shape that is displayed when this input is rendered but not filled.
+   * @type {SVGElement}
+   * @package
+   */
+  this.outlinePath = null;
 };
 
 /**
@@ -212,6 +219,19 @@ Blockly.Input.prototype.setCheck = function(check) {
 };
 
 /**
+ * Change a connection's shape.
+ * @param {string|null} shape Shape of the connection.  Null if it should instead rely on the 'check'.
+ * @return {!Blockly.Input} The input being modified (to allow chaining).
+ */
+Blockly.Input.prototype.setShape = function(shape) {
+  if (!this.connection) {
+    throw 'This input does not have a connection.';
+  }
+  this.connection.setShape(shape);
+  return this;
+};
+
+/**
  * Change the alignment of the connection's field(s).
  * @param {number} align One of Blockly.ALIGN_LEFT, ALIGN_CENTRE, ALIGN_RIGHT.
  *   In RTL mode directions are reversed, and ALIGN_RIGHT aligns to the left.
@@ -241,6 +261,9 @@ Blockly.Input.prototype.init = function() {
  * Sever all links to this input.
  */
 Blockly.Input.prototype.dispose = function() {
+  if (this.outlinePath) {
+    goog.dom.removeNode(this.outlinePath);
+  }
   for (var i = 0, field; field = this.fieldRow[i]; i++) {
     field.dispose();
   }
@@ -248,4 +271,28 @@ Blockly.Input.prototype.dispose = function() {
     this.connection.dispose();
   }
   this.sourceBlock_ = null;
+};
+
+/**
+ * Create the input shape path element and attach it to the given SVG element.
+ * @param {!SVGElement} svgRoot The parent on which ot append the new element.
+ * @package
+ */
+Blockly.Input.prototype.initOutlinePath = function(svgRoot) {
+  if (!this.sourceBlock_.workspace.rendered) {
+    return;  // Headless blocks don't need field outlines.
+  }
+  if (this.outlinePath) {
+    return;
+  }
+  if (this.type == Blockly.INPUT_VALUE) {
+    this.outlinePath = Blockly.utils.createSvgElement(
+        'path',
+        {
+          'class': 'blocklyPath',
+          'style': 'visibility: hidden', // Hide by default - shown when not connected.
+          'd': ''  // IE doesn't like paths without the data definition, set an empty default
+        },
+        svgRoot);
+  }
 };

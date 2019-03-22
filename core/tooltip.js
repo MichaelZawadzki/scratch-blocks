@@ -181,10 +181,10 @@ Blockly.Tooltip.onMouseOver_ = function(e) {
 
 /**
  * Hide the tooltip if the mouse leaves the object and enters the workspace.
- * @param {!Event} e Mouse event.
+ * @param {!Event} _e Mouse event.
  * @private
  */
-Blockly.Tooltip.onMouseOut_ = function(/*e*/) {
+Blockly.Tooltip.onMouseOut_ = function(_e) {
   if (Blockly.Tooltip.blocked_) {
     // Someone doesn't want us to show tooltips.
     return;
@@ -248,7 +248,9 @@ Blockly.Tooltip.hide = function() {
       Blockly.Tooltip.DIV.style.display = 'none';
     }
   }
-  clearTimeout(Blockly.Tooltip.showPid_);
+  if (Blockly.Tooltip.showPid_) {
+    clearTimeout(Blockly.Tooltip.showPid_);
+  }
 };
 
 /**

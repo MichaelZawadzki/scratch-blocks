@@ -48,7 +48,7 @@ Blockly.SNAP_RADIUS = 48;
  * Maximum misalignment between connections for them to snap together,
  * when a connection is already highlighted.
  */
-Blockly.CONNECTING_SNAP_RADIUS = 96;
+Blockly.CONNECTING_SNAP_RADIUS = 68;
 
 /**
  * How much to prefer staying connected to the current connection over moving to
@@ -71,6 +71,16 @@ Blockly.COLLAPSE_CHARS = 30;
  * Length in ms for a touch to become a long press.
  */
 Blockly.LONGPRESS = 750;
+
+/**
+ * Distance to scroll when a mouse wheel event is received and its delta mode
+ * is line (0x1) instead of pixel (0x0). In these cases, a single "scroll" has
+ * a delta of 1, which makes the workspace scroll very slowly (just one pixel).
+ * To compensate, that delta is multiplied by this value.
+ * @const
+ * @package
+ */
+Blockly.LINE_SCROLL_MULTIPLIER = 15;
 
 /**
  * Prevent a sound from playing if another sound preceded it within this many
@@ -245,20 +255,6 @@ Blockly.OUTPUT_SHAPE_ROUND = 2;
 Blockly.OUTPUT_SHAPE_SQUARE = 3;
 
 /**
- * Radius of stack glow, in px.
- * @type {number}
- * @const
- */
-Blockly.STACK_GLOW_RADIUS = 1.3;
-
-/**
- * Radius of replacement glow, in px.
- * @type {number}
- * @const
- */
-Blockly.REPLACEMENT_GLOW_RADIUS = 2;
-
-/**
  * ENUM for categories.
  * @const
  */
@@ -268,6 +264,7 @@ Blockly.Categories = {
   "sound": "sounds",
   "pen": "pen",
   "data": "data",
+  "dataLists": "data-lists",
   "event": "events",
   "control": "control",
   "sensing": "sensing",
@@ -294,6 +291,20 @@ Blockly.DELETE_AREA_TRASH = 1;
  * @const
  */
 Blockly.DELETE_AREA_TOOLBOX = 2;
+
+/**
+ * OB [CSI-544]
+ * ENUM representing that an event is in the delete area of the left side of the WS
+ * @const
+ */
+Blockly.DELETE_AREA_LEFT = 3;
+
+/**
+ * OB
+ * ENUM representing that an event is in a custom delete area
+ * @const
+ */
+Blockly.DELETE_AREA_CUSTOM = 4;
 
 /**
  * String for use in the "custom" attribute of a category in toolbox xml.
@@ -326,3 +337,87 @@ Blockly.RENAME_VARIABLE_ID = 'RENAME_VARIABLE_ID';
  * @const {string}
  */
 Blockly.DELETE_VARIABLE_ID = 'DELETE_VARIABLE_ID';
+
+/**
+ * String for use in the dropdown created in field_variable,
+ * specifically for broadcast messages.
+ * This string indicates that this option in the dropdown is 'New message...'
+ * and if selected, should trigger the prompt to create a new message.
+ * @const {string}
+ */
+Blockly.NEW_BROADCAST_MESSAGE_ID = 'NEW_BROADCAST_MESSAGE_ID';
+
+/**
+ * String representing the variable type of broadcast message blocks.
+ * This string, for use in differentiating between types of variables,
+ * indicates that the current variable is a broadcast message.
+ * @const {string}
+ */
+Blockly.BROADCAST_MESSAGE_VARIABLE_TYPE = 'broadcast_msg';
+
+/**
+ * String representing the variable type of list blocks.
+ * This string, for use in differentiating between types of variables,
+ * indicates that the current variable is a list.
+ * @const {string}
+ */
+Blockly.LIST_VARIABLE_TYPE = 'list';
+
+// TODO (#1251) Replace '' below with 'scalar', and start using this constant
+// everywhere.
+/**
+ * String representing the variable type of scalar variables.
+ * This string, for use in differentiating between types of variables,
+ * indicates that the current variable is a scalar variable.
+ * @const {string}
+ */
+Blockly.SCALAR_VARIABLE_TYPE = '';
+
+/**
+ * The type of all procedure definition blocks.
+ * @const {string}
+ */
+Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE = 'procedures_definition';
+
+/**
+ * The type of all procedure prototype blocks.
+ * @const {string}
+ */
+Blockly.PROCEDURES_PROTOTYPE_BLOCK_TYPE = 'procedures_prototype';
+
+/**
+ * The type of all procedure call blocks.
+ * @const {string}
+ */
+Blockly.PROCEDURES_CALL_BLOCK_TYPE = 'procedures_call';
+
+/**
+ * OB [CSI-748]
+ * How much to bump the newly created blocks when using the 'duplicate' functionality
+ * on outlined blocks
+ * @const
+ */
+Blockly.OUTLINED_DUPLICATE_BUMP = 30;
+
+/**
+ * OB [CSI-804]
+ * Size of the area where a scroll is detected, at the top of the workspace
+ * @const
+ */
+Blockly.WORKSPACE_EDGE_SCROLL_AREA_SIZE = 40;
+
+/**
+ * OB [CSI-804]
+ * Speed of workspace scrolling
+ * @const
+ */
+Blockly.WORKSPACE_EDGE_SCROLL_SPEED = 3;
+
+/**
+ * ENUM for flyout status button states.
+ * @const
+ */
+Blockly.StatusButtonState = {
+  "READY": "ready",
+  "NOT_READY": "not ready",
+};

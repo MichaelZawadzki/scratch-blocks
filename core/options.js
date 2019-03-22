@@ -46,7 +46,7 @@ Blockly.Options = function(options) {
     var hasDisable = false;
     var hasSounds = false;
   } else {
-    if (!options['toolbox']) {
+    if (!options['toolbox'] && Blockly.Blocks.defaultToolbox) {
       var oParser = new DOMParser();
       var dom = oParser.parseFromString(Blockly.Blocks.defaultToolbox, 'text/xml');
       options['toolbox'] = dom.documentElement;
@@ -99,6 +99,7 @@ Blockly.Options = function(options) {
   if (hasScrollbars === undefined) {
     hasScrollbars = hasCategories;
   }
+
   var hasCss = options['css'];
   if (hasCss === undefined) {
     hasCss = true;
@@ -116,22 +117,13 @@ Blockly.Options = function(options) {
     var oneBasedIndex = !!options['oneBasedIndex'];
   }
 
-  var enableRealtime = !!options['realtime'];
-  var realtimeOptions = enableRealtime ? options['realtimeOptions'] : undefined;
-
-  // Colour overrides provided by the injection
-  var colours = options['colours'];
-  if (colours) {
-    for (var colourProperty in colours) {
-      if (colours.hasOwnProperty(colourProperty) &&
-          Blockly.Colours.hasOwnProperty(colourProperty)) {
-        // If a property is in both colours option and Blockly.Colours,
-        // set the Blockly.Colours value to the override.
-        Blockly.Colours[colourProperty] = colours[colourProperty];
-      }
-    }
+  var useBlockHighlightLayer = options['useBlockHighlightLayer'];
+  if (useBlockHighlightLayer === undefined) {
+    useBlockHighlightLayer = true;
   }
 
+  Blockly.Colours.overrideColours(options['colours']);
+  
   this.RTL = rtl;
   this.oneBasedIndex = oneBasedIndex;
   this.collapse = hasCollapse;
@@ -141,6 +133,7 @@ Blockly.Options = function(options) {
   this.pathToMedia = pathToMedia;
   this.hasCategories = hasCategories;
   this.hasScrollbars = hasScrollbars;
+  this.hideHorizontalScrollbar = options['hideHorizontalScrollbar'];
   this.hasTrashcan = hasTrashcan;
   this.hasSounds = hasSounds;
   this.hasCss = hasCss;
@@ -148,9 +141,23 @@ Blockly.Options = function(options) {
   this.languageTree = languageTree;
   this.gridOptions = Blockly.Options.parseGridOptions_(options);
   this.zoomOptions = Blockly.Options.parseZoomOptions_(options);
-  this.enableRealtime = enableRealtime;
-  this.realtimeOptions = realtimeOptions;
   this.toolboxPosition = toolboxPosition;
+  this.contextMenuOptions = options['contextMenu'];
+  this.disableBlocksContextMenu = options['disableBlocksContextMenu'];
+  this.preventWorkspaceDragging = options['preventWorkspaceDragging'];
+  this.multiTouchScroll = options['multiTouchScroll'];
+  this.dragSingleBlock = options['dragSingleBlock'];
+  this.verticalScrollAtEdges = options['verticalScrollAtEdges'];
+  this.useLeftDeleteArea = options['useLeftDeleteArea'];
+  // OB: Have option to specify a flyout height. Only used when flyout is horizontal
+  this.horizontalFlyoutHeight = options['horizontalFlyoutHeight'];
+  // OB: Enable/disabled drawing of dashed lines on workspace
+  this.useBlockHighlightLayer = useBlockHighlightLayer;
+  // OB [CSI-1392] Flyout scale
+  this.flyoutScale = options['flyoutScale'];
+
+  // OB: Special option: new font. Directly set the CSS constant
+  Blockly.Css.font = options['font'];
 };
 
 /**
