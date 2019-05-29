@@ -2059,7 +2059,7 @@ Blockly.WorkspaceSvg.prototype.scrollTopCenter = function(_offsetTop) {
  * @param {?string} id ID of block center on.
  * @public
  */
-Blockly.WorkspaceSvg.prototype.centerOnBlock = function(id) {
+Blockly.WorkspaceSvg.prototype.centerOnBlock = function(id, thisBlockOnly, offsetX, offsetY) {
   if (!this.scrollbar) {
     console.warn('Tried to scroll a non-scrollable workspace.');
     return;
@@ -2070,10 +2070,17 @@ Blockly.WorkspaceSvg.prototype.centerOnBlock = function(id) {
     return;
   }
 
+  if(offsetY === undefined){
+    offsetY = 0;
+  }
+
+  if(offsetX === undefined){
+      offsetX = 0;
+  }
   // XY is in workspace coordinates.
   var xy = block.getRelativeToSurfaceXY();
   // Height/width is in workspace units.
-  var heightWidth = block.getHeightWidth();
+  var heightWidth = block.getHeightWidth(thisBlockOnly);
 
   // Find the enter of the block in workspace units.
   var blockCenterY = xy.y + heightWidth.height / 2;
@@ -2106,7 +2113,7 @@ Blockly.WorkspaceSvg.prototype.centerOnBlock = function(id) {
   var scrollToCenterY = scrollToBlockY - halfViewHeight;
 
   Blockly.hideChaff();
-  this.scrollbar.set(scrollToCenterX, scrollToCenterY);
+  this.scrollbar.set(scrollToCenterX + offsetX, scrollToCenterY + offsetY);
 };
 
 /**
