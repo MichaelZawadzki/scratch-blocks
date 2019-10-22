@@ -235,12 +235,22 @@ Blockly.Tooltip.onMouseMove_ = function(e) {
     Blockly.Tooltip.lastY_ = e.pageY;
     Blockly.Tooltip.showPid_ =
         setTimeout(Blockly.Tooltip.show_, Blockly.Tooltip.HOVER_MS);
+    if(Blockly.Tooltip.element_.tooltipCallback){
+        setTimeout(Blockly.Tooltip.callback_, Blockly.Tooltip.HOVER_MS);
+    }
+
   }
 };
+/**
+ * Can be assigned to notify when the tooltip is hidden
+ */
+Blockly.Tooltip.hideCallback = undefined;
 
 /**
  * Hide the tooltip.
  */
+
+
 Blockly.Tooltip.hide = function() {
   if (Blockly.Tooltip.visible) {
     Blockly.Tooltip.visible = false;
@@ -250,6 +260,9 @@ Blockly.Tooltip.hide = function() {
   }
   if (Blockly.Tooltip.showPid_) {
     clearTimeout(Blockly.Tooltip.showPid_);
+  }
+  if(Blockly.Tooltip.hideCallback){
+    Blockly.Tooltip.hideCallback();
   }
 };
 
@@ -335,3 +348,27 @@ Blockly.Tooltip.show_ = function() {
   Blockly.Tooltip.DIV.style.top = anchorY + 'px';
   Blockly.Tooltip.DIV.style.left = anchorX + 'px';
 };
+
+
+
+/**
+ * If a callback has been assigned to the element, call it with the x, y and element
+ * @private
+ */
+Blockly.Tooltip.callback_ = function() {
+    if (Blockly.Tooltip.blocked_) {
+      // Someone doesn't want us to show tooltips.
+      return;
+    }
+    // this is called after a timeout. Its possible the element is nulled. 
+    if(!Blockly.Tooltip.element_){
+        return;
+    }
+    var callback = Blockly.Tooltip.element_.tooltipCallback;
+    
+    // find an X/Y just below the cursor.
+    var anchorX = Blockly.Tooltip.lastX_;
+    var anchorY = Blockly.Tooltip.lastY_;
+
+    callback(anchorX, anchorY, Blockly.Tooltip.element_);
+  };
